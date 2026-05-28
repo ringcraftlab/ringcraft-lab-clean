@@ -113,3 +113,9 @@ code {
 .MuiTypography-root {
   font-family: var(--font-body) !important;
 }
+
+.MuiTypography-root,
+h3,
+a {
+  font-family: var(--font-body) !important;
+}
