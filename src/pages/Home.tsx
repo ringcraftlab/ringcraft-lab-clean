@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
-import MenuBookIcon from '@mui/icons-material/MenuBook'
-import EditIcon from '@mui/icons-material/Edit'
+import AutoStoriesIcon from '@mui/icons-material/AutoStories'
+import EditNoteIcon from '@mui/icons-material/EditNote'
 import StoreIcon from '@mui/icons-material/Store'
 import AppButton from '../components/AppButton'
 
@@ -42,7 +42,7 @@ const Brand = styled(Link)({
   fontSize: '20px',
 })
 
-const LogoMark = styled(MenuBookIcon)({
+const LogoMark = styled(AutoStoriesIcon)({
   width: '28px',
   height: '28px',
   color: 'var(--color-primary)',
@@ -235,7 +235,7 @@ export default function Home() {
           <CardGrid>
             <Card>
               <CardIcon aria-hidden="true">
-                <MenuBookIcon />
+                <AutoStoriesIcon />
               </CardIcon>
               <CardTitleLink to="/tool">リフィルを作る</CardTitleLink>
               <CardDescription>
@@ -245,7 +245,7 @@ export default function Home() {
             </Card>
             <Card>
               <CardIcon aria-hidden="true">
-                <EditIcon />
+                <EditNoteIcon />
               </CardIcon>
               <CardTitle>ペン検索</CardTitle>
               <CardDescription>
