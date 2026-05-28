@@ -107,6 +107,8 @@ const Card = styled('article')({
 })
 
 const CardComingSoon = styled(Card)({
+  display: 'flex',
+  flexDirection: 'column',
   alignItems: 'flex-start',
 })
 
