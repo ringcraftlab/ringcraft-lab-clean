@@ -106,6 +106,10 @@ const Card = styled('article')({
   gap: '12px',
 })
 
+const CardComingSoon = styled(Card)({
+  alignItems: 'flex-start',
+})
+
 const CardTitle = styled('h3')({
   color: 'var(--color-text-h)',
   fontWeight: 700,
@@ -229,7 +233,7 @@ export default function Home() {
                 <CardAction>→</CardAction>
               </Card>
             </CardLink>
-            <Card>
+            <CardComingSoon>
               <CardIcon aria-hidden="true">
                 <CreateIcon />
               </CardIcon>
@@ -238,15 +242,15 @@ export default function Home() {
                 小さなペンを集めて、図鑑のようにご紹介する予定です。
               </CardDescription>
               <Badge>準備中</Badge>
-            </Card>
-            <Card>
+            </CardComingSoon>
+            <CardComingSoon>
               <CardIcon aria-hidden="true">
                 <StoreIcon />
               </CardIcon>
               <CardTitle>文具店検索</CardTitle>
               <CardDescription>全国の文具店情報を掲載する予定です。</CardDescription>
               <Badge>準備中</Badge>
-            </Card>
+            </CardComingSoon>
           </CardGrid>
         </CardSection>
       </Container>
