@@ -1,9 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
-import Button from '@mui/material/Button'
 import BookIcon from '@mui/icons-material/Book'
 import CreateIcon from '@mui/icons-material/Create'
 import StoreIcon from '@mui/icons-material/Store'
+import AppButton from '../components/AppButton'
 
 const Page = styled('div')({
   minHeight: '100vh',
@@ -211,22 +211,7 @@ export default function Home() {
           <HeroText>
             M5手帳をもっと楽しく。リフィル作成や文具情報をまとめたポータルサイトです。
           </HeroText>
-          <Button
-            disableElevation
-            onClick={() => navigate('/tool')}
-            sx={{
-              backgroundColor: 'var(--color-primary)',
-              color: '#ffffff',
-              borderRadius: 'var(--radius-btn)',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'var(--color-primary)',
-                filter: 'brightness(0.92)',
-              },
-            }}
-          >
-            リフィルを作る →
-          </Button>
+          <AppButton onClick={() => navigate('/tool')}>リフィルを作る →</AppButton>
         </Hero>
 
         <CardSection>
