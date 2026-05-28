@@ -5,6 +5,7 @@ const StyledButton = styled(Button)({
   backgroundColor: 'var(--color-primary)',
   color: '#ffffff',
   borderRadius: 'var(--radius-btn)',
+  fontFamily: 'var(--font-body)',
   textTransform: 'none',
   '&:hover': {
     filter: 'brightness(0.92)',
