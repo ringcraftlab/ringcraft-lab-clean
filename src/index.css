@@ -28,3 +28,7 @@ body {
   background: var(--color-bg); 
   color: var(--color-text);
 }
+
+.MuiTypography-root {
+  font-family: var(--font-body) !important;
+}
