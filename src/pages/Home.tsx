@@ -37,7 +37,7 @@ const Brand = styled(Link)({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '10px',
-  fontFamily: 'var(--font-heading)',
+  fontFamily: 'var(--font-body)',
   fontWeight: 700,
   fontSize: '20px',
 })
@@ -69,7 +69,7 @@ const Hero = styled('section')({
 
 const HeroTitle = styled('h1')({
   color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-heading)',
+  fontFamily: 'var(--font-body)',
   fontWeight: 700,
   lineHeight: 1.3,
   marginBottom: '16px',
@@ -105,7 +105,7 @@ const Card = styled('article')({
 
 const CardTitleLink = styled(Link)({
   color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-heading)',
+  fontFamily: 'var(--font-body)',
   fontWeight: 700,
   textDecoration: 'none',
   '&:hover': {
@@ -115,7 +115,7 @@ const CardTitleLink = styled(Link)({
 
 const CardTitle = styled('h3')({
   color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-heading)',
+  fontFamily: 'var(--font-body)',
   fontWeight: 700,
 })
 
