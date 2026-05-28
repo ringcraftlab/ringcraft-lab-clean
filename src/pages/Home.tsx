@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 import AppButton from '../components/AppButton'
 
@@ -175,6 +175,8 @@ const IconLink = styled('a')({
 })
 
 export default function Home() {
+  const navigate = useNavigate()
+
   return (
     <Page>
       <Header>
@@ -196,7 +198,7 @@ export default function Home() {
           <HeroText>
             M5手帳をもっと楽しく。リフィル作成や文具情報をまとめたポータルサイトです。
           </HeroText>
-          <AppButton component={Link} to="/tool">
+          <AppButton onClick={() => navigate('/tool')}>
             リフィルを作る →
           </AppButton>
         </Hero>

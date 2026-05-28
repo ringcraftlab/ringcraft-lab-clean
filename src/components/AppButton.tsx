@@ -1,5 +1,6 @@
 import Button, { type ButtonProps } from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
+import type { ElementType } from 'react'
 
 const StyledButton = styled(Button)({
   backgroundColor: 'var(--color-primary)',
@@ -13,6 +14,6 @@ const StyledButton = styled(Button)({
   },
 })
 
-export default function AppButton(props: ButtonProps) {
+export default function AppButton<C extends ElementType = 'button'>(props: ButtonProps<C>) {
   return <StyledButton disableElevation {...props} />
 }
