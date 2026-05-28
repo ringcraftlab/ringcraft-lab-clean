@@ -1,5 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
+import EditIcon from '@mui/icons-material/Edit'
+import StoreIcon from '@mui/icons-material/Store'
 import AppButton from '../components/AppButton'
 
 const Page = styled('div')({
@@ -39,12 +42,10 @@ const Brand = styled(Link)({
   fontSize: '20px',
 })
 
-const LogoMark = styled('span')({
+const LogoMark = styled(MenuBookIcon)({
   width: '28px',
   height: '28px',
-  borderRadius: '50%',
-  backgroundColor: 'var(--color-primary)',
-  display: 'inline-block',
+  color: 'var(--color-primary)',
 })
 
 const Nav = styled('nav')({
@@ -96,6 +97,9 @@ const Card = styled('article')({
   border: '1px solid var(--color-border)',
   borderRadius: 'var(--radius-card)',
   padding: '20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
 })
 
 const CardTitleLink = styled(Link)({
@@ -112,6 +116,30 @@ const CardTitle = styled('h3')({
   color: 'var(--color-text-h)',
   fontFamily: 'var(--font-heading)',
   fontWeight: 700,
+})
+
+const CardIcon = styled('span')({
+  color: 'var(--color-primary)',
+  display: 'inline-flex',
+  alignItems: 'center',
+})
+
+const CardDescription = styled('p')({
+  color: 'var(--color-muted)',
+  fontFamily: 'var(--font-body)',
+  lineHeight: 1.7,
+})
+
+const CardAction = styled(Link)({
+  marginTop: 'auto',
+  alignSelf: 'flex-end',
+  color: 'var(--color-primary)',
+  textDecoration: 'none',
+  fontFamily: 'var(--font-body)',
+  fontWeight: 500,
+  '&:hover': {
+    color: 'var(--color-text-h)',
+  },
 })
 
 const Badge = styled('span')({
@@ -206,14 +234,31 @@ export default function Home() {
         <CardSection>
           <CardGrid>
             <Card>
+              <CardIcon aria-hidden="true">
+                <MenuBookIcon />
+              </CardIcon>
               <CardTitleLink to="/tool">リフィルを作る</CardTitleLink>
+              <CardDescription>
+                システム手帳のリフィルを自分好みに作成できます。
+              </CardDescription>
+              <CardAction to="/tool">→</CardAction>
             </Card>
             <Card>
+              <CardIcon aria-hidden="true">
+                <EditIcon />
+              </CardIcon>
               <CardTitle>ペン検索</CardTitle>
+              <CardDescription>
+                小さなペンを集めて、図鑑のようにご紹介する予定です。
+              </CardDescription>
               <Badge>準備中</Badge>
             </Card>
             <Card>
+              <CardIcon aria-hidden="true">
+                <StoreIcon />
+              </CardIcon>
               <CardTitle>文具店検索</CardTitle>
+              <CardDescription>全国の文具店情報を掲載する予定です。</CardDescription>
               <Badge>準備中</Badge>
             </Card>
           </CardGrid>
