@@ -106,6 +106,7 @@ const Card = styled('article')({
 const CardTitleLink = styled(Link)({
   color: 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
+  fontSize: '1.17rem',
   fontWeight: 700,
   textDecoration: 'none',
   '&:hover': {
