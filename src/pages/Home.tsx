@@ -9,7 +9,6 @@ const Page = styled('div')({
   minHeight: '100vh',
   backgroundColor: 'var(--color-bg)',
   color: 'var(--color-text)',
-  fontFamily: 'var(--font-body)',
 })
 
 const Container = styled('div')({
@@ -31,13 +30,12 @@ const HeaderInner = styled(Container)({
   justifyContent: 'space-between',
 })
 
-const Brand = styled(Link)({
+const Brand = styled('a')({
   textDecoration: 'none',
   color: 'var(--color-text-h)',
   display: 'inline-flex',
   alignItems: 'center',
   gap: '10px',
-  fontFamily: 'var(--font-body)',
   fontWeight: 700,
   fontSize: '20px',
 })
@@ -53,10 +51,9 @@ const Nav = styled('nav')({
   gap: '16px',
 })
 
-const NavLink = styled(Link)({
+const NavLink = styled('a')({
   color: 'var(--color-text)',
   textDecoration: 'none',
-  fontFamily: 'var(--font-body)',
   fontWeight: 500,
   '&:hover': {
     color: 'var(--color-primary)',
@@ -69,7 +66,6 @@ const Hero = styled('section')({
 
 const HeroTitle = styled('h1')({
   color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-body)',
   fontWeight: 700,
   lineHeight: 1.3,
   marginBottom: '16px',
@@ -77,7 +73,6 @@ const HeroTitle = styled('h1')({
 
 const HeroText = styled('p')({
   color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
   lineHeight: 1.8,
   marginBottom: '28px',
 })
@@ -92,6 +87,13 @@ const CardGrid = styled('div')({
   gap: '16px',
 })
 
+const CardLink = styled(Link)({
+  textDecoration: 'none',
+  color: 'inherit',
+  display: 'block',
+  height: '100%',
+})
+
 const Card = styled('article')({
   height: '100%',
   display: 'flex',
@@ -103,22 +105,10 @@ const Card = styled('article')({
   gap: '12px',
 })
 
-const CardTitleLink = styled(Link)({
-  color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-body)',
-  fontWeight: 700,
-  fontSize: '1.17rem',
-  textDecoration: 'none',
-  display: 'block',
-  '&:hover': {
-    color: 'var(--color-primary)',
-  },
-})
-
 const CardTitle = styled('h3')({
   color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-body)',
   fontWeight: 700,
+  fontSize: '1.17rem',
 })
 
 const CardIcon = styled('span')({
@@ -129,20 +119,14 @@ const CardIcon = styled('span')({
 
 const CardDescription = styled('p')({
   color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
   lineHeight: 1.7,
 })
 
-const CardAction = styled(Link)({
+const CardAction = styled('span')({
   marginTop: 'auto',
   alignSelf: 'flex-end',
   color: 'var(--color-primary)',
-  textDecoration: 'none',
-  fontFamily: 'var(--font-body)',
   fontWeight: 500,
-  '&:hover': {
-    color: 'var(--color-text-h)',
-  },
 })
 
 const Badge = styled('span')({
@@ -152,7 +136,6 @@ const Badge = styled('span')({
   borderRadius: 'var(--radius-btn)',
   border: '1px solid var(--color-border)',
   color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
   fontWeight: 500,
   fontSize: '13px',
 })
@@ -179,10 +162,9 @@ const FooterLinks = styled('div')({
   gap: '14px',
 })
 
-const FooterLink = styled(Link)({
+const FooterLink = styled('a')({
   color: 'var(--color-text)',
   textDecoration: 'none',
-  fontFamily: 'var(--font-body)',
   fontWeight: 500,
   '&:hover': {
     color: 'var(--color-primary)',
@@ -212,13 +194,13 @@ export default function Home() {
     <Page>
       <Header>
         <HeaderInner>
-          <Brand to="/">
+          <Brand href="/">
             <LogoMark aria-hidden="true" />
             RingCraft Lab
           </Brand>
           <Nav aria-label="global navigation">
-            <NavLink to="/">ホーム</NavLink>
-            <NavLink to="/news">お知らせ</NavLink>
+            <NavLink href="/">ホーム</NavLink>
+            <NavLink href="/news">お知らせ</NavLink>
           </Nav>
         </HeaderInner>
       </Header>
@@ -229,23 +211,23 @@ export default function Home() {
           <HeroText>
             M5手帳をもっと楽しく。リフィル作成や文具情報をまとめたポータルサイトです。
           </HeroText>
-          <AppButton onClick={() => navigate('/tool')}>
-            リフィルを作る →
-          </AppButton>
+          <AppButton onClick={() => navigate('/tool')}>リフィルを作る →</AppButton>
         </Hero>
 
         <CardSection>
           <CardGrid>
-            <Card>
-              <CardIcon aria-hidden="true">
-                <BookIcon />
-              </CardIcon>
-              <CardTitleLink to="/tool">リフィルを作る</CardTitleLink>
-              <CardDescription>
-                システム手帳のリフィルを自分好みに作成できます。
-              </CardDescription>
-              <CardAction to="/tool">→</CardAction>
-            </Card>
+            <CardLink to="/tool" aria-label="リフィルを作る">
+              <Card>
+                <CardIcon aria-hidden="true">
+                  <BookIcon />
+                </CardIcon>
+                <CardTitle>リフィルを作る</CardTitle>
+                <CardDescription>
+                  システム手帳のリフィルを自分好みに作成できます。
+                </CardDescription>
+                <CardAction>→</CardAction>
+              </Card>
+            </CardLink>
             <Card>
               <CardIcon aria-hidden="true">
                 <CreateIcon />
@@ -270,13 +252,13 @@ export default function Home() {
 
       <Footer>
         <FooterInner>
-          <Brand to="/">
+          <Brand href="/">
             <LogoMark aria-hidden="true" />
             RingCraft Lab
           </Brand>
           <FooterLinks>
-            <FooterLink to="/news">お知らせ</FooterLink>
-            <FooterLink to="/contact">お問い合わせ</FooterLink>
+            <FooterLink href="/news">お知らせ</FooterLink>
+            <FooterLink href="/contact">お問い合わせ</FooterLink>
             <IconLink href="https://x.com" target="_blank" rel="noreferrer" aria-label="X">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M18.901 1.153h3.68l-8.038 9.188L24 22.847h-7.406l-5.8-7.584-6.639 7.584H.47l8.597-9.826L0 1.154h7.594l5.243 6.932z" />
