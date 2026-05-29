@@ -188,21 +188,39 @@ const BackgroundImageActions = styled(Box)({
   gap: '10px',
 })
 
-const GuideImageStage = styled(Box)({
+const PreviewLayerStack = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'aspectRatio',
+})<{ aspectRatio: string }>(({ aspectRatio }) => ({
+  position: 'relative',
   width: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  aspectRatio,
   backgroundColor: 'var(--color-surface)',
   borderRadius: 'var(--radius-card)',
   border: '1px solid var(--color-border)',
   overflow: 'hidden',
+}))
+
+const PreviewBackgroundLayer = styled(Box)({
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+})
+
+const PreviewOverlayLayer = styled(Box)({
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  zIndex: 1,
+  lineHeight: 0,
 })
 
 const GuideImage = styled('img', {
   shouldForwardProp: (prop) => prop !== 'fitMode' && prop !== 'rotation',
 })<{ fitMode: GuideImageFit; rotation: number }>(({ fitMode, rotation }) => ({
-  display: 'block',
+  position: 'absolute',
+  inset: 0,
   width: '100%',
   height: '100%',
   objectFit: fitMode,
@@ -512,14 +530,25 @@ export default function Step4() {
 
   const previewContent =
     isBackgroundMode && guideImage ? (
-      <GuideImageStage sx={{ aspectRatio: previewAspectRatio }}>
-        <GuideImage
-          src={guideImage}
-          alt="選択した背景画像"
-          fitMode={guideImageFit}
-          rotation={guideImageRotation}
-        />
-      </GuideImageStage>
+      <PreviewLayerStack aspectRatio={previewAspectRatio}>
+        <PreviewBackgroundLayer>
+          <GuideImage
+            src={guideImage}
+            alt="選択した背景画像"
+            fitMode={guideImageFit}
+            rotation={guideImageRotation}
+          />
+        </PreviewBackgroundLayer>
+        {previewLayout ? (
+          <PreviewOverlayLayer>
+            <PrintTypePreview
+              variant="background"
+              layoutParams={layoutParams}
+              emphasized
+            />
+          </PreviewOverlayLayer>
+        ) : null}
+      </PreviewLayerStack>
     ) : (
       printTypePreview
     )
