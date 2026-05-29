@@ -417,7 +417,11 @@ export default function Step1() {
         </CustomCard>
 
         <Actions>
-          <AppButton type="button" disabled={!hasSelection}>
+          <AppButton
+            type="button"
+            disabled={!hasSelection}
+            onClick={() => navigate('/tool/step2')}
+          >
             次へ：作り方を選ぶ
           </AppButton>
         </Actions>

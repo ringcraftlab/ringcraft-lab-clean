@@ -1,5 +1,6 @@
 import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
+import { useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
 import LayoutGridIcon from '../components/LayoutGridIcon'
@@ -169,11 +170,15 @@ function isOptionDisabled(option: WizardLayoutOption): boolean {
 }
 
 export default function Step2() {
+  const navigate = useNavigate()
+
   return (
     <Page>
       <Header>
         <HeaderInner>
-          <BackButton type="button">← Step1に戻る</BackButton>
+          <BackButton type="button" onClick={() => navigate('/tool/step1')}>
+            ← Step1に戻る
+          </BackButton>
         </HeaderInner>
         <HeaderTitle>
           <AppHeaderBrandIcon />
