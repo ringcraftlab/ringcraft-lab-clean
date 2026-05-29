@@ -1,43 +1,22 @@
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
 import TextField from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { SIZES, SIZE_PICKER_LINES } from '../config/sizes'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AppButton from '../components/AppButton'
+import RefillSizeIcon from '../components/RefillSizeIcon'
+import { HOLE_STANDARDS, SIZES } from '../config/sizes'
 
-/** Step1 で表示するプリセット（sizes.ts の定義順とは別に UI 用） */
 const STEP1_PRESET_IDS = ['microfive', 'm5square', 'mini6', 'bible'] as const
 
 type Step1PresetId = (typeof STEP1_PRESET_IDS)[number]
 type SelectedSizeId = Step1PresetId | 'custom'
 
-interface PresetCardView {
-  id: Step1PresetId
-  title: string
-  subtitle: string
-  dims: string
-}
-
-function buildPresetCards(): PresetCardView[] {
-  return STEP1_PRESET_IDS.map((id) => {
-    const size = SIZES.find((entry) => entry.id === id)
-    const lines = SIZE_PICKER_LINES[id]
-    if (!size || !lines || size.w == null || size.h == null) {
-      throw new Error(`Missing size definition for Step1 preset: ${id}`)
-    }
-
-    const title = id === 'm5square' ? size.name : lines[0]
-    const subtitle = id === 'm5square' ? '' : lines[1]
-
-    return {
-      id,
-      title,
-      subtitle,
-      dims: `${size.w}×${size.h}mm`,
-    }
-  })
+const PRESET_SUBTITLES: Record<Step1PresetId, string> = {
+  microfive: 'Micro5 / ミニ5',
+  m5square: 'スクエア',
+  mini6: 'ミニ6 / ポケットサイズ',
+  bible: '聖書サイズ',
 }
 
 const Page = styled('div')({
@@ -55,17 +34,22 @@ const Header = styled('header')({
   borderBottom: '1px solid var(--color-border)',
 })
 
-const HeaderInner = styled('div')({
+const HeaderInner = styled(Box)({
   display: 'flex',
   alignItems: 'center',
   width: '100%',
   padding: '0 24px',
 })
 
-const BackLink = styled(Link)({
+const BackButton = styled('button')({
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  cursor: 'pointer',
   color: 'var(--color-muted)',
-  textDecoration: 'none',
+  fontFamily: 'var(--font-body)',
   fontWeight: 500,
+  fontSize: '1rem',
   flexShrink: 0,
   '&:hover': {
     color: 'var(--color-primary)',
@@ -84,7 +68,7 @@ const HeaderTitle = styled('h1')({
   whiteSpace: 'nowrap',
 })
 
-const Container = styled('div')({
+const Container = styled(Box)({
   width: '100%',
   maxWidth: 'var(--max-width)',
   margin: '0 auto',
@@ -108,7 +92,7 @@ const PageHeading = styled('h2')({
   fontWeight: 700,
   fontSize: '1.5rem',
   lineHeight: 1.4,
-  marginBottom: '28px',
+  margin: '0 0 28px',
 })
 
 const SizeGrid = styled(Box)({
@@ -118,62 +102,71 @@ const SizeGrid = styled(Box)({
   marginBottom: '20px',
 })
 
-const SizeCard = styled(Card, {
+const SizeCard = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'selected',
 })<{ selected?: boolean }>(({ selected }) => ({
   cursor: 'pointer',
   borderRadius: 'var(--radius-card)',
   border: `2px solid ${selected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-  backgroundColor: selected ? 'var(--color-bg)' : 'var(--color-surface)',
-  boxShadow: 'none',
+  backgroundColor: selected
+    ? 'color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))'
+    : 'var(--color-surface)',
+  padding: '20px 12px 16px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '12px',
   transition: 'border-color 0.2s ease, background-color 0.2s ease',
   '&:hover': {
     borderColor: 'var(--color-primary)',
   },
 }))
 
-const SizeCardBody = styled(Box)({
-  padding: '20px 16px',
-  textAlign: 'center',
+const IconWrap = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: '76px',
 })
 
 const SizeCardTitle = styled('p')({
   margin: 0,
   color: 'var(--color-text-h)',
   fontWeight: 700,
-  fontSize: '1.05rem',
+  fontSize: '1rem',
   lineHeight: 1.4,
+  textAlign: 'center',
 })
 
 const SizeCardSubtitle = styled('p')({
-  margin: '6px 0 0',
+  margin: 0,
   color: 'var(--color-muted)',
-  fontSize: '0.85rem',
-  lineHeight: 1.5,
-  minHeight: '1.25em',
+  fontSize: '0.8rem',
+  lineHeight: 1.4,
+  textAlign: 'center',
+  minHeight: '1.2em',
 })
 
 const SizeCardDims = styled('p')({
-  margin: '10px 0 0',
+  margin: 0,
   color: 'var(--color-text)',
   fontWeight: 500,
-  fontSize: '0.9rem',
+  fontSize: '0.85rem',
+  textAlign: 'center',
 })
 
-const CustomCard = styled(Card, {
+const CustomCard = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'selected',
 })<{ selected?: boolean }>(({ selected }) => ({
   cursor: 'pointer',
   borderRadius: 'var(--radius-card)',
   border: `2px dashed ${selected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-  backgroundColor: selected ? 'var(--color-bg)' : 'var(--color-surface)',
-  boxShadow: 'none',
+  backgroundColor: selected
+    ? 'color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))'
+    : 'var(--color-surface)',
+  padding: '20px 24px',
   marginBottom: '40px',
 }))
-
-const CustomCardBody = styled(Box)({
-  padding: '20px 24px',
-})
 
 const CustomCardLabel = styled('p')({
   margin: 0,
@@ -182,12 +175,56 @@ const CustomCardLabel = styled('p')({
   fontSize: '1rem',
 })
 
-const CustomFields = styled(Box)({
+const CustomPanel = styled(Box)({
+  marginTop: '20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '20px',
+})
+
+const CustomFieldsRow = styled(Box)({
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 160px))',
   gap: '16px',
-  marginTop: '16px',
 })
+
+const HoleStandardSection = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+})
+
+const HoleStandardLabel = styled('p')({
+  margin: 0,
+  color: 'var(--color-muted)',
+  fontSize: '0.85rem',
+  fontWeight: 500,
+})
+
+const HoleStandardPills = styled(Box)({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '10px',
+})
+
+const HoleStandardPill = styled('button', {
+  shouldForwardProp: (prop) => prop !== 'active',
+})<{ active?: boolean }>(({ active }) => ({
+  border: `1px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
+  backgroundColor: active
+    ? 'color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))'
+    : 'var(--color-surface)',
+  color: active ? 'var(--color-text-h)' : 'var(--color-text)',
+  borderRadius: 'var(--radius-btn)',
+  padding: '6px 14px',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.85rem',
+  fontWeight: active ? 600 : 500,
+  cursor: 'pointer',
+  '&:hover': {
+    borderColor: 'var(--color-primary)',
+  },
+}))
 
 const MmField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
@@ -226,37 +263,46 @@ function parsePositiveMm(value: string): number | null {
   return n
 }
 
-export default function Step1() {
-  const presetCards = useMemo(() => buildPresetCards(), [])
+function holeStandardLabel(standardId: string): string {
+  const size = SIZES.find((entry) => entry.id === standardId)
+  if (!size) return standardId
+  return size.shortName ?? size.name
+}
 
+export default function Step1() {
+  const navigate = useNavigate()
   const [selectedId, setSelectedId] = useState<SelectedSizeId | null>(null)
-  const [customExpanded, setCustomExpanded] = useState(false)
+  const [customOpen, setCustomOpen] = useState(false)
   const [customWidth, setCustomWidth] = useState('')
   const [customHeight, setCustomHeight] = useState('')
+  const [customHoleStandard, setCustomHoleStandard] = useState<string | null>(null)
 
   const customValid =
     parsePositiveMm(customWidth) !== null && parsePositiveMm(customHeight) !== null
 
   const hasSelection =
-    selectedId !== null && (selectedId !== 'custom' || customValid)
+    selectedId !== null &&
+    (selectedId !== 'custom' || customValid)
 
   const selectPreset = (id: Step1PresetId) => {
     setSelectedId(id)
-    setCustomExpanded(false)
+    setCustomOpen(false)
   }
 
-  const openCustom = () => {
+  const toggleCustom = () => {
     setSelectedId('custom')
-    setCustomExpanded(true)
+    setCustomOpen((open) => !open)
   }
 
   return (
     <Page>
       <Header>
         <HeaderInner>
-          <BackLink to="/tool">← リフィル作成に戻る</BackLink>
+          <BackButton type="button" onClick={() => navigate('/tool')}>
+            ← リフィル作成に戻る
+          </BackButton>
         </HeaderInner>
-        <HeaderTitle>🔖 リフィル作成</HeaderTitle>
+        <HeaderTitle>📒 リフィル作成</HeaderTitle>
       </Header>
 
       <Container>
@@ -264,52 +310,60 @@ export default function Step1() {
         <PageHeading>あなたの手帳のサイズは？</PageHeading>
 
         <SizeGrid>
-          {presetCards.map((size) => (
-            <SizeCard
-              key={size.id}
-              selected={selectedId === size.id}
-              onClick={() => selectPreset(size.id)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  selectPreset(size.id)
-                }
-              }}
-            >
-              <SizeCardBody>
-                <SizeCardTitle>{size.title}</SizeCardTitle>
-                {size.subtitle ? (
-                  <SizeCardSubtitle>{size.subtitle}</SizeCardSubtitle>
-                ) : (
-                  <SizeCardSubtitle aria-hidden="true">&nbsp;</SizeCardSubtitle>
-                )}
-                <SizeCardDims>{size.dims}</SizeCardDims>
-              </SizeCardBody>
-            </SizeCard>
-          ))}
+          {STEP1_PRESET_IDS.map((id) => {
+            const size = SIZES.find((entry) => entry.id === id)
+            if (!size || size.w == null || size.h == null) return null
+
+            const title = size.name
+            const subtitle = PRESET_SUBTITLES[id]
+            const isActive = selectedId === id
+
+            return (
+              <SizeCard
+                key={id}
+                selected={isActive}
+                onClick={() => selectPreset(id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    selectPreset(id)
+                  }
+                }}
+              >
+                <IconWrap>
+                  <RefillSizeIcon sizeId={id} active={isActive} />
+                </IconWrap>
+                <SizeCardTitle>{title}</SizeCardTitle>
+                <SizeCardSubtitle>{subtitle}</SizeCardSubtitle>
+                <SizeCardDims>
+                  {size.w}×{size.h}mm
+                </SizeCardDims>
+              </SizeCard>
+            )
+          })}
         </SizeGrid>
 
         <CustomCard
           selected={selectedId === 'custom'}
-          onClick={() => openCustom()}
+          onClick={() => toggleCustom()}
           role="button"
           tabIndex={0}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault()
-              openCustom()
+              toggleCustom()
             }
           }}
         >
-          <CustomCardBody>
-            <CustomCardLabel>カスタムサイズ（mmで入力）</CustomCardLabel>
-            {customExpanded ? (
-              <CustomFields
-                onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => event.stopPropagation()}
-              >
+          <CustomCardLabel>カスタムサイズ（mmで入力）</CustomCardLabel>
+          {customOpen ? (
+            <CustomPanel
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
+            >
+              <CustomFieldsRow>
                 <MmField
                   label="幅（mm）"
                   type="number"
@@ -332,9 +386,27 @@ export default function Step1() {
                   }}
                   size="small"
                 />
-              </CustomFields>
-            ) : null}
-          </CustomCardBody>
+              </CustomFieldsRow>
+              <HoleStandardSection>
+                <HoleStandardLabel>穴の規格</HoleStandardLabel>
+                <HoleStandardPills>
+                  {HOLE_STANDARDS.map((standard) => (
+                    <HoleStandardPill
+                      key={standard.id}
+                      type="button"
+                      active={customHoleStandard === standard.id}
+                      onClick={() => {
+                        setSelectedId('custom')
+                        setCustomHoleStandard(standard.id)
+                      }}
+                    >
+                      {holeStandardLabel(standard.id)}
+                    </HoleStandardPill>
+                  ))}
+                </HoleStandardPills>
+              </HoleStandardSection>
+            </CustomPanel>
+          ) : null}
         </CustomCard>
 
         <Actions>
