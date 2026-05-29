@@ -1,14 +1,18 @@
 import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
 import LayoutGridIcon from '../components/LayoutGridIcon'
+import { SIZES } from '../config/sizes'
 import { buildWizardLayoutOptions, type WizardLayoutOption } from '../utils/refillSetupOptions'
 
-const DEMO_REFILL_W = 62
-const DEMO_REFILL_H = 105
-const LAYOUT_OPTIONS = buildWizardLayoutOptions(DEMO_REFILL_W, DEMO_REFILL_H)
-const DEFAULT_SELECTED_INDEX = 0
+type Step2LocationState = {
+  sizeId?: string
+  customW?: number
+  customH?: number
+}
 
 const Page = styled('div')({
   minHeight: '100vh',
@@ -86,14 +90,6 @@ const PageHeading = styled('h2')({
   fontWeight: 700,
   fontSize: '1.5rem',
   lineHeight: 1.4,
-  margin: '0 0 12px',
-  fontFamily: 'var(--font-heading)',
-})
-
-const PageSubtext = styled('p')({
-  color: 'var(--color-muted)',
-  fontSize: '0.95rem',
-  lineHeight: 1.6,
   margin: '0 0 28px',
 })
 
@@ -168,12 +164,69 @@ function isOptionDisabled(option: WizardLayoutOption): boolean {
   return option.kind === 'fold' && !option.supported
 }
 
+function resolveRefillDimensions(state: Step2LocationState | null): {
+  refillW: number
+  refillH: number
+} {
+  if (state?.sizeId === 'custom' && state.customW != null && state.customH != null) {
+    return { refillW: state.customW, refillH: state.customH }
+  }
+
+  const size = SIZES.find((entry) => entry.id === state?.sizeId)
+  if (size?.w != null && size?.h != null) {
+    return { refillW: size.w, refillH: size.h }
+  }
+
+  const fallback = SIZES.find((entry) => entry.id === 'microfive')
+  return {
+    refillW: fallback?.w ?? 62,
+    refillH: fallback?.h ?? 105,
+  }
+}
+
+function firstSelectableOptionId(options: WizardLayoutOption[]): string | null {
+  return options.find((option) => !isOptionDisabled(option))?.id ?? null
+}
+
 export default function Step2() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const routeState = (location.state ?? null) as Step2LocationState | null
+
+  const { refillW, refillH } = useMemo(
+    () => resolveRefillDimensions(routeState),
+    [routeState],
+  )
+
+  const layoutOptions = useMemo(
+    () => buildWizardLayoutOptions(refillW, refillH),
+    [refillW, refillH],
+  )
+
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(() =>
+    firstSelectableOptionId(layoutOptions),
+  )
+
+  useEffect(() => {
+    const defaultId = firstSelectableOptionId(layoutOptions)
+    if (!defaultId) {
+      setSelectedOptionId(null)
+      return
+    }
+
+    const current = layoutOptions.find((option) => option.id === selectedOptionId)
+    if (!current || isOptionDisabled(current)) {
+      setSelectedOptionId(defaultId)
+    }
+  }, [layoutOptions, selectedOptionId])
+
   return (
     <Page>
       <Header>
         <HeaderInner>
-          <BackButton type="button">← Step1に戻る</BackButton>
+          <BackButton type="button" onClick={() => navigate('/tool/step1')}>
+            ← Step1に戻る
+          </BackButton>
         </HeaderInner>
         <HeaderTitle>
           <AppHeaderBrandIcon />
@@ -184,20 +237,35 @@ export default function Step2() {
       <Container>
         <StepBadge>Step2</StepBadge>
         <PageHeading>作り方は？</PageHeading>
-        <PageSubtext>M5（62×105mm）向けのレイアウトです。</PageSubtext>
 
         <LayoutGrid>
-          {LAYOUT_OPTIONS.map((option, index) => {
+          {layoutOptions.map((option) => {
             const disabled = isOptionDisabled(option)
-            const selected = !disabled && index === DEFAULT_SELECTED_INDEX
+            const selected = !disabled && option.id === selectedOptionId
 
             return (
-              <LayoutCard key={option.id} selected={selected} disabled={disabled}>
+              <LayoutCard
+                key={option.id}
+                selected={selected}
+                disabled={disabled}
+                onClick={() => {
+                  if (!disabled) setSelectedOptionId(option.id)
+                }}
+                role="button"
+                tabIndex={disabled ? -1 : 0}
+                onKeyDown={(event) => {
+                  if (disabled) return
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    setSelectedOptionId(option.id)
+                  }
+                }}
+              >
                 <IconWrap>
                   <LayoutGridIcon
                     option={option}
-                    refillW={DEMO_REFILL_W}
-                    refillH={DEMO_REFILL_H}
+                    refillW={refillW}
+                    refillH={refillH}
                     active={selected}
                   />
                 </IconWrap>

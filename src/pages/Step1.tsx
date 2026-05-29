@@ -298,6 +298,25 @@ export default function Step1() {
     setCustomOpen((open) => !open)
   }
 
+  const goToStep2 = () => {
+    if (!hasSelection || selectedId === null) return
+
+    if (selectedId === 'custom') {
+      const customW = parsePositiveMm(customWidth)
+      const customH = parsePositiveMm(customHeight)
+      if (customW === null || customH === null) return
+
+      navigate('/tool/step2', {
+        state: { sizeId: 'custom', customW, customH },
+      })
+      return
+    }
+
+    navigate('/tool/step2', {
+      state: { sizeId: selectedId, customW: undefined, customH: undefined },
+    })
+  }
+
   return (
     <Page>
       <Header>
@@ -417,7 +436,7 @@ export default function Step1() {
         </CustomCard>
 
         <Actions>
-          <AppButton type="button" disabled={!hasSelection}>
+          <AppButton type="button" disabled={!hasSelection} onClick={goToStep2}>
             次へ：作り方を選ぶ
           </AppButton>
         </Actions>
