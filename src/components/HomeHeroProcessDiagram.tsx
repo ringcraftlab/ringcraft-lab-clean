@@ -107,9 +107,9 @@ function A4SheetSvg({ layout }: LayoutSvgProps): ReactElement {
   return (
     <svg
       viewBox={`0 0 ${paperW} ${paperH}`}
-      width="100%"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden
-      style={{ display: 'block', height: 'auto', maxHeight: 220 }}
+      className="home-hero-process__a4-svg"
     >
       <rect width={paperW} height={paperH} fill={PAPER} rx="1.5" />
       <rect
@@ -135,9 +135,9 @@ function CutRefillSvg({ layout }: LayoutSvgProps): ReactElement {
   return (
     <svg
       viewBox={`0 0 ${vbW} ${vbH}`}
-      width="100%"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden
-      style={{ height: 'auto', maxWidth: 140 }}
+      className="home-hero-process__cut-svg"
     >
       <ellipse cx={vbW / 2} cy={vbH / 2 - 4} rx={vbW * 0.52} ry={vbH * 0.48} fill="#f5ede0" opacity="0.9" />
       <g transform={`translate(${pad}, ${pad})`}>

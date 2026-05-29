@@ -146,6 +146,23 @@ const ProcessSection = styled('section')({
     backgroundColor: 'var(--color-bg)',
     borderRadius: '8px',
     padding: '10px',
+    width: '100%',
+  },
+  '& .home-hero-process__a4-svg': {
+    display: 'block',
+    width: '100%',
+    maxWidth: '100%',
+    height: 'auto',
+    minHeight: '140px',
+    maxHeight: '220px',
+  },
+  '& .home-hero-process__cut-svg': {
+    display: 'block',
+    width: '100%',
+    maxWidth: '140px',
+    height: 'auto',
+    minHeight: '120px',
+    margin: '0 auto',
   },
   '& .home-hero-process__note': {
     color: 'var(--color-muted)',
