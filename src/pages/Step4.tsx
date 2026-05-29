@@ -8,7 +8,10 @@ import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
 import PrintTypePreview, { type PrintTypePreviewVariant } from '../components/PrintTypePreview'
 import { getHolePositions, SIZES, type SizeDefinition } from '../config/sizes'
-import { buildPrintTypePreviewLayout } from '../utils/printTypePreviewLayout'
+import {
+  buildPrintTypePreviewLayout,
+  type PrintTypePreviewLayout,
+} from '../utils/printTypePreviewLayout'
 
 type Step4LocationState = {
   sizeId?: string
@@ -122,6 +125,79 @@ const SideColumn = styled(Box)({
   width: '280px',
   flexShrink: 0,
   minHeight: '120px',
+})
+
+const ImagesSidePanel = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+})
+
+const ImagesPaperFrame = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'aspectRatio',
+})<{ aspectRatio: string }>(({ aspectRatio }) => ({
+  position: 'relative',
+  width: '100%',
+  aspectRatio,
+  backgroundColor: 'var(--color-surface)',
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-card)',
+  overflow: 'hidden',
+}))
+
+const SlotButton = styled('button', {
+  shouldForwardProp: (prop) =>
+    prop !== 'hasImage' &&
+    prop !== 'isActive' &&
+    prop !== 'slotLeft' &&
+    prop !== 'slotTop' &&
+    prop !== 'slotWidth' &&
+    prop !== 'slotHeight',
+})<{
+  hasImage?: boolean
+  isActive?: boolean
+  slotLeft: number
+  slotTop: number
+  slotWidth: number
+  slotHeight: number
+}>(({ hasImage, isActive, slotLeft, slotTop, slotWidth, slotHeight }) => ({
+  position: 'absolute',
+  left: `${slotLeft}%`,
+  top: `${slotTop}%`,
+  width: `${slotWidth}%`,
+  height: `${slotHeight}%`,
+  margin: 0,
+  padding: 0,
+  border: `2px solid ${isActive ? 'var(--color-primary)' : 'var(--color-border)'}`,
+  backgroundColor: hasImage
+    ? 'var(--color-surface)'
+    : 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))',
+  cursor: 'pointer',
+  overflow: 'hidden',
+  transition: 'border-color 0.2s ease, background-color 0.2s ease',
+  '&:hover': {
+    borderColor: 'var(--color-primary)',
+  },
+}))
+
+const SlotImage = styled('img')({
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+})
+
+const SlotPlus = styled('span')({
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'var(--color-primary)',
+  fontSize: '1.75rem',
+  fontWeight: 300,
+  lineHeight: 1,
+  pointerEvents: 'none',
 })
 
 const MainColumn = styled(Box)({
@@ -444,6 +520,117 @@ function resolveSizePreset(sizeId?: string): SizeDefinition | undefined {
   return SIZES.find((entry) => entry.id === sizeId)
 }
 
+function getSlotCount(layout: PrintTypePreviewLayout): number {
+  if (layout.kind === 'fold') {
+    return layout.fold.bookCount * layout.fold.foldCount
+  }
+  return layout.cols * layout.rows
+}
+
+function placeImagesInEmptySlots(
+  prev: Record<number, string>,
+  urls: string[],
+  total: number,
+): Record<number, string> {
+  const next = { ...prev }
+  let urlIndex = 0
+  for (let slot = 0; slot < total && urlIndex < urls.length; slot += 1) {
+    if (!next[slot]) {
+      next[slot] = urls[urlIndex]
+      urlIndex += 1
+    }
+  }
+  return next
+}
+
+type SlotRectPercent = {
+  index: number
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+function buildSlotRects(layout: PrintTypePreviewLayout): SlotRectPercent[] {
+  const { paperW, paperH, refillW, refillH } = layout
+  const slots: SlotRectPercent[] = []
+
+  if (layout.kind === 'fold') {
+    const { marginX, marginY, bookCount, foldCount, panelW, holeZoneMm } = layout.fold
+    for (let row = 0; row < bookCount; row += 1) {
+      for (let col = 0; col < foldCount; col += 1) {
+        const index = row * foldCount + col
+        const x = marginX + holeZoneMm + col * panelW
+        const y = marginY + row * refillH
+        slots.push({
+          index,
+          left: (x / paperW) * 100,
+          top: (y / paperH) * 100,
+          width: (panelW / paperW) * 100,
+          height: (refillH / paperH) * 100,
+        })
+      }
+    }
+    return slots
+  }
+
+  const { cols, rows, marginX, marginY } = layout
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const index = row * cols + col
+      const x = marginX + col * refillW
+      const y = marginY + row * refillH
+      slots.push({
+        index,
+        left: (x / paperW) * 100,
+        top: (y / paperH) * 100,
+        width: (refillW / paperW) * 100,
+        height: (refillH / paperH) * 100,
+      })
+    }
+  }
+  return slots
+}
+
+interface ImagesSlotPreviewProps {
+  layout: PrintTypePreviewLayout
+  images: Record<number, string>
+  activeSlot: number | null
+  onSlotClick: (index: number) => void
+}
+
+function ImagesSlotPreview({ layout, images, activeSlot, onSlotClick }: ImagesSlotPreviewProps) {
+  const aspectRatio = `${layout.paperW} / ${layout.paperH}`
+  const slotRects = useMemo(() => buildSlotRects(layout), [layout])
+
+  return (
+    <ImagesPaperFrame aspectRatio={aspectRatio}>
+      {slotRects.map((rect) => {
+        const src = images[rect.index]
+        const hasImage = Boolean(src)
+        const isActive = activeSlot === rect.index
+
+        return (
+          <SlotButton
+            key={rect.index}
+            type="button"
+            hasImage={hasImage}
+            isActive={isActive}
+            slotLeft={rect.left}
+            slotTop={rect.top}
+            slotWidth={rect.width}
+            slotHeight={rect.height}
+            aria-label={hasImage ? `${rect.index + 1}番の写真` : `${rect.index + 1}番に写真を追加`}
+            onClick={() => onSlotClick(rect.index)}
+          >
+            {hasImage ? <SlotImage src={src} alt="" /> : <SlotPlus>+</SlotPlus>}
+          </SlotButton>
+        )
+      })}
+    </ImagesPaperFrame>
+  )
+}
+
 export default function Step4() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -455,9 +642,13 @@ export default function Step4() {
   const pageHeading = PRINT_TYPE_HEADINGS[printType] ?? PRINT_TYPE_HEADINGS.frame
 
   const guideImageInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileInputMultiRef = useRef<HTMLInputElement>(null)
   const [guideImage, setGuideImage] = useState('')
   const [guideImageFit, setGuideImageFit] = useState<GuideImageFit>('contain')
   const [guideImageRotation, setGuideImageRotation] = useState(0)
+  const [images, setImages] = useState<Record<number, string>>({})
+  const [activeSlot, setActiveSlot] = useState<number | null>(null)
 
   const { refillW, refillH } = useMemo(
     () => resolveRefillDimensions(routeState),
@@ -509,6 +700,57 @@ export default function Step4() {
     setGuideImageRotation(0)
   }, [])
 
+  const handleSlotClick = useCallback((index: number) => {
+    setActiveSlot(index)
+    fileInputRef.current?.click()
+  }, [])
+
+  const handleFileInput = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      event.target.value = ''
+      if (!file || activeSlot === null) return
+
+      const reader = new FileReader()
+      reader.onload = (loadEvent) => {
+        const result = loadEvent.target?.result
+        if (typeof result !== 'string') return
+        const slot = activeSlot
+        setImages((prev) => ({ ...prev, [slot]: result }))
+      }
+      reader.readAsDataURL(file)
+    },
+    [activeSlot],
+  )
+
+  const handleMultiInput = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(event.target.files ?? [])
+      event.target.value = ''
+      if (!files.length || !previewLayout) return
+
+      const total = getSlotCount(previewLayout)
+      const readers = files.map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = (loadEvent) => {
+              const result = loadEvent.target?.result
+              if (typeof result === 'string') resolve(result)
+              else reject(new Error('read failed'))
+            }
+            reader.onerror = () => reject(reader.error)
+            reader.readAsDataURL(file)
+          }),
+      )
+
+      void Promise.all(readers).then((urls) => {
+        setImages((prev) => placeImagesInEmptySlots(prev, urls, total))
+      })
+    },
+    [previewLayout],
+  )
+
   const goBackToStep3 = () => {
     navigate('/tool/step3', {
       state: {
@@ -554,9 +796,41 @@ export default function Step4() {
           </PreviewOverlayLayer>
         ) : null}
       </PreviewLayerStack>
+    ) : isImagesMode && previewLayout ? (
+      <ImagesSlotPreview
+        layout={previewLayout}
+        images={images}
+        activeSlot={activeSlot}
+        onSlotClick={handleSlotClick}
+      />
+    ) : isImagesMode ? (
+      <PreviewFallback>このサイズ・レイアウトではプレビューを表示できません。</PreviewFallback>
     ) : (
       printTypePreview
     )
+
+  const imagesSideColumn = isImagesMode ? (
+    <SideColumn aria-label="操作エリア">
+      <ImagesSidePanel>
+        <HiddenFileInput
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileInput}
+        />
+        <HiddenFileInput
+          ref={fileInputMultiRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleMultiInput}
+        />
+        <AppButton type="button" onClick={() => fileInputMultiRef.current?.click()}>
+          写真を選ぶ
+        </AppButton>
+      </ImagesSidePanel>
+    </SideColumn>
+  ) : null
 
   const backgroundImagePicker = isBackgroundMode ? (
     <BackgroundImagePanel>
@@ -710,7 +984,7 @@ export default function Step4() {
       <Container>
         {isImagesMode ? (
           <TwoColumnLayout>
-            <SideColumn aria-label="操作エリア" />
+            {imagesSideColumn}
             <MainColumn>{mainBlock}</MainColumn>
           </TwoColumnLayout>
         ) : (
