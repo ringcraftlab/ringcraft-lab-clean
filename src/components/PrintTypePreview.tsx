@@ -70,16 +70,30 @@ interface SheetCellProps {
   variant: PrintTypePreviewVariant
   showImage: boolean
   emphasized: boolean
+  showHoleGuide: boolean
+  holeSide: 'left' | 'right'
 }
 
+type SheetPreviewLayoutWithHoleGuide = Extract<PrintTypePreviewLayout, { kind: 'sheet' }> & {
+  showHoleGuide: boolean
+  holeSide: 'left' | 'right'
+}
+
+type FoldPreviewLayoutWithHoleGuide = Extract<PrintTypePreviewLayout, { kind: 'fold' }> & {
+  showHoleGuide: boolean
+  holeSide: 'left' | 'right'
+}
+
+type PreviewLayoutWithHoleGuide = SheetPreviewLayoutWithHoleGuide | FoldPreviewLayoutWithHoleGuide
+
 interface SheetPreviewSvgProps {
-  layout: Extract<PrintTypePreviewLayout, { kind: 'sheet' }>
+  layout: SheetPreviewLayoutWithHoleGuide
   variant: PrintTypePreviewVariant
   emphasized: boolean
 }
 
 interface FoldPreviewSvgProps {
-  layout: Extract<PrintTypePreviewLayout, { kind: 'fold' }>
+  layout: FoldPreviewLayoutWithHoleGuide
   variant: PrintTypePreviewVariant
   emphasized: boolean
 }
@@ -186,17 +200,34 @@ function sheetBorderStroke(_variant: PrintTypePreviewVariant, emphasized: boolea
   return emphasized ? BORDER_EMPH : BORDER
 }
 
-function SheetCell({ x, y, w, h, holePosY, holeZoneMm, variant, showImage, emphasized }: SheetCellProps) {
+function SheetCell({
+  x,
+  y,
+  w,
+  h,
+  holePosY,
+  holeZoneMm,
+  variant,
+  showImage,
+  emphasized,
+  showHoleGuide,
+  holeSide,
+}: SheetCellProps) {
   if (variant === 'background') return null
 
   const border = sheetBorderStroke(variant, emphasized)
   const holeStroke = emphasized ? HOLE_EMPH : HOLE
   const sw = emphasized ? 0.52 : 0.4
+  const holeZoneX = holeSide === 'right' ? x + w - holeZoneMm : x
+  const holeCx = holeSide === 'right' ? x + w - holeZoneMm / 2 : x + holeZoneMm / 2
+  const contentX = holeSide === 'right' ? x + 0.5 : x + holeZoneMm + 0.5
+  const contentW = w - holeZoneMm - 1
+
   return (
     <g>
       <rect x={x} y={y} width={w} height={h} fill="#fff" stroke={border} strokeWidth={sw} />
       <rect
-        x={x}
+        x={holeZoneX}
         y={y}
         width={holeZoneMm}
         height={h}
@@ -204,22 +235,24 @@ function SheetCell({ x, y, w, h, holePosY, holeZoneMm, variant, showImage, empha
         stroke={border}
         strokeWidth={emphasized ? 0.36 : 0.28}
       />
-      {holePosY.map((posY, i) => (
-        <circle
-          key={i}
-          cx={x + holeZoneMm / 2}
-          cy={y + posY}
-          r={emphasized ? 1 : 0.85}
-          fill="none"
-          stroke={holeStroke}
-          strokeWidth={emphasized ? 0.5 : 0.4}
-        />
-      ))}
+      {showHoleGuide
+        ? holePosY.map((posY, i) => (
+            <circle
+              key={i}
+              cx={holeCx}
+              cy={y + posY}
+              r={emphasized ? 1 : 0.85}
+              fill="none"
+              stroke={holeStroke}
+              strokeWidth={emphasized ? 0.5 : 0.4}
+            />
+          ))
+        : null}
       {showImage ? (
         <PhotoPlaceholder
-          x={x + holeZoneMm + 0.5}
+          x={contentX}
           y={y + 1.5}
-          w={w - holeZoneMm - 1}
+          w={contentW}
           h={h - 3}
           emphasized={emphasized}
         />
@@ -229,7 +262,20 @@ function SheetCell({ x, y, w, h, holePosY, holeZoneMm, variant, showImage, empha
 }
 
 function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) {
-  const { paperW, paperH, refillW, refillH, cols, rows, marginX, marginY, holePosY, holeZoneMm } = layout
+  const {
+    paperW,
+    paperH,
+    refillW,
+    refillH,
+    cols,
+    rows,
+    marginX,
+    marginY,
+    holePosY,
+    holeZoneMm,
+    showHoleGuide,
+    holeSide,
+  } = layout
   const bgPatternId = `print-type-bg-${layout.kind}-${cols}x${rows}`
   const cells: ReactElement[] = []
 
@@ -255,6 +301,8 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
           variant={variant}
           showImage={showImage}
           emphasized={emphasized}
+          showHoleGuide={showHoleGuide}
+          holeSide={holeSide}
         />,
       )
     }
@@ -319,19 +367,28 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
 }
 
 function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
-  const { paperW, paperH, refillH, holePosY, holeZoneMm, fold } = layout
+  const { paperW, paperH, refillH, holePosY, holeZoneMm, fold, showHoleGuide, holeSide } = layout
   const { marginX, marginY, bookCount, foldCount, panelW } = fold
   const strips: ReactElement[] = []
 
   for (let row = 0; row < bookCount; row += 1) {
     const y = marginY + row * refillH
     const stripX = marginX
+    const stripWidth = holeZoneMm + panelW * foldCount
+    const holeZoneX =
+      holeSide === 'right' ? stripX + panelW * foldCount : stripX
+    const holeCx =
+      holeSide === 'right'
+        ? stripX + panelW * foldCount + holeZoneMm / 2
+        : stripX + holeZoneMm / 2
+    const panelBaseX = holeSide === 'right' ? stripX : stripX + holeZoneMm
+
     strips.push(
       <g key={`row-${row}`}>
         <rect
           x={stripX}
           y={y}
-          width={holeZoneMm + panelW * foldCount}
+          width={stripWidth}
           height={refillH}
           fill={variant === 'background' ? 'none' : '#fff'}
           stroke={sheetBorderStroke(variant, emphasized)}
@@ -339,7 +396,7 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
         />
         {variant !== 'background' ? (
           <rect
-            x={stripX}
+            x={holeZoneX}
             y={y}
             width={holeZoneMm}
             height={refillH}
@@ -348,11 +405,11 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
             strokeWidth={emphasized ? 0.36 : 0.28}
           />
         ) : null}
-        {variant !== 'background'
+        {variant !== 'background' && showHoleGuide
           ? holePosY.map((posY, i) => (
               <circle
                 key={i}
-                cx={stripX + holeZoneMm / 2}
+                cx={holeCx}
                 cy={y + posY}
                 r={emphasized ? 1 : 0.85}
                 fill="none"
@@ -362,7 +419,7 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
             ))
           : null}
         {Array.from({ length: foldCount }, (_, col) => {
-          const x = stripX + holeZoneMm + col * panelW
+          const x = panelBaseX + col * panelW
           const showImage = variant === 'images' && row === 0 && col === 1
           return (
             <g key={`panel-${row}-${col}`}>
@@ -447,8 +504,8 @@ export default function PrintTypePreview({
   emphasized = false,
 }: PrintTypePreviewProps) {
   const vivid = emphasized || compact
-  const layout = buildPrintTypePreviewLayout(layoutParams)
-  if (!layout) {
+  const baseLayout = buildPrintTypePreviewLayout(layoutParams)
+  if (!baseLayout) {
     return compact ? (
       <span style={compactFallbackStyle}>—</span>
     ) : (
@@ -456,6 +513,12 @@ export default function PrintTypePreview({
         このサイズ・レイアウトではプレビューを表示できません。
       </p>
     )
+  }
+
+  const layout: PreviewLayoutWithHoleGuide = {
+    ...baseLayout,
+    showHoleGuide: layoutParams.showHoleGuide ?? true,
+    holeSide: layoutParams.holeSide ?? 'left',
   }
 
   const svg =
