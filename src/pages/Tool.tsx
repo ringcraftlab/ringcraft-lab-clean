@@ -1,6 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
-import AppButton from '../components/AppButton'
 import HomeFlowCta from '../components/HomeFlowCta'
 import HomeHeroProcessDiagram from '../components/HomeHeroProcessDiagram'
 import HomeHeroPrintImagery from '../components/HomeHeroPrintImagery'
@@ -101,27 +100,11 @@ const flowCtaStyles = {
   },
 }
 
-const FlowCtaWrap = styled('div')({
-  ...flowCtaStyles,
-  position: 'relative',
-  display: 'inline-block',
-})
+const FlowCtaWrap = styled('div')(flowCtaStyles)
 
 const FlowCtaWrapBottom = styled('div')({
   ...flowCtaStyles,
   marginBottom: '24px',
-  position: 'relative',
-  display: 'inline-block',
-})
-
-const FlowCtaOverlay = styled(AppButton)({
-  position: 'absolute',
-  inset: 0,
-  minWidth: 0,
-  width: '100%',
-  height: '100%',
-  opacity: 0,
-  padding: 0,
 })
 
 const ProcessSection = styled('section')({
@@ -213,8 +196,6 @@ const BottomSection = styled('section')({
 })
 
 export default function Tool() {
-  const navigate = useNavigate()
-
   return (
     <Page>
       <Header>
@@ -234,13 +215,6 @@ export default function Tool() {
           </HeroDescription>
           <FlowCtaWrap>
             <HomeFlowCta />
-            <FlowCtaOverlay
-              type="button"
-              onClick={() => navigate('/tool/step1')}
-              aria-label="リフィル作成を始める"
-            >
-              リフィルを作ってみる
-            </FlowCtaOverlay>
           </FlowCtaWrap>
         </Hero>
 
@@ -255,13 +229,6 @@ export default function Tool() {
         <BottomSection>
           <FlowCtaWrapBottom>
             <HomeFlowCta />
-            <FlowCtaOverlay
-              type="button"
-              onClick={() => navigate('/tool/step1')}
-              aria-label="リフィル作成を始める"
-            >
-              リフィルを作ってみる
-            </FlowCtaOverlay>
           </FlowCtaWrapBottom>
         </BottomSection>
       </Container>
