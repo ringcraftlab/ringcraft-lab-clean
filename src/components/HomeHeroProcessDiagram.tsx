@@ -1,13 +1,108 @@
+import Box from '@mui/material/Box'
+import { styled } from '@mui/material/styles'
 import { type ReactElement } from 'react'
 import { heroM5LandscapeLayout, type HeroM5LandscapeLayout } from './homeHeroDiagramUtils'
 
-const MUTED = '#9c7d5e'
-const BORDER = '#c9b8a4'
-const BORDER_STRONG = '#a07850'
-const HOLE = '#c8bfb3'
-const PAPER = '#faf8f5'
-const CELL_BG = '#fff'
-const HOLE_ZONE_BG = '#faf8f5'
+const COLOR_MUTED = 'var(--color-muted)'
+const COLOR_BORDER = 'var(--color-border)'
+const COLOR_PRIMARY = 'var(--color-primary)'
+const COLOR_BG = 'var(--color-bg)'
+const COLOR_SURFACE = 'var(--color-surface)'
+
+const Root = styled(Box)({
+  backgroundColor: 'var(--color-surface)',
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-card)',
+  padding: '28px 20px 24px',
+})
+
+const Stage = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '16px',
+  flexWrap: 'wrap',
+})
+
+const Block = styled(Box)({
+  flex: '1 1 220px',
+  maxWidth: '360px',
+  textAlign: 'center',
+})
+
+const ResultBlock = styled(Block)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+})
+
+const Caption = styled('p')({
+  color: 'var(--color-text-h)',
+  fontWeight: 600,
+  fontSize: '0.9rem',
+  lineHeight: 1.5,
+  marginTop: 0,
+  marginBottom: '12px',
+})
+
+const CutCaption = styled(Caption)({
+  marginBottom: '8px',
+})
+
+const SheetWrap = styled(Box)({
+  backgroundColor: 'var(--color-bg)',
+  borderRadius: '8px',
+  padding: '10px',
+  width: '100%',
+})
+
+const Note = styled('p')({
+  color: 'var(--color-muted)',
+  fontSize: '0.8rem',
+  marginTop: '10px',
+  lineHeight: 1.5,
+  marginBottom: 0,
+})
+
+const ArrowWrap = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flex: '0 0 auto',
+})
+
+const FlowNote = styled('p')({
+  textAlign: 'center',
+  color: 'var(--color-muted)',
+  marginTop: '24px',
+  fontSize: '0.9rem',
+  lineHeight: 1.6,
+  marginBottom: 0,
+})
+
+const A4Svg = styled('svg')({
+  display: 'block',
+  width: '100%',
+  maxWidth: '100%',
+  height: 'auto',
+  minHeight: '140px',
+  maxHeight: '220px',
+})
+
+const CutSvg = styled('svg')({
+  display: 'block',
+  width: '100%',
+  maxWidth: '140px',
+  height: 'auto',
+  minHeight: '120px',
+  margin: '0 auto',
+})
+
+const ArrowSvg = styled('svg')({
+  flexShrink: 0,
+  width: '36px',
+  height: '28px',
+})
 
 interface RefillCellProps {
   x: number
@@ -21,14 +116,22 @@ interface RefillCellProps {
 function RefillCell({ x, y, w, h, holePosY, holeZoneMm }: RefillCellProps): ReactElement {
   return (
     <g>
-      <rect x={x} y={y} width={w} height={h} fill={CELL_BG} stroke={BORDER} strokeWidth="0.35" />
+      <rect
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        fill={COLOR_SURFACE}
+        stroke={COLOR_BORDER}
+        strokeWidth="0.35"
+      />
       <rect
         x={x}
         y={y}
         width={holeZoneMm}
         height={h}
-        fill={HOLE_ZONE_BG}
-        stroke={BORDER}
+        fill={COLOR_BG}
+        stroke={COLOR_BORDER}
         strokeWidth="0.25"
       />
       {holePosY.map((posY, i) => (
@@ -38,7 +141,7 @@ function RefillCell({ x, y, w, h, holePosY, holeZoneMm }: RefillCellProps): Reac
           cy={y + posY}
           r="1.15"
           fill="none"
-          stroke={HOLE}
+          stroke={COLOR_BORDER}
           strokeWidth="0.45"
         />
       ))}
@@ -80,7 +183,7 @@ function A4SheetSvg({ layout }: LayoutSvgProps): ReactElement {
         y1={marginY}
         x2={x}
         y2={marginY + rows * refillH}
-        stroke={BORDER_STRONG}
+        stroke={COLOR_PRIMARY}
         strokeWidth="0.5"
         strokeDasharray="3 2.5"
         opacity="0.85"
@@ -96,7 +199,7 @@ function A4SheetSvg({ layout }: LayoutSvgProps): ReactElement {
         y1={y}
         x2={marginX + cols * refillW}
         y2={y}
-        stroke={BORDER_STRONG}
+        stroke={COLOR_PRIMARY}
         strokeWidth="0.5"
         strokeDasharray="3 2.5"
         opacity="0.85"
@@ -105,24 +208,19 @@ function A4SheetSvg({ layout }: LayoutSvgProps): ReactElement {
   }
 
   return (
-    <svg
-      viewBox={`0 0 ${paperW} ${paperH}`}
-      preserveAspectRatio="xMidYMid meet"
-      aria-hidden
-      className="home-hero-process__a4-svg"
-    >
-      <rect width={paperW} height={paperH} fill={PAPER} rx="1.5" />
+    <A4Svg viewBox={`0 0 ${paperW} ${paperH}`} preserveAspectRatio="xMidYMid meet" aria-hidden>
+      <rect width={paperW} height={paperH} fill={COLOR_BG} rx="1.5" />
       <rect
         width={paperW}
         height={paperH}
         fill="none"
-        stroke={BORDER}
+        stroke={COLOR_BORDER}
         strokeWidth="0.6"
         rx="1.5"
       />
       {cells}
       {cutLines}
-    </svg>
+    </A4Svg>
   )
 }
 
@@ -133,13 +231,15 @@ function CutRefillSvg({ layout }: LayoutSvgProps): ReactElement {
   const vbH = refillH + pad * 2 + 18
 
   return (
-    <svg
-      viewBox={`0 0 ${vbW} ${vbH}`}
-      preserveAspectRatio="xMidYMid meet"
-      aria-hidden
-      className="home-hero-process__cut-svg"
-    >
-      <ellipse cx={vbW / 2} cy={vbH / 2 - 4} rx={vbW * 0.52} ry={vbH * 0.48} fill="#f5ede0" opacity="0.9" />
+    <CutSvg viewBox={`0 0 ${vbW} ${vbH}`} preserveAspectRatio="xMidYMid meet" aria-hidden>
+      <ellipse
+        cx={vbW / 2}
+        cy={vbH / 2 - 4}
+        rx={vbW * 0.52}
+        ry={vbH * 0.48}
+        fill={COLOR_BG}
+        opacity="0.9"
+      />
       <g transform={`translate(${pad}, ${pad})`}>
         <RefillCell x={0} y={0} w={refillW} h={refillH} holePosY={holePosY} holeZoneMm={holeZoneMm} />
       </g>
@@ -148,8 +248,8 @@ function CutRefillSvg({ layout }: LayoutSvgProps): ReactElement {
         y={pad + refillH + 26}
         textAnchor="middle"
         fontSize="7"
-        fill={MUTED}
-        fontFamily="system-ui, sans-serif"
+        fill={COLOR_MUTED}
+        fontFamily="var(--font-body)"
       >
         {refillW} mm
       </text>
@@ -158,8 +258,8 @@ function CutRefillSvg({ layout }: LayoutSvgProps): ReactElement {
         y={pad + refillH / 2}
         textAnchor="middle"
         fontSize="7"
-        fill={MUTED}
-        fontFamily="system-ui, sans-serif"
+        fill={COLOR_MUTED}
+        fontFamily="var(--font-body)"
         transform={`rotate(-90, 8, ${pad + refillH / 2})`}
       >
         {refillH} mm
@@ -169,7 +269,7 @@ function CutRefillSvg({ layout }: LayoutSvgProps): ReactElement {
         y1={pad + refillH + 10}
         x2={pad + refillW}
         y2={pad + refillH + 10}
-        stroke={BORDER_STRONG}
+        stroke={COLOR_PRIMARY}
         strokeWidth="0.45"
       />
       <line
@@ -177,25 +277,25 @@ function CutRefillSvg({ layout }: LayoutSvgProps): ReactElement {
         y1={pad}
         x2={pad - 6}
         y2={pad + refillH}
-        stroke={BORDER_STRONG}
+        stroke={COLOR_PRIMARY}
         strokeWidth="0.45"
       />
-    </svg>
+    </CutSvg>
   )
 }
 
 function FlowArrow(): ReactElement {
   return (
-    <svg width="36" height="28" viewBox="0 0 36 28" aria-hidden style={{ flexShrink: 0 }}>
+    <ArrowSvg viewBox="0 0 36 28" aria-hidden>
       <path
         d="M4 14h22m0 0l-7-7m7 7l-7 7"
         fill="none"
-        stroke={BORDER_STRONG}
+        stroke={COLOR_PRIMARY}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
+    </ArrowSvg>
   )
 }
 
@@ -206,28 +306,30 @@ export default function HomeHeroProcessDiagram(): ReactElement {
   const layout = heroM5LandscapeLayout()
 
   return (
-    <div className="home-hero-process" aria-label="A4に印刷して切り取るとリフィル1枚分のサイズになる図解">
-      <div className="home-hero-process__stage">
-        <div className="home-hero-process__block">
-          <p className="home-hero-process__caption">A4に印刷されるイメージ</p>
-          <div className="home-hero-process__sheet-wrap">
+    <Root aria-label="A4に印刷して切り取るとリフィル1枚分のサイズになる図解">
+      <Stage>
+        <Block>
+          <Caption>A4に印刷されるイメージ</Caption>
+          <SheetWrap>
             <A4SheetSvg layout={layout} />
-          </div>
-          <p className="home-hero-process__note">例：M5・A4横・{layout.total}枚（{layout.cols}×{layout.rows}）</p>
-        </div>
-        <div className="home-hero-process__arrow-wrap">
+          </SheetWrap>
+          <Note>
+            例：M5・A4横・{layout.total}枚（{layout.cols}×{layout.rows}）
+          </Note>
+        </Block>
+        <ArrowWrap>
           <FlowArrow />
-        </div>
-        <div className="home-hero-process__block home-hero-process__block--result">
-          <p className="home-hero-process__caption home-hero-process__caption--cut">
+        </ArrowWrap>
+        <ResultBlock>
+          <CutCaption>
             切り取ると
             <br />
             このサイズになります
-          </p>
+          </CutCaption>
           <CutRefillSvg layout={layout} />
-        </div>
-      </div>
-      <p className="home-hero-process__flow-note">どのサイズでもこの流れです</p>
-    </div>
+        </ResultBlock>
+      </Stage>
+      <FlowNote>どのサイズでもこの流れです</FlowNote>
+    </Root>
   )
 }
