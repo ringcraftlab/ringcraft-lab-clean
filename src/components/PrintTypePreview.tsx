@@ -213,8 +213,7 @@ function SheetCell({
   showHoleGuide,
   holeSide,
 }: SheetCellProps) {
-  if (variant === 'background') return null
-
+  const isBackground = variant === 'background'
   const border = sheetBorderStroke(variant, emphasized)
   const holeStroke = emphasized ? HOLE_EMPH : HOLE
   const sw = emphasized ? 0.52 : 0.4
@@ -225,7 +224,9 @@ function SheetCell({
 
   return (
     <g>
-      <rect x={x} y={y} width={w} height={h} fill="#fff" stroke={border} strokeWidth={sw} />
+      {!isBackground ? (
+        <rect x={x} y={y} width={w} height={h} fill="#fff" stroke={border} strokeWidth={sw} />
+      ) : null}
       <rect
         x={holeZoneX}
         y={y}
@@ -248,7 +249,7 @@ function SheetCell({
             />
           ))
         : null}
-      {showImage ? (
+      {!isBackground && showImage ? (
         <PhotoPlaceholder
           x={contentX}
           y={y + 1.5}
