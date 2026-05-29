@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
@@ -17,6 +17,13 @@ type Step4LocationState = {
 }
 
 type HoleSide = 'left' | 'right'
+type GuideImageFit = 'contain' | 'cover' | 'fill'
+
+const GUIDE_IMAGE_FIT_OPTIONS: { id: GuideImageFit; label: string }[] = [
+  { id: 'cover', label: 'トリミング' },
+  { id: 'contain', label: '全体表示' },
+  { id: 'fill', label: '引き延ばし' },
+]
 
 const BORDER_COLOR_PRESETS = [
   { id: 'gray', label: 'グレー', hex: '#b0a89e' },
@@ -158,6 +165,77 @@ const PreviewWrap = styled(Box)({
   width: '100%',
   marginBottom: '28px',
   lineHeight: 0,
+})
+
+const HiddenFileInput = styled('input')({
+  display: 'none',
+})
+
+const BackgroundImagePanel = styled(Box)({
+  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  marginBottom: '24px',
+})
+
+const BackgroundImageActions = styled(Box)({
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  gap: '10px',
+})
+
+const GuideImageStage = styled(Box)({
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'var(--color-surface)',
+  borderRadius: 'var(--radius-card)',
+  border: '1px solid var(--color-border)',
+  overflow: 'hidden',
+})
+
+const GuideImage = styled('img', {
+  shouldForwardProp: (prop) => prop !== 'fitMode' && prop !== 'rotation',
+})<{ fitMode: GuideImageFit; rotation: number }>(({ fitMode, rotation }) => ({
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: fitMode,
+  transform: `rotate(${rotation}deg)`,
+  transformOrigin: 'center center',
+}))
+
+const BackgroundFitRow = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+})
+
+const BackgroundFitLabel = styled('span')({
+  color: 'var(--color-muted)',
+  fontSize: '0.85rem',
+  fontWeight: 500,
+})
+
+const BackgroundFitControls = styled(Box)({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px',
+  justifyContent: 'center',
+})
+
+const MutedAppButton = styled(AppButton)({
+  backgroundColor: 'var(--color-surface)',
+  color: 'var(--color-muted)',
+  border: '1px solid var(--color-border)',
+  '&:hover': {
+    filter: 'none',
+    backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))',
+    color: 'var(--color-text-h)',
+  },
 })
 
 const PreviewFallback = styled('p')({
@@ -315,7 +393,13 @@ export default function Step4() {
 
   const printType = routeState?.printType ?? 'frame'
   const isImagesMode = printType === 'images'
+  const isBackgroundMode = printType === 'background'
   const pageHeading = PRINT_TYPE_HEADINGS[printType] ?? PRINT_TYPE_HEADINGS.frame
+
+  const guideImageInputRef = useRef<HTMLInputElement>(null)
+  const [guideImage, setGuideImage] = useState('')
+  const [guideImageFit, setGuideImageFit] = useState<GuideImageFit>('contain')
+  const [guideImageRotation, setGuideImageRotation] = useState(0)
 
   const { refillW, refillH } = useMemo(
     () => resolveRefillDimensions(routeState),
@@ -346,6 +430,27 @@ export default function Step4() {
   const [holeSide, setHoleSide] = useState<HoleSide>('left')
   const [borderColor, setBorderColor] = useState<string>(BORDER_COLOR_PRESETS[6].hex)
 
+  const handleGuideImageInput = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (loadEvent) => {
+      const result = loadEvent.target?.result
+      if (typeof result === 'string') {
+        setGuideImage(result)
+        setGuideImageRotation(0)
+      }
+    }
+    reader.readAsDataURL(file)
+    event.target.value = ''
+  }, [])
+
+  const removeBackgroundImage = useCallback(() => {
+    setGuideImage('')
+    setGuideImageRotation(0)
+  }, [])
+
   const goBackToStep3 = () => {
     navigate('/tool/step3', {
       state: {
@@ -357,7 +462,12 @@ export default function Step4() {
     })
   }
 
-  const previewContent = previewLayout ? (
+  const previewAspectRatio =
+    previewLayout != null
+      ? `${previewLayout.paperW} / ${previewLayout.paperH}`
+      : '210 / 297'
+
+  const printTypePreview = previewLayout ? (
     <PrintTypePreview
       variant={previewVariantFor(printType)}
       layoutParams={layoutParams}
@@ -366,6 +476,70 @@ export default function Step4() {
   ) : (
     <PreviewFallback>このサイズ・レイアウトではプレビューを表示できません。</PreviewFallback>
   )
+
+  const previewContent =
+    isBackgroundMode && guideImage ? (
+      <GuideImageStage sx={{ aspectRatio: previewAspectRatio }}>
+        <GuideImage
+          src={guideImage}
+          alt="選択した背景画像"
+          fitMode={guideImageFit}
+          rotation={guideImageRotation}
+        />
+      </GuideImageStage>
+    ) : (
+      printTypePreview
+    )
+
+  const backgroundImagePicker = isBackgroundMode ? (
+    <BackgroundImagePanel>
+      <HiddenFileInput
+        ref={guideImageInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleGuideImageInput}
+      />
+      {!guideImage ? (
+        <BackgroundImageActions>
+          <AppButton type="button" onClick={() => guideImageInputRef.current?.click()}>
+            背景画像を選ぶ
+          </AppButton>
+        </BackgroundImageActions>
+      ) : null}
+    </BackgroundImagePanel>
+  ) : null
+
+  const backgroundImageControls =
+    isBackgroundMode && guideImage ? (
+      <BackgroundImagePanel>
+        <BackgroundFitRow>
+          <BackgroundFitLabel>表示方法</BackgroundFitLabel>
+          <BackgroundFitControls>
+            {GUIDE_IMAGE_FIT_OPTIONS.map((option) => (
+              <ToggleButton
+                key={option.id}
+                type="button"
+                active={guideImageFit === option.id}
+                onClick={() => setGuideImageFit(option.id)}
+              >
+                {option.label}
+              </ToggleButton>
+            ))}
+          </BackgroundFitControls>
+        </BackgroundFitRow>
+        <BackgroundImageActions>
+          <AppButton
+            type="button"
+            onClick={() => setGuideImageRotation((prev) => (prev + 90) % 360)}
+          >
+            90°回転{guideImageRotation > 0 ? `（${guideImageRotation}°）` : ''}
+          </AppButton>
+          <MutedAppButton type="button" onClick={removeBackgroundImage}>
+            画像を削除
+          </MutedAppButton>
+        </BackgroundImageActions>
+      </BackgroundImagePanel>
+    ) : null
 
   const settingsBlock = (
     <SettingsPanel>
@@ -440,7 +614,9 @@ export default function Step4() {
         <StepBadge>Step4</StepBadge>
       </StepBadgeRow>
       <PageHeading>{pageHeading}</PageHeading>
+      {backgroundImagePicker}
       <PreviewWrap data-hole-count={holePositions.length}>{previewContent}</PreviewWrap>
+      {backgroundImageControls}
       {settingsBlock}
       {actionBlock}
     </>
