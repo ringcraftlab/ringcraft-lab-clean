@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
+import BookIcon from '@mui/icons-material/Book'
 import HomeFlowCta from '../components/HomeFlowCta'
 import HomeHeroProcessDiagram from '../components/HomeHeroProcessDiagram'
 import HomeHeroPrintImagery from '../components/HomeHeroPrintImagery'
@@ -18,26 +19,40 @@ const Container = styled('div')({
 })
 
 const Header = styled('header')({
-  borderBottom: '1px solid var(--color-border)',
+  display: 'flex',
+  alignItems: 'center',
+  height: '56px',
   backgroundColor: 'var(--color-surface)',
+  borderBottom: '1px solid var(--color-border)',
 })
 
-const HeaderInner = styled(Container)({
+const HeaderInner = styled('div')({
   display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: '8px',
-  paddingTop: '20px',
-  paddingBottom: '20px',
+  alignItems: 'center',
+  width: '100%',
+  padding: '0 24px',
+  gap: '20px',
 })
 
 const BackLink = styled(Link)({
-  color: 'var(--color-text)',
+  color: 'var(--color-muted)',
   textDecoration: 'none',
   fontWeight: 500,
+  flexShrink: 0,
   '&:hover': {
     color: 'var(--color-primary)',
   },
+})
+
+const TitleGroup = styled('div')({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+})
+
+const TitleIcon = styled(BookIcon)({
+  color: 'var(--color-primary)',
+  fontSize: '24px',
 })
 
 const ServiceTitle = styled('h1')({
@@ -45,6 +60,7 @@ const ServiceTitle = styled('h1')({
   fontWeight: 700,
   fontSize: '20px',
   lineHeight: 1.4,
+  margin: 0,
 })
 
 const Hero = styled('section')({
@@ -218,7 +234,10 @@ export default function Tool() {
       <Header>
         <HeaderInner>
           <BackLink to="/">← ホームに戻る</BackLink>
-          <ServiceTitle>リフィル作成</ServiceTitle>
+          <TitleGroup>
+            <TitleIcon aria-hidden="true" />
+            <ServiceTitle>リフィル作成</ServiceTitle>
+          </TitleGroup>
         </HeaderInner>
       </Header>
 
