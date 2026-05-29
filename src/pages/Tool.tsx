@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
 import AppButton from '../components/AppButton'
 
 const Page = styled('div')({
@@ -21,12 +22,10 @@ const Header = styled('header')({
 })
 
 const HeaderInner = styled(Container)({
-  paddingTop: '20px',
-  paddingBottom: '20px',
+  position: 'relative',
+  minHeight: '72px',
   display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: '12px',
+  alignItems: 'center',
 })
 
 const BackLink = styled(Link)({
@@ -39,10 +38,21 @@ const BackLink = styled(Link)({
 })
 
 const ServiceTitle = styled('h1')({
+  position: 'absolute',
+  left: '50%',
+  transform: 'translateX(-50%)',
   color: 'var(--color-text-h)',
   fontWeight: 700,
   fontSize: '20px',
   lineHeight: 1.4,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '8px',
+})
+
+const TitleIcon = styled(MenuBookIcon)({
+  color: 'var(--color-primary)',
+  fontSize: '24px',
 })
 
 const Hero = styled('section')({
@@ -110,7 +120,10 @@ export default function Tool() {
       <Header>
         <HeaderInner>
           <BackLink to="/">← ホームに戻る</BackLink>
-          <ServiceTitle>🔖 リフィル作成</ServiceTitle>
+          <ServiceTitle>
+            <TitleIcon aria-hidden="true" />
+            リフィル作成
+          </ServiceTitle>
         </HeaderInner>
       </Header>
 
