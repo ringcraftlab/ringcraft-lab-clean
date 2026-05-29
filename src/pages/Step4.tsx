@@ -205,6 +205,7 @@ const PreviewBackgroundLayer = styled(Box)({
   inset: 0,
   width: '100%',
   height: '100%',
+  zIndex: 0,
 })
 
 const PreviewOverlayLayer = styled(Box)({
@@ -218,7 +219,7 @@ const PreviewOverlayLayer = styled(Box)({
     display: 'block',
     width: '100%',
     height: '100%',
-    opacity: 0.5,
+    opacity: 0.3,
   },
 })
 
@@ -526,7 +527,9 @@ export default function Step4() {
 
   const printTypePreview = previewLayout ? (
     <PrintTypePreview
-      variant={previewVariantFor(printType)}
+      variant={
+        isBackgroundMode && !guideImage ? 'background' : previewVariantFor(printType)
+      }
       layoutParams={layoutParams}
       emphasized
     />
@@ -547,11 +550,7 @@ export default function Step4() {
         </PreviewBackgroundLayer>
         {previewLayout ? (
           <PreviewOverlayLayer>
-            <PrintTypePreview
-              variant="background"
-              layoutParams={layoutParams}
-              emphasized
-            />
+            <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
           </PreviewOverlayLayer>
         ) : null}
       </PreviewLayerStack>
