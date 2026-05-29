@@ -104,12 +104,14 @@ const SingleColumn = styled(Box)({
 
 const TwoColumnLayout = styled(Box)({
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.15fr)',
+  gridTemplateColumns: '280px minmax(0, 1fr)',
   gap: '24px',
   alignItems: 'start',
 })
 
 const SideColumn = styled(Box)({
+  width: '280px',
+  flexShrink: 0,
   minHeight: '120px',
 })
 
@@ -120,16 +122,26 @@ const MainColumn = styled(Box)({
   width: '100%',
 })
 
+const StepBadgeRow = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'align',
+})<{ align?: 'start' | 'center' }>(({ align = 'center' }) => ({
+  display: 'flex',
+  justifyContent: align === 'start' ? 'flex-start' : 'center',
+  width: '100%',
+  marginBottom: '16px',
+}))
+
 const StepBadge = styled('span')({
   display: 'inline-flex',
   alignItems: 'center',
+  width: 'fit-content',
+  maxWidth: '100%',
   padding: '4px 14px',
   borderRadius: 'var(--radius-btn)',
   backgroundColor: 'var(--color-primary)',
   color: 'var(--color-surface)',
   fontWeight: 600,
   fontSize: '0.8rem',
-  marginBottom: '16px',
 })
 
 const PageHeading = styled('h2')({
@@ -424,7 +436,9 @@ export default function Step4() {
 
   const mainBlock = (
     <>
-      <StepBadge>Step4</StepBadge>
+      <StepBadgeRow align={isImagesMode ? 'start' : 'center'}>
+        <StepBadge>Step4</StepBadge>
+      </StepBadgeRow>
       <PageHeading>{pageHeading}</PageHeading>
       <PreviewWrap data-hole-count={holePositions.length}>{previewContent}</PreviewWrap>
       {settingsBlock}
@@ -449,7 +463,7 @@ export default function Step4() {
       <Container>
         {isImagesMode ? (
           <TwoColumnLayout>
-            <SideColumn aria-hidden />
+            <SideColumn aria-label="操作エリア" />
             <MainColumn>{mainBlock}</MainColumn>
           </TwoColumnLayout>
         ) : (
