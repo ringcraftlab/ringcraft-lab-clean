@@ -214,6 +214,12 @@ const PreviewOverlayLayer = styled(Box)({
   height: '100%',
   zIndex: 1,
   lineHeight: 0,
+  '& svg': {
+    display: 'block',
+    width: '100%',
+    height: '100%',
+    opacity: 0.5,
+  },
 })
 
 const GuideImage = styled('img', {
