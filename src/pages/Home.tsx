@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 import BookIcon from '@mui/icons-material/Book'
+import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import CreateIcon from '@mui/icons-material/Create'
 import StoreIcon from '@mui/icons-material/Store'
 import AppButton from '../components/AppButton'
@@ -38,12 +39,6 @@ const Brand = styled('a')({
   gap: '10px',
   fontWeight: 700,
   fontSize: '20px',
-})
-
-const LogoMark = styled(BookIcon)({
-  width: '28px',
-  height: '28px',
-  color: 'var(--color-primary)',
 })
 
 const Nav = styled('nav')({
@@ -197,7 +192,7 @@ export default function Home() {
       <Header>
         <HeaderInner>
           <Brand href="/">
-            <LogoMark aria-hidden="true" />
+            <AppHeaderBrandIcon />
             RingCraft Lab
           </Brand>
           <Nav aria-label="global navigation">
@@ -255,7 +250,7 @@ export default function Home() {
       <Footer>
         <FooterInner>
           <Brand href="/">
-            <LogoMark aria-hidden="true" />
+            <AppHeaderBrandIcon />
             RingCraft Lab
           </Brand>
           <FooterLinks>

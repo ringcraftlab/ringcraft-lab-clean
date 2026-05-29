@@ -3,6 +3,7 @@ import TextField from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
 import RefillSizeIcon from '../components/RefillSizeIcon'
 import { HOLE_STANDARDS, SIZES } from '../config/sizes'
@@ -61,6 +62,9 @@ const HeaderTitle = styled('h1')({
   left: '50%',
   transform: 'translateX(-50%)',
   margin: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '8px',
   color: 'var(--color-text-h)',
   fontWeight: 700,
   fontSize: '18px',
@@ -302,7 +306,10 @@ export default function Step1() {
             ← リフィル作成に戻る
           </BackButton>
         </HeaderInner>
-        <HeaderTitle>📒 リフィル作成</HeaderTitle>
+        <HeaderTitle>
+          <AppHeaderBrandIcon />
+          リフィル作成
+        </HeaderTitle>
       </Header>
 
       <Container>

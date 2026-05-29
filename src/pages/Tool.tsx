@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
-import BookIcon from '@mui/icons-material/Book'
+import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import HomeFlowCta from '../components/HomeFlowCta'
 import HomeHeroProcessDiagram from '../components/HomeHeroProcessDiagram'
 import HomeHeroPrintImagery from '../components/HomeHeroPrintImagery'
@@ -48,11 +48,6 @@ const TitleGroup = styled('div')({
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
-})
-
-const TitleIcon = styled(BookIcon)({
-  color: 'var(--color-primary)',
-  fontSize: '24px',
 })
 
 const ServiceTitle = styled('h1')({
@@ -235,7 +230,7 @@ export default function Tool() {
         <HeaderInner>
           <BackLink to="/">← ホームに戻る</BackLink>
           <TitleGroup>
-            <TitleIcon aria-hidden="true" />
+            <AppHeaderBrandIcon />
             <ServiceTitle>リフィル作成</ServiceTitle>
           </TitleGroup>
         </HeaderInner>
