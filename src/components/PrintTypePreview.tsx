@@ -217,25 +217,13 @@ function SheetCell({
   const border = sheetBorderStroke(variant, emphasized)
   const holeStroke = emphasized ? HOLE_EMPH : HOLE
   const sw = emphasized ? 0.52 : 0.4
-  const holeZoneX = holeSide === 'right' ? x + w - holeZoneMm : x
   const holeCx = holeSide === 'right' ? x + w - holeZoneMm / 2 : x + holeZoneMm / 2
   const contentX = holeSide === 'right' ? x + 0.5 : x + holeZoneMm + 0.5
   const contentW = w - holeZoneMm - 1
 
   return (
     <g>
-      {!isBackground ? (
-        <rect x={x} y={y} width={w} height={h} fill="#fff" stroke={border} strokeWidth={sw} />
-      ) : null}
-      <rect
-        x={holeZoneX}
-        y={y}
-        width={holeZoneMm}
-        height={h}
-        fill="#faf8f5"
-        stroke={border}
-        strokeWidth={emphasized ? 0.36 : 0.28}
-      />
+      <rect x={x} y={y} width={w} height={h} fill="none" stroke={border} strokeWidth={sw} />
       {showHoleGuide
         ? holePosY.map((posY, i) => (
             <circle
