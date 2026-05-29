@@ -2,19 +2,43 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import TextField from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { SIZES, SIZE_PICKER_LINES } from '../config/sizes'
 import AppButton from '../components/AppButton'
 
-const PRESET_SIZES = [
-  { id: 'microfive', title: 'M5', subtitle: 'Micro5 / ミニ5', dims: '62×105mm' },
-  { id: 'm5square', title: 'M5スクエア', subtitle: '', dims: '105×105mm' },
-  { id: 'mini6', title: 'M6', subtitle: 'ミニ6 / ポケットサイズ', dims: '80×126mm' },
-  { id: 'bible', title: 'Bible', subtitle: '聖書サイズ', dims: '95×170mm' },
-] as const
+/** Step1 で表示するプリセット（sizes.ts の定義順とは別に UI 用） */
+const STEP1_PRESET_IDS = ['microfive', 'm5square', 'mini6', 'bible'] as const
 
-type PresetSizeId = (typeof PRESET_SIZES)[number]['id']
-type SelectedSizeId = PresetSizeId | 'custom'
+type Step1PresetId = (typeof STEP1_PRESET_IDS)[number]
+type SelectedSizeId = Step1PresetId | 'custom'
+
+interface PresetCardView {
+  id: Step1PresetId
+  title: string
+  subtitle: string
+  dims: string
+}
+
+function buildPresetCards(): PresetCardView[] {
+  return STEP1_PRESET_IDS.map((id) => {
+    const size = SIZES.find((entry) => entry.id === id)
+    const lines = SIZE_PICKER_LINES[id]
+    if (!size || !lines || size.w == null || size.h == null) {
+      throw new Error(`Missing size definition for Step1 preset: ${id}`)
+    }
+
+    const title = id === 'm5square' ? size.name : lines[0]
+    const subtitle = id === 'm5square' ? '' : lines[1]
+
+    return {
+      id,
+      title,
+      subtitle,
+      dims: `${size.w}×${size.h}mm`,
+    }
+  })
+}
 
 const Page = styled('div')({
   minHeight: '100vh',
@@ -203,20 +227,20 @@ function parsePositiveMm(value: string): number | null {
 }
 
 export default function Step1() {
+  const presetCards = useMemo(() => buildPresetCards(), [])
+
   const [selectedId, setSelectedId] = useState<SelectedSizeId | null>(null)
   const [customExpanded, setCustomExpanded] = useState(false)
   const [customWidth, setCustomWidth] = useState('')
   const [customHeight, setCustomHeight] = useState('')
 
-  const customWidthMm = parsePositiveMm(customWidth)
-  const customHeightMm = parsePositiveMm(customHeight)
-  const customValid = customWidthMm !== null && customHeightMm !== null
+  const customValid =
+    parsePositiveMm(customWidth) !== null && parsePositiveMm(customHeight) !== null
 
   const hasSelection =
-    selectedId !== null &&
-    (selectedId !== 'custom' || customValid)
+    selectedId !== null && (selectedId !== 'custom' || customValid)
 
-  const selectPreset = (id: PresetSizeId) => {
+  const selectPreset = (id: Step1PresetId) => {
     setSelectedId(id)
     setCustomExpanded(false)
   }
@@ -240,7 +264,7 @@ export default function Step1() {
         <PageHeading>あなたの手帳のサイズは？</PageHeading>
 
         <SizeGrid>
-          {PRESET_SIZES.map((size) => (
+          {presetCards.map((size) => (
             <SizeCard
               key={size.id}
               selected={selectedId === size.id}
@@ -256,7 +280,11 @@ export default function Step1() {
             >
               <SizeCardBody>
                 <SizeCardTitle>{size.title}</SizeCardTitle>
-                {size.subtitle ? <SizeCardSubtitle>{size.subtitle}</SizeCardSubtitle> : <SizeCardSubtitle aria-hidden="true">&nbsp;</SizeCardSubtitle>}
+                {size.subtitle ? (
+                  <SizeCardSubtitle>{size.subtitle}</SizeCardSubtitle>
+                ) : (
+                  <SizeCardSubtitle aria-hidden="true">&nbsp;</SizeCardSubtitle>
+                )}
                 <SizeCardDims>{size.dims}</SizeCardDims>
               </SizeCardBody>
             </SizeCard>
