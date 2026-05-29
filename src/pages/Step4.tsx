@@ -1,4 +1,6 @@
 import Box from '@mui/material/Box'
+import MuiToggleButton from '@mui/material/ToggleButton'
+import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
 import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -227,6 +229,37 @@ const BackgroundFitControls = styled(Box)({
   justifyContent: 'center',
 })
 
+const GuideImageFitToggleGroup = styled(MuiToggleButtonGroup)({
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  '& .MuiToggleButtonGroup-grouped': {
+    borderColor: 'var(--color-border)',
+    color: 'var(--color-text)',
+    fontFamily: 'var(--font-body)',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    textTransform: 'none',
+    '&:not(:first-of-type)': {
+      borderColor: 'var(--color-border)',
+      marginLeft: '-1px',
+    },
+    '&.Mui-selected': {
+      backgroundColor: 'var(--color-primary)',
+      color: 'var(--color-surface)',
+      borderColor: 'var(--color-primary)',
+      '&:hover': {
+        backgroundColor: 'var(--color-primary)',
+      },
+    },
+    '&:hover': {
+      borderColor: 'var(--color-primary)',
+      backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))',
+    },
+  },
+})
+
+const GuideImageFitToggle = styled(MuiToggleButton)({})
+
 const MutedAppButton = styled(AppButton)({
   backgroundColor: 'var(--color-surface)',
   color: 'var(--color-muted)',
@@ -283,7 +316,7 @@ const SettingsControls = styled(Box)({
   justifyContent: 'flex-end',
 })
 
-const ToggleButton = styled('button', {
+const SettingsToggleButton = styled('button', {
   shouldForwardProp: (prop) => prop !== 'active' && prop !== 'disabled',
 })<{ active?: boolean; disabled?: boolean }>(({ active, disabled }) => ({
   display: 'inline-flex',
@@ -515,16 +548,20 @@ export default function Step4() {
         <BackgroundFitRow>
           <BackgroundFitLabel>表示方法</BackgroundFitLabel>
           <BackgroundFitControls>
-            {GUIDE_IMAGE_FIT_OPTIONS.map((option) => (
-              <ToggleButton
-                key={option.id}
-                type="button"
-                active={guideImageFit === option.id}
-                onClick={() => setGuideImageFit(option.id)}
-              >
-                {option.label}
-              </ToggleButton>
-            ))}
+            <GuideImageFitToggleGroup
+              exclusive
+              value={guideImageFit}
+              onChange={(_event, value: GuideImageFit | null) => {
+                if (value !== null) setGuideImageFit(value)
+              }}
+              aria-label="表示方法"
+            >
+              {GUIDE_IMAGE_FIT_OPTIONS.map((option) => (
+                <GuideImageFitToggle key={option.id} value={option.id}>
+                  {option.label}
+                </GuideImageFitToggle>
+              ))}
+            </GuideImageFitToggleGroup>
           </BackgroundFitControls>
         </BackgroundFitRow>
         <BackgroundImageActions>
@@ -546,37 +583,37 @@ export default function Step4() {
       <SettingsRow>
         <SettingsLabel>穴あけガイド</SettingsLabel>
         <SettingsControls>
-          <ToggleButton type="button" active={showHoleGuide} onClick={() => setShowHoleGuide(true)}>
+          <SettingsToggleButton type="button" active={showHoleGuide} onClick={() => setShowHoleGuide(true)}>
             ON
-          </ToggleButton>
-          <ToggleButton
+          </SettingsToggleButton>
+          <SettingsToggleButton
             type="button"
             active={!showHoleGuide}
             onClick={() => setShowHoleGuide(false)}
           >
             OFF
-          </ToggleButton>
+          </SettingsToggleButton>
         </SettingsControls>
       </SettingsRow>
       <SettingsRow muted={!showHoleGuide}>
         <SettingsLabel>穴の位置</SettingsLabel>
         <SettingsControls>
-          <ToggleButton
+          <SettingsToggleButton
             type="button"
             active={holeSide === 'left'}
             disabled={!showHoleGuide}
             onClick={() => setHoleSide('left')}
           >
             左
-          </ToggleButton>
-          <ToggleButton
+          </SettingsToggleButton>
+          <SettingsToggleButton
             type="button"
             active={holeSide === 'right'}
             disabled={!showHoleGuide}
             onClick={() => setHoleSide('right')}
           >
             右
-          </ToggleButton>
+          </SettingsToggleButton>
         </SettingsControls>
       </SettingsRow>
       <SettingsRow>
