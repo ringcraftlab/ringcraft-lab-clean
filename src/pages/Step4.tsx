@@ -126,12 +126,24 @@ const SideColumn = styled(Box)({
   width: '280px',
   flexShrink: 0,
   minHeight: '120px',
+  padding: '24px',
+  boxSizing: 'border-box',
 })
 
 const ImagesSidePanel = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
+  alignItems: 'stretch',
+  justifyContent: 'flex-start',
   gap: '16px',
+  width: '100%',
+  minWidth: 0,
+})
+
+const ImagesPickButton = styled(AppButton)({
+  width: '100%',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
 })
 
 const ImagesPaperFrame = styled(Box, {
@@ -848,6 +860,9 @@ export default function Step4() {
   const imagesSideColumn = isImagesMode ? (
     <SideColumn aria-label="操作エリア">
       <ImagesSidePanel>
+        <ImagesPickButton type="button" onClick={() => fileInputMultiRef.current?.click()}>
+          写真を選ぶ
+        </ImagesPickButton>
         <HiddenFileInput
           ref={fileInputRef}
           type="file"
@@ -861,9 +876,6 @@ export default function Step4() {
           multiple
           onChange={handleMultiInput}
         />
-        <AppButton type="button" onClick={() => fileInputMultiRef.current?.click()}>
-          写真を選ぶ
-        </AppButton>
       </ImagesSidePanel>
     </SideColumn>
   ) : null
