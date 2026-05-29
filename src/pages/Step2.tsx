@@ -220,6 +220,19 @@ export default function Step2() {
     }
   }, [layoutOptions, selectedOptionId])
 
+  const goToStep3 = () => {
+    if (!selectedOptionId) return
+
+    navigate('/tool/step3', {
+      state: {
+        sizeId: routeState?.sizeId,
+        customW: routeState?.customW,
+        customH: routeState?.customH,
+        layoutMode: selectedOptionId,
+      },
+    })
+  }
+
   return (
     <Page>
       <Header>
@@ -277,7 +290,9 @@ export default function Step2() {
         </LayoutGrid>
 
         <Actions>
-          <AppButton type="button">次へ：印刷タイプを選ぶ</AppButton>
+          <AppButton type="button" disabled={!selectedOptionId} onClick={goToStep3}>
+            次へ：印刷タイプを選ぶ
+          </AppButton>
         </Actions>
       </Container>
     </Page>
