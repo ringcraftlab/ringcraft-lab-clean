@@ -108,9 +108,8 @@ function A4SheetSvg({ layout }: LayoutSvgProps): ReactElement {
     <svg
       viewBox={`0 0 ${paperW} ${paperH}`}
       width="100%"
-      height="auto"
       aria-hidden
-      style={{ display: 'block', maxHeight: 220 }}
+      style={{ display: 'block', height: 'auto', maxHeight: 220 }}
     >
       <rect width={paperW} height={paperH} fill={PAPER} rx="1.5" />
       <rect
@@ -134,7 +133,12 @@ function CutRefillSvg({ layout }: LayoutSvgProps): ReactElement {
   const vbH = refillH + pad * 2 + 18
 
   return (
-    <svg viewBox={`0 0 ${vbW} ${vbH}`} width="100%" height="auto" aria-hidden style={{ maxWidth: 140 }}>
+    <svg
+      viewBox={`0 0 ${vbW} ${vbH}`}
+      width="100%"
+      aria-hidden
+      style={{ height: 'auto', maxWidth: 140 }}
+    >
       <ellipse cx={vbW / 2} cy={vbH / 2 - 4} rx={vbW * 0.52} ry={vbH * 0.48} fill="#f5ede0" opacity="0.9" />
       <g transform={`translate(${pad}, ${pad})`}>
         <RefillCell x={0} y={0} w={refillW} h={refillH} holePosY={holePosY} holeZoneMm={holeZoneMm} />

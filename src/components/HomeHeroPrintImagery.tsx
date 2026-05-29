@@ -1,4 +1,7 @@
-const base = import.meta.env.BASE_URL
+/** public/ 配下は常にサイトルートからの絶対パス（/tool 上でも相対パスにしない） */
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`
 const sampleImagesSrc = `${base}SampleNoHoll.png`
 
 /** トップ：作り方のイメージ（8枚配置のA4作例・見出し・説明なし） */
