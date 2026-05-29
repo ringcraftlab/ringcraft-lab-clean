@@ -1,4 +1,7 @@
-import sampleImagesSrc from '../assets/SampleNoHoll.png'
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`
+const sampleImagesSrc = `${base}SampleNoHoll.png`
 
 /** トップ：作り方のイメージ（8枚配置のA4作例・見出し・説明なし） */
 export default function HomeHeroPrintImagery() {
