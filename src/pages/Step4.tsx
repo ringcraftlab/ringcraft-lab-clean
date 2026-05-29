@@ -11,6 +11,7 @@ import { getHolePositions, SIZES, type SizeDefinition } from '../config/sizes'
 import {
   buildPrintTypePreviewLayout,
   type PrintTypePreviewLayout,
+  type PrintTypePreviewLayoutParams,
 } from '../utils/printTypePreviewLayout'
 
 type Step4LocationState = {
@@ -144,6 +145,22 @@ const ImagesPaperFrame = styled(Box, {
   borderRadius: 'var(--radius-card)',
   overflow: 'hidden',
 }))
+
+const ImagesPreviewOverlayLayer = styled(Box)({
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  zIndex: 1,
+  lineHeight: 0,
+  pointerEvents: 'none',
+  '& svg': {
+    display: 'block',
+    width: '100%',
+    height: '100%',
+    opacity: 0.6,
+  },
+})
 
 const SlotButton = styled('button', {
   shouldForwardProp: (prop) =>
@@ -597,9 +614,18 @@ interface ImagesSlotPreviewProps {
   images: Record<number, string>
   activeSlot: number | null
   onSlotClick: (index: number) => void
+  layoutParams: PrintTypePreviewLayoutParams
+  showHoleGuide: boolean
 }
 
-function ImagesSlotPreview({ layout, images, activeSlot, onSlotClick }: ImagesSlotPreviewProps) {
+function ImagesSlotPreview({
+  layout,
+  images,
+  activeSlot,
+  onSlotClick,
+  layoutParams,
+  showHoleGuide,
+}: ImagesSlotPreviewProps) {
   const aspectRatio = `${layout.paperW} / ${layout.paperH}`
   const slotRects = useMemo(() => buildSlotRects(layout), [layout])
 
@@ -627,6 +653,11 @@ function ImagesSlotPreview({ layout, images, activeSlot, onSlotClick }: ImagesSl
           </SlotButton>
         )
       })}
+      {showHoleGuide ? (
+        <ImagesPreviewOverlayLayer>
+          <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
+        </ImagesPreviewOverlayLayer>
+      ) : null}
     </ImagesPaperFrame>
   )
 }
@@ -805,6 +836,8 @@ export default function Step4() {
         images={images}
         activeSlot={activeSlot}
         onSlotClick={handleSlotClick}
+        layoutParams={layoutParams}
+        showHoleGuide={showHoleGuide}
       />
     ) : isImagesMode ? (
       <PreviewFallback>このサイズ・レイアウトではプレビューを表示できません。</PreviewFallback>
