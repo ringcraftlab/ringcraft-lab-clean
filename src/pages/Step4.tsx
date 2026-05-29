@@ -655,14 +655,19 @@ export default function Step4() {
     [routeState],
   )
 
+  const [showHoleGuide, setShowHoleGuide] = useState(true)
+  const [holeSide, setHoleSide] = useState<HoleSide>('left')
+
   const layoutParams = useMemo(
     () => ({
       refillW,
       refillH,
       layoutMode: routeState?.layoutMode,
       sizeId: routeState?.sizeId,
+      showHoleGuide,
+      holeSide,
     }),
-    [refillW, refillH, routeState],
+    [refillW, refillH, routeState, showHoleGuide, holeSide],
   )
 
   const previewLayout = useMemo(
@@ -675,8 +680,6 @@ export default function Step4() {
     [routeState?.sizeId],
   )
 
-  const [showHoleGuide, setShowHoleGuide] = useState(true)
-  const [holeSide, setHoleSide] = useState<HoleSide>('left')
   const [borderColor, setBorderColor] = useState<string>(BORDER_COLOR_PRESETS[6].hex)
 
   const handleGuideImageInput = useCallback((event: ChangeEvent<HTMLInputElement>) => {

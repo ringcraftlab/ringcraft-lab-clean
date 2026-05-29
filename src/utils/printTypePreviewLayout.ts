@@ -14,6 +14,8 @@ export interface PrintTypePreviewLayoutParams {
   layoutMode?: string
   sizeId?: string
   customHoleStandard?: string
+  showHoleGuide?: boolean
+  holeSide?: 'left' | 'right'
 }
 
 type FoldPreviewLayout = {
