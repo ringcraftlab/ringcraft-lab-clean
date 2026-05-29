@@ -525,8 +525,6 @@ export default function Step4() {
       ? `${previewLayout.paperW} / ${previewLayout.paperH}`
       : '210 / 297'
 
-  console.log('guideImage', guideImage)
-
   const printTypePreview = previewLayout ? (
     <PrintTypePreview
       variant={
