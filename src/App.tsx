@@ -1,13 +1,10 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Home from './pages/Home'
-
-function ToolPage() {
-  return <div>Tool</div>
-}
+import Tool from './pages/Tool'
 
 const router = createBrowserRouter([
   { path: '/', element: <Home /> },
-  { path: '/tool', element: <ToolPage /> },
+  { path: '/tool', element: <Tool /> },
 ])
 
 function App() {
