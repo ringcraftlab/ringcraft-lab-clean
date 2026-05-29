@@ -217,6 +217,20 @@ export default function Step3() {
     })
   }
 
+  const goToStep4 = () => {
+    if (!hasLayout || !selectedPrintTypeId) return
+
+    navigate('/tool/step4', {
+      state: {
+        sizeId: routeState?.sizeId,
+        customW: routeState?.customW,
+        customH: routeState?.customH,
+        layoutMode: routeState?.layoutMode,
+        printType: selectedPrintTypeId,
+      },
+    })
+  }
+
   return (
     <Page>
       <Header>
@@ -270,7 +284,11 @@ export default function Step3() {
         </PrintTypeGrid>
 
         <Actions>
-          <AppButton type="button" disabled={!hasLayout || !selectedPrintTypeId}>
+          <AppButton
+            type="button"
+            disabled={!hasLayout || !selectedPrintTypeId}
+            onClick={goToStep4}
+          >
             プレビューへ
           </AppButton>
         </Actions>
