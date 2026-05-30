@@ -864,11 +864,20 @@ export default function Step4() {
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
-      onclone: (doc) => {
-        doc.querySelectorAll('*').forEach((el) => {
-          const style = el.getAttribute('style')
-          if (style && style.includes('color(')) {
-            el.setAttribute('style', style.replace(/color\([^)]+\)/g, 'transparent'))
+      onclone: (_doc, element) => {
+        element.querySelectorAll('*').forEach((el) => {
+          try {
+            const computed = window.getComputedStyle(el)
+            const bg = computed.backgroundColor
+            if (bg && bg.startsWith('color(')) {
+              ;(el as HTMLElement).style.backgroundColor = 'transparent'
+            }
+            const color = computed.color
+            if (color && color.startsWith('color(')) {
+              ;(el as HTMLElement).style.color = '#3a2a1e'
+            }
+          } catch {
+            // ignore
           }
         })
       },
