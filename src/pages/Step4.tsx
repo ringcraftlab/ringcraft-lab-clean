@@ -10,7 +10,7 @@ import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
 import PrintTypePreview, { type PrintTypePreviewVariant } from '../components/PrintTypePreview'
 import { getHolePositions, SIZES, type SizeDefinition } from '../config/sizes'
-import { paperOrientationForLayout, printCaptureScale } from '../utils/layout'
+import { paperOrientationForLayout } from '../utils/layout'
 import {
   buildPrintPageHtml,
   nextPaintFrames,
@@ -871,7 +871,7 @@ export default function Step4() {
     })
 
     const canvas = await html2canvas(root, {
-      scale: printCaptureScale(),
+      scale: 3,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
