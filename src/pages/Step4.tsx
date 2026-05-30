@@ -867,14 +867,19 @@ export default function Step4() {
   }, [])
 
   const handleSavePdf = useCallback(async () => {
+    console.log('handleSavePdf 開始')
     const shot = await capturePreview()
+    console.log('shot:', shot)
     if (!shot) return
-
     const { pageWmm, pageHmm } = paperMetrics
+    console.log('paperMetrics:', pageWmm, pageHmm)
     const orientation = pageWmm > pageHmm ? 'l' : 'p'
     const pdf = new jsPDF(orientation, 'mm', 'a4')
     pdf.addImage(shot.dataUrl, 'PNG', 0, 0, pageWmm, pageHmm)
-    await openSheetPdfBlob(pdf.output('blob'))
+    const blob = pdf.output('blob')
+    console.log('blob:', blob)
+    const result = await openSheetPdfBlob(blob)
+    console.log('result:', result)
   }, [capturePreview, paperMetrics])
 
   const handlePrint = useCallback(async () => {
