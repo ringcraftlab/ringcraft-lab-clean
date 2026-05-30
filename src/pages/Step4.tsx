@@ -126,7 +126,7 @@ const SideColumn = styled(Box)({
   width: '280px',
   flexShrink: 0,
   minHeight: '120px',
-  padding: '24px',
+  padding: '0 24px 24px',
   boxSizing: 'border-box',
 })
 
