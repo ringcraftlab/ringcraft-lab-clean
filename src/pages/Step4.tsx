@@ -181,7 +181,7 @@ const ImagesPreviewOverlayLayer = styled(Box)({
     display: 'block',
     width: '100%',
     height: '100%',
-    opacity: 0.6,
+    opacity: 0.15,
   },
 })
 
@@ -209,9 +209,7 @@ const SlotButton = styled('button', {
   margin: 0,
   padding: 0,
   border: `2px solid ${isActive ? 'var(--color-primary)' : 'var(--color-border)'}`,
-  backgroundColor: hasImage
-    ? 'var(--color-surface)'
-    : 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))',
+  backgroundColor: hasImage ? '#ffffff' : '#fdf5f3',
   cursor: 'pointer',
   overflow: 'hidden',
   transition: 'border-color 0.2s ease, background-color 0.2s ease',
@@ -679,6 +677,7 @@ function ImagesSlotPreview({
           <SlotButton
             key={rect.index}
             type="button"
+            data-slot-button
             hasImage={hasImage}
             isActive={isActive}
             slotLeft={rect.left}
@@ -702,7 +701,7 @@ function ImagesSlotPreview({
         )
       })}
       {showHoleGuide ? (
-        <ImagesPreviewOverlayLayer data-print="false">
+        <ImagesPreviewOverlayLayer data-overlay-layer>
           <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
         </ImagesPreviewOverlayLayer>
       ) : null}
@@ -886,6 +885,15 @@ export default function Step4() {
       onclone: (_doc, element) => {
         element.querySelectorAll('[data-print="false"]').forEach((el) => {
           ;(el as HTMLElement).style.display = 'none'
+        })
+        _doc.querySelectorAll('[data-overlay-layer]').forEach((el) => {
+          ;(el as HTMLElement).style.opacity = '1'
+          el.querySelectorAll('svg').forEach((svg) => {
+            svg.style.opacity = '1'
+          })
+        })
+        _doc.querySelectorAll('[data-slot-button]').forEach((el) => {
+          ;(el as HTMLElement).style.backgroundColor = '#ffffff'
         })
         element.querySelectorAll('*').forEach((el) => {
           try {
