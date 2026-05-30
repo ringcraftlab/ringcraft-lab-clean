@@ -1001,17 +1001,23 @@ export default function Step4() {
     </ActionRow>
   )
 
+  const mainContent = (
+    <>
+      {backgroundImagePicker}
+      <PreviewWrap data-hole-count={holePositions.length}>{previewContent}</PreviewWrap>
+      {backgroundImageControls}
+      {settingsBlock}
+      {actionBlock}
+    </>
+  )
+
   const mainBlock = (
     <>
       <StepBadgeRow align={isImagesMode ? 'start' : 'center'}>
         <StepBadge>Step4</StepBadge>
       </StepBadgeRow>
       <PageHeading>{pageHeading}</PageHeading>
-      {backgroundImagePicker}
-      <PreviewWrap data-hole-count={holePositions.length}>{previewContent}</PreviewWrap>
-      {backgroundImageControls}
-      {settingsBlock}
-      {actionBlock}
+      {mainContent}
     </>
   )
 
@@ -1031,10 +1037,16 @@ export default function Step4() {
 
       <Container>
         {isImagesMode ? (
-          <TwoColumnLayout>
-            {imagesSideColumn}
-            <MainColumn>{mainBlock}</MainColumn>
-          </TwoColumnLayout>
+          <>
+            <StepBadgeRow align="start">
+              <StepBadge>Step4</StepBadge>
+            </StepBadgeRow>
+            <PageHeading>{pageHeading}</PageHeading>
+            <TwoColumnLayout>
+              {imagesSideColumn}
+              <MainColumn>{mainContent}</MainColumn>
+            </TwoColumnLayout>
+          </>
         ) : (
           <SingleColumn>{mainBlock}</SingleColumn>
         )}
