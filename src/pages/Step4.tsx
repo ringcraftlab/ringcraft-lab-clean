@@ -649,6 +649,7 @@ function buildSlotRects(layout: PrintTypePreviewLayout): SlotRectPercent[] {
 interface ImagesSlotPreviewProps {
   layout: PrintTypePreviewLayout
   images: Record<number, string>
+  imageFitModes: Record<number, GuideImageFit>
   activeSlot: number | null
   onSlotClick: (index: number) => void
   layoutParams: PrintTypePreviewLayoutParams
@@ -658,6 +659,7 @@ interface ImagesSlotPreviewProps {
 function ImagesSlotPreview({
   layout,
   images,
+  imageFitModes,
   activeSlot,
   onSlotClick,
   layoutParams,
@@ -687,7 +689,12 @@ function ImagesSlotPreview({
             onClick={() => onSlotClick(rect.index)}
           >
             {hasImage ? (
-              <SlotImage src={src} alt="" data-fit-mode="cover" data-rotation="0" />
+              <SlotImage
+                src={src}
+                alt=""
+                data-fit-mode={imageFitModes[rect.index] ?? 'cover'}
+                data-rotation="0"
+              />
             ) : (
               <SlotPlus data-print="false">+</SlotPlus>
             )}
@@ -695,7 +702,7 @@ function ImagesSlotPreview({
         )
       })}
       {showHoleGuide ? (
-        <ImagesPreviewOverlayLayer>
+        <ImagesPreviewOverlayLayer data-print="false">
           <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
         </ImagesPreviewOverlayLayer>
       ) : null}
@@ -721,6 +728,7 @@ export default function Step4() {
   const [guideImageFit, setGuideImageFit] = useState<GuideImageFit>('contain')
   const [guideImageRotation, setGuideImageRotation] = useState(0)
   const [images, setImages] = useState<Record<number, string>>({})
+  const [imageFitModes] = useState<Record<number, GuideImageFit>>({})
   const [activeSlot, setActiveSlot] = useState<number | null>(null)
 
   const { refillW, refillH } = useMemo(
@@ -973,6 +981,7 @@ export default function Step4() {
       <ImagesSlotPreview
         layout={previewLayout}
         images={images}
+        imageFitModes={imageFitModes}
         activeSlot={activeSlot}
         onSlotClick={handleSlotClick}
         layoutParams={layoutParams}
