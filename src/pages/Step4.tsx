@@ -852,11 +852,26 @@ export default function Step4() {
     await waitForImagesLoaded(root)
     await rasterizeFitImagesForCapture(root)
 
+    const svgs = root.querySelectorAll('svg')
+    svgs.forEach((svg) => {
+      if (svg.getAttribute('height') === 'auto') {
+        svg.setAttribute('height', svg.getBoundingClientRect().height.toString())
+      }
+    })
+
     const canvas = await html2canvas(root, {
       scale: printCaptureScale(),
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
+      onclone: (doc) => {
+        doc.querySelectorAll('*').forEach((el) => {
+          const style = el.getAttribute('style')
+          if (style && style.includes('color(')) {
+            el.setAttribute('style', style.replace(/color\([^)]+\)/g, 'transparent'))
+          }
+        })
+      },
     })
 
     return {
