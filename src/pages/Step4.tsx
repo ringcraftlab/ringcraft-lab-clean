@@ -268,6 +268,20 @@ const PageHeading = styled('h2')({
   width: '100%',
 })
 
+const ImagesModeHeader = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  width: '100%',
+  gap: '16px',
+  marginBottom: '24px',
+})
+
+const ImagesModeHeading = styled(PageHeading)({
+  margin: 0,
+  textAlign: 'left',
+})
+
 const PreviewWrap = styled(Box)({
   width: '100%',
   marginBottom: '28px',
@@ -1038,10 +1052,10 @@ export default function Step4() {
       <Container>
         {isImagesMode ? (
           <>
-            <StepBadgeRow align="start">
+            <ImagesModeHeader>
               <StepBadge>Step4</StepBadge>
-            </StepBadgeRow>
-            <PageHeading>{pageHeading}</PageHeading>
+              <ImagesModeHeading>{pageHeading}</ImagesModeHeading>
+            </ImagesModeHeader>
             <TwoColumnLayout>
               {imagesSideColumn}
               <MainColumn>{mainContent}</MainColumn>
