@@ -2,12 +2,23 @@ import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
 import PrintTypePreview, { type PrintTypePreviewVariant } from '../components/PrintTypePreview'
 import { getHolePositions, SIZES, type SizeDefinition } from '../config/sizes'
+import { paperOrientationForLayout, printCaptureScale } from '../utils/layout'
+import {
+  buildPrintPageHtml,
+  nextPaintFrames,
+  openPrintDocument,
+  openSheetPdfBlob,
+  rasterizeFitImagesForCapture,
+  waitForImagesLoaded,
+} from '../utils/printCapture'
 import {
   buildPrintTypePreviewLayout,
   type PrintTypePreviewLayout,
@@ -701,6 +712,7 @@ export default function Step4() {
   const guideImageInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fileInputMultiRef = useRef<HTMLInputElement>(null)
+  const previewRef = useRef<HTMLDivElement>(null)
   const [guideImage, setGuideImage] = useState('')
   const [guideImageFit, setGuideImageFit] = useState<GuideImageFit>('contain')
   const [guideImageRotation, setGuideImageRotation] = useState(0)
@@ -731,6 +743,16 @@ export default function Step4() {
     () => buildPrintTypePreviewLayout(layoutParams),
     [layoutParams],
   )
+
+  const paperMetrics = useMemo(() => {
+    if (previewLayout) {
+      return { pageWmm: previewLayout.paperW, pageHmm: previewLayout.paperH }
+    }
+    const orient = paperOrientationForLayout(layoutParams.layoutMode ?? 'portrait')
+    return orient === 'landscape'
+      ? { pageWmm: 297, pageHmm: 210 }
+      : { pageWmm: 210, pageHmm: 297 }
+  }, [previewLayout, layoutParams.layoutMode])
 
   const holePositions = useMemo(
     () => getHolePositions(resolveSizePreset(routeState?.sizeId)),
@@ -821,6 +843,54 @@ export default function Step4() {
       },
     })
   }
+
+  const capturePreview = useCallback(async () => {
+    const root = previewRef.current
+    if (!root) return null
+
+    await nextPaintFrames(2)
+    await waitForImagesLoaded(root)
+    await rasterizeFitImagesForCapture(root)
+
+    const canvas = await html2canvas(root, {
+      scale: printCaptureScale(),
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    })
+
+    return {
+      dataUrl: canvas.toDataURL('image/png'),
+      pxW: canvas.width,
+      pxH: canvas.height,
+    }
+  }, [])
+
+  const handleSavePdf = useCallback(async () => {
+    const shot = await capturePreview()
+    if (!shot) return
+
+    const { pageWmm, pageHmm } = paperMetrics
+    const orientation = pageWmm > pageHmm ? 'l' : 'p'
+    const pdf = new jsPDF(orientation, 'mm', 'a4')
+    pdf.addImage(shot.dataUrl, 'PNG', 0, 0, pageWmm, pageHmm)
+    await openSheetPdfBlob(pdf.output('blob'))
+  }, [capturePreview, paperMetrics])
+
+  const handlePrint = useCallback(async () => {
+    const shot = await capturePreview()
+    if (!shot) return
+
+    const { pageWmm, pageHmm } = paperMetrics
+    const html = buildPrintPageHtml({
+      dataUrl: shot.dataUrl,
+      pxW: shot.pxW,
+      pxH: shot.pxH,
+      pageWmm,
+      pageHmm,
+    })
+    await openPrintDocument(html)
+  }, [capturePreview, paperMetrics])
 
   const previewAspectRatio =
     previewLayout != null
@@ -1010,15 +1080,21 @@ export default function Step4() {
 
   const actionBlock = (
     <ActionRow>
-      <OutlineAppButton type="button">PDF保存</OutlineAppButton>
-      <AppButton type="button">印刷する</AppButton>
+      <OutlineAppButton type="button" onClick={() => void handleSavePdf()}>
+        PDF保存
+      </OutlineAppButton>
+      <AppButton type="button" onClick={() => void handlePrint()}>
+        印刷する
+      </AppButton>
     </ActionRow>
   )
 
   const mainContent = (
     <>
       {backgroundImagePicker}
-      <PreviewWrap data-hole-count={holePositions.length}>{previewContent}</PreviewWrap>
+      <PreviewWrap ref={previewRef} data-hole-count={holePositions.length}>
+        {previewContent}
+      </PreviewWrap>
       {backgroundImageControls}
       {settingsBlock}
       {actionBlock}
