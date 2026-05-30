@@ -686,7 +686,11 @@ function ImagesSlotPreview({
             aria-label={hasImage ? `${rect.index + 1}番の写真` : `${rect.index + 1}番に写真を追加`}
             onClick={() => onSlotClick(rect.index)}
           >
-            {hasImage ? <SlotImage src={src} alt="" /> : <SlotPlus>+</SlotPlus>}
+            {hasImage ? (
+              <SlotImage src={src} alt="" data-fit-mode="cover" data-rotation="0" />
+            ) : (
+              <SlotPlus data-print="false">+</SlotPlus>
+            )}
           </SlotButton>
         )
       })}
@@ -850,6 +854,13 @@ export default function Step4() {
 
     await nextPaintFrames(2)
     await waitForImagesLoaded(root)
+
+    root.querySelectorAll('button img').forEach((img) => {
+      if (!img.getAttribute('data-fit-mode')) {
+        img.setAttribute('data-fit-mode', 'cover')
+        img.setAttribute('data-rotation', '0')
+      }
+    })
     await rasterizeFitImagesForCapture(root)
 
     const svgs = root.querySelectorAll('svg')
@@ -865,6 +876,9 @@ export default function Step4() {
       logging: false,
       backgroundColor: '#ffffff',
       onclone: (_doc, element) => {
+        element.querySelectorAll('[data-print="false"]').forEach((el) => {
+          ;(el as HTMLElement).style.display = 'none'
+        })
         element.querySelectorAll('*').forEach((el) => {
           try {
             const computed = window.getComputedStyle(el)
