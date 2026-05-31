@@ -493,6 +493,7 @@ async function rasterizeFitImage(img: HTMLImageElement): Promise<void> {
 
   const w = Math.round(box.offsetWidth)
   const h = Math.round(box.offsetHeight)
+  console.log('rasterizeFitImage box size:', box.offsetWidth, box.offsetHeight)
   if (w < 1 || h < 1) return
 
   const image = await loadImage(img.src)

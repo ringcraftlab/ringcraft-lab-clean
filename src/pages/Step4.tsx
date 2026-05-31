@@ -884,7 +884,9 @@ export default function Step4() {
         img.setAttribute('data-rotation', '0')
       }
     })
+    console.log('before rasterize')
     await rasterizeFitImagesForCapture(root)
+    console.log('after rasterize')
 
     const svgs = root.querySelectorAll('svg')
     svgs.forEach((svg) => {
