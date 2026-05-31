@@ -948,7 +948,9 @@ export default function Step4() {
       const a = document.createElement('a')
       a.href = url
       a.download = 'refill.pdf'
+      document.body.appendChild(a)
       a.click()
+      document.body.removeChild(a)
       setTimeout(() => URL.revokeObjectURL(url), 10000)
     }
   }, [capturePreview, paperMetrics])
