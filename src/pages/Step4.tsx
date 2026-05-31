@@ -947,7 +947,17 @@ export default function Step4() {
     console.log('paperMetrics:', pageWmm, pageHmm)
     const orientation = pageWmm > pageHmm ? 'l' : 'p'
     const pdf = new jsPDF(orientation, 'mm', 'a4')
-    pdf.addImage(shot.dataUrl, 'PNG', 0, 0, pageWmm, pageHmm)
+    const addImageArgs = [shot.dataUrl, 'PNG', 0, 0, pageWmm, pageHmm] as const
+    console.log('pdf.addImage args:', {
+      imageData: `(dataUrl, length=${shot.dataUrl.length})`,
+      format: addImageArgs[1],
+      x: addImageArgs[2],
+      y: addImageArgs[3],
+      width: addImageArgs[4],
+      height: addImageArgs[5],
+      compression: undefined,
+    })
+    pdf.addImage(...addImageArgs)
     const blob = pdf.output('blob')
     console.log('blob:', blob)
     const result = await openSheetPdfBlob(blob)
