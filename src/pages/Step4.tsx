@@ -2,9 +2,7 @@ import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
-// import html2canvas from 'html2canvas'
-// @ts-expect-error dom-to-image-more has no type definitions
-import domtoimage from 'dom-to-image-more'
+import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -712,8 +710,8 @@ function ImagesSlotPreview({
   )
 }
 
-// dom-to-image-more onclone 処理
-function applyCaptureOncloneStyles(clonedElement: Element) {
+// html2canvas onclone 処理
+function applyCaptureOncloneStyles(_clonedDoc: Document, clonedElement: HTMLElement) {
   if (!clonedElement) return
   clonedElement.querySelectorAll('[data-print="false"]').forEach((el) => {
     ;(el as HTMLElement).style.display = 'none'
@@ -893,7 +891,7 @@ export default function Step4() {
     const svgs = root.querySelectorAll('svg')
     svgs.forEach((svg) => {
       if (svg.getAttribute('height') === 'auto') {
-        svg.setAttribute('height', svg.getBoundingClientRect().height.toString())
+        svg.setAttribute('height', String(svg.getBoundingClientRect().height))
       }
     })
 
@@ -907,34 +905,23 @@ export default function Step4() {
       }
     })
 
-    let dataUrl: string
     try {
-      dataUrl = await domtoimage.toPng(root, {
+      const canvas = await html2canvas(root, {
         scale: 8,
-        bgcolor: '#ffffff',
-        filter: (node: Node) => {
-          if (node instanceof HTMLLinkElement) {
-            return !node.href?.includes('fonts.googleapis.com')
-          }
-          return true
-        },
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
         onclone: applyCaptureOncloneStyles,
       })
+      return {
+        dataUrl: canvas.toDataURL('image/jpeg', 0.95),
+        pxW: canvas.width,
+        pxH: canvas.height,
+      }
     } finally {
       disabledSheets.forEach((sheet) => {
         sheet.disabled = false
       })
-    }
-
-    console.log('canvas size:', dataUrl.length)
-    const img = new Image()
-    img.onload = () => console.log('actual image size:', img.width, img.height)
-    img.src = dataUrl
-
-    return {
-      dataUrl,
-      pxW: root.offsetWidth * 8,
-      pxH: root.offsetHeight * 8,
     }
   }, [])
 
@@ -947,7 +934,7 @@ export default function Step4() {
     console.log('paperMetrics:', pageWmm, pageHmm)
     const orientation = pageWmm > pageHmm ? 'l' : 'p'
     const pdf = new jsPDF(orientation, 'mm', 'a4')
-    const addImageArgs = [shot.dataUrl, 'PNG', 0, 0, pageWmm, pageHmm] as const
+    const addImageArgs = [shot.dataUrl, 'JPEG', 0, 0, pageWmm, pageHmm] as const
     console.log('pdf.addImage args:', {
       imageData: `(dataUrl, length=${shot.dataUrl.length})`,
       format: addImageArgs[1],
