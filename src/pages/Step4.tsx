@@ -711,8 +711,9 @@ function ImagesSlotPreview({
   )
 }
 
-// html2canvas onclone 処理（dom-to-image-more の onclone でも使用）
-function applyCaptureOncloneStyles(_doc: Document, element: HTMLElement) {
+// dom-to-image-more onclone 処理
+function applyCaptureOncloneStyles(clonedDocument: Document) {
+  const element = clonedDocument.body
   element.querySelectorAll('[data-print="false"]').forEach((el) => {
     ;(el as HTMLElement).style.display = 'none'
   })
@@ -724,21 +725,6 @@ function applyCaptureOncloneStyles(_doc: Document, element: HTMLElement) {
   })
   element.querySelectorAll('[data-slot-button]').forEach((el) => {
     ;(el as HTMLElement).style.backgroundColor = '#ffffff'
-  })
-  element.querySelectorAll('*').forEach((el) => {
-    try {
-      const computed = window.getComputedStyle(el)
-      const bg = computed.backgroundColor
-      if (bg && bg.startsWith('color(')) {
-        ;(el as HTMLElement).style.backgroundColor = 'transparent'
-      }
-      const color = computed.color
-      if (color && color.startsWith('color(')) {
-        ;(el as HTMLElement).style.color = '#3a2a1e'
-      }
-    } catch {
-      // ignore
-    }
   })
 }
 
