@@ -712,23 +712,15 @@ function ImagesSlotPreview({
 }
 
 // dom-to-image-more onclone 処理
-function applyCaptureOncloneStyles(clonedDocument: Document) {
-  console.log('onclone called', clonedDocument)
-  const element = clonedDocument.body || clonedDocument.documentElement
-  console.log('element:', element)
-  if (!element) return
-  const printFalse = element.querySelectorAll('[data-print="false"]')
-  console.log('data-print=false elements:', printFalse.length)
-  printFalse.forEach((el) => {
+function applyCaptureOncloneStyles(clonedElement: Element) {
+  if (!clonedElement) return
+  clonedElement.querySelectorAll('[data-print="false"]').forEach((el) => {
     ;(el as HTMLElement).style.display = 'none'
   })
-  element.querySelectorAll('[data-overlay-layer]').forEach((el) => {
+  clonedElement.querySelectorAll('[data-overlay-layer]').forEach((el) => {
     ;(el as HTMLElement).style.opacity = '1'
-    el.querySelectorAll('svg').forEach((svg) => {
-      svg.style.opacity = '1'
-    })
   })
-  element.querySelectorAll('[data-slot-button]').forEach((el) => {
+  clonedElement.querySelectorAll('[data-slot-button]').forEach((el) => {
     ;(el as HTMLElement).style.backgroundColor = '#ffffff'
   })
 }
@@ -951,6 +943,14 @@ export default function Step4() {
     console.log('blob:', blob)
     const result = await openSheetPdfBlob(blob)
     console.log('result:', result)
+    if (!result.ok) {
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'refill.pdf'
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 10000)
+    }
   }, [capturePreview, paperMetrics])
 
   const handlePrint = useCallback(async () => {
