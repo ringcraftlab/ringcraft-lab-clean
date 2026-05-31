@@ -2,7 +2,9 @@ import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
-import html2canvas from 'html2canvas'
+// import html2canvas from 'html2canvas'
+// @ts-expect-error dom-to-image-more has no type definitions
+import domtoimage from 'dom-to-image-more'
 import jsPDF from 'jspdf'
 import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -709,6 +711,37 @@ function ImagesSlotPreview({
   )
 }
 
+// html2canvas onclone 処理（dom-to-image-more の onclone でも使用）
+function applyCaptureOncloneStyles(_doc: Document, element: HTMLElement) {
+  element.querySelectorAll('[data-print="false"]').forEach((el) => {
+    ;(el as HTMLElement).style.display = 'none'
+  })
+  _doc.querySelectorAll('[data-overlay-layer]').forEach((el) => {
+    ;(el as HTMLElement).style.opacity = '1'
+    el.querySelectorAll('svg').forEach((svg) => {
+      svg.style.opacity = '1'
+    })
+  })
+  _doc.querySelectorAll('[data-slot-button]').forEach((el) => {
+    ;(el as HTMLElement).style.backgroundColor = '#ffffff'
+  })
+  element.querySelectorAll('*').forEach((el) => {
+    try {
+      const computed = window.getComputedStyle(el)
+      const bg = computed.backgroundColor
+      if (bg && bg.startsWith('color(')) {
+        ;(el as HTMLElement).style.backgroundColor = 'transparent'
+      }
+      const color = computed.color
+      if (color && color.startsWith('color(')) {
+        ;(el as HTMLElement).style.color = '#3a2a1e'
+      }
+    } catch {
+      // ignore
+    }
+  })
+}
+
 export default function Step4() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -877,46 +910,15 @@ export default function Step4() {
       }
     })
 
-    const canvas = await html2canvas(root, {
+    const dataUrl = await domtoimage.toPng(root, {
       scale: 3,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      onclone: (_doc, element) => {
-        element.querySelectorAll('[data-print="false"]').forEach((el) => {
-          ;(el as HTMLElement).style.display = 'none'
-        })
-        _doc.querySelectorAll('[data-overlay-layer]').forEach((el) => {
-          ;(el as HTMLElement).style.opacity = '1'
-          el.querySelectorAll('svg').forEach((svg) => {
-            svg.style.opacity = '1'
-          })
-        })
-        _doc.querySelectorAll('[data-slot-button]').forEach((el) => {
-          ;(el as HTMLElement).style.backgroundColor = '#ffffff'
-        })
-        element.querySelectorAll('*').forEach((el) => {
-          try {
-            const computed = window.getComputedStyle(el)
-            const bg = computed.backgroundColor
-            if (bg && bg.startsWith('color(')) {
-              ;(el as HTMLElement).style.backgroundColor = 'transparent'
-            }
-            const color = computed.color
-            if (color && color.startsWith('color(')) {
-              ;(el as HTMLElement).style.color = '#3a2a1e'
-            }
-          } catch {
-            // ignore
-          }
-        })
-      },
+      bgcolor: '#ffffff',
+      onclone: applyCaptureOncloneStyles,
     })
-
     return {
-      dataUrl: canvas.toDataURL('image/png'),
-      pxW: canvas.width,
-      pxH: canvas.height,
+      dataUrl,
+      pxW: root.offsetWidth * 3,
+      pxH: root.offsetHeight * 3,
     }
   }, [])
 
