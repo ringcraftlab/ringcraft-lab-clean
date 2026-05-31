@@ -1,32 +1,15 @@
 @font-face {
   font-family: 'Noto Sans JP';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 500;
   src: url('/fonts/noto-sans-jp-400.woff2') format('woff2');
 }
-@font-face {
-  font-family: 'Noto Sans JP';
-  font-style: normal;
-  font-weight: 500;
-  src: url('/fonts/noto-sans-jp-500.woff2') format('woff2');
-}
+
 @font-face {
   font-family: 'Zen Kaku Gothic New';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 500 700;
   src: url('/fonts/zen-kaku-gothic-new-400.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Zen Kaku Gothic New';
-  font-style: normal;
-  font-weight: 500;
-  src: url('/fonts/zen-kaku-gothic-new-500.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Zen Kaku Gothic New';
-  font-style: normal;
-  font-weight: 700;
-  src: url('/fonts/zen-kaku-gothic-new-700.woff2') format('woff2');
 }
 
 :root {
