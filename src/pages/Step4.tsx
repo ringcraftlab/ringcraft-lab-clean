@@ -716,13 +716,13 @@ function applyCaptureOncloneStyles(_doc: Document, element: HTMLElement) {
   element.querySelectorAll('[data-print="false"]').forEach((el) => {
     ;(el as HTMLElement).style.display = 'none'
   })
-  _doc.querySelectorAll('[data-overlay-layer]').forEach((el) => {
+  element.querySelectorAll('[data-overlay-layer]').forEach((el) => {
     ;(el as HTMLElement).style.opacity = '1'
     el.querySelectorAll('svg').forEach((svg) => {
       svg.style.opacity = '1'
     })
   })
-  _doc.querySelectorAll('[data-slot-button]').forEach((el) => {
+  element.querySelectorAll('[data-slot-button]').forEach((el) => {
     ;(el as HTMLElement).style.backgroundColor = '#ffffff'
   })
   element.querySelectorAll('*').forEach((el) => {
@@ -913,6 +913,12 @@ export default function Step4() {
     const dataUrl = await domtoimage.toPng(root, {
       scale: 3,
       bgcolor: '#ffffff',
+      filter: (node: Node) => {
+        if (node instanceof HTMLLinkElement) {
+          return !node.href?.includes('fonts.googleapis.com')
+        }
+        return true
+      },
       onclone: applyCaptureOncloneStyles,
     })
     return {
