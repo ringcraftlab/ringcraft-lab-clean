@@ -295,7 +295,8 @@ const ImagesModeHeading = styled(PageHeading)({
 
 const PreviewWrap = styled(Box)({
   width: '100%',
-  marginBottom: '28px',
+  maxWidth: 'min(700px, 100%)',
+  margin: '0 auto 28px',
   lineHeight: 0,
 })
 
