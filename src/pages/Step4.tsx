@@ -875,6 +875,7 @@ export default function Step4() {
   const capturePreview = useCallback(async () => {
     const root = previewRef.current
     if (!root) return null
+    console.log('preview size:', root.offsetWidth, root.offsetHeight)
 
     await nextPaintFrames(2)
     await waitForImagesLoaded(root)
