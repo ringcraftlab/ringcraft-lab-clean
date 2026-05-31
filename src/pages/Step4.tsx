@@ -10,7 +10,7 @@ import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
 import PrintTypePreview, { type PrintTypePreviewVariant } from '../components/PrintTypePreview'
 import { getHolePositions, SIZES, type SizeDefinition } from '../config/sizes'
-import { paperOrientationForLayout } from '../utils/layout'
+import { mmToPx, paperOrientationForLayout, printCaptureScale } from '../utils/layout'
 import {
   buildPrintPageHtml,
   nextPaintFrames,
@@ -906,15 +906,21 @@ export default function Step4() {
     })
 
     try {
+      const { pageWmm, pageHmm } = paperMetrics
+      const paperW_px = Math.round(mmToPx(pageWmm))
+      const paperH_px = Math.round(mmToPx(pageHmm))
+
       const canvas = await html2canvas(root, {
-        scale: 8,
+        scale: printCaptureScale(),
+        width: paperW_px,
+        height: paperH_px,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
         onclone: applyCaptureOncloneStyles,
       })
       return {
-        dataUrl: canvas.toDataURL('image/jpeg', 0.95),
+        dataUrl: canvas.toDataURL('image/png'),
         pxW: canvas.width,
         pxH: canvas.height,
       }
@@ -923,7 +929,7 @@ export default function Step4() {
         sheet.disabled = false
       })
     }
-  }, [])
+  }, [paperMetrics])
 
   const handleSavePdf = useCallback(async () => {
     console.log('handleSavePdf 開始')
@@ -934,7 +940,7 @@ export default function Step4() {
     console.log('paperMetrics:', pageWmm, pageHmm)
     const orientation = pageWmm > pageHmm ? 'l' : 'p'
     const pdf = new jsPDF(orientation, 'mm', 'a4')
-    const addImageArgs = [shot.dataUrl, 'JPEG', 0, 0, pageWmm, pageHmm] as const
+    const addImageArgs = [shot.dataUrl, 'PNG', 0, 0, pageWmm, pageHmm] as const
     console.log('pdf.addImage args:', {
       imageData: `(dataUrl, length=${shot.dataUrl.length})`,
       format: addImageArgs[1],
