@@ -910,7 +910,7 @@ export default function Step4() {
     let dataUrl: string
     try {
       dataUrl = await domtoimage.toPng(root, {
-        scale: 3,
+        scale: 8,
         bgcolor: '#ffffff',
         filter: (node: Node) => {
           if (node instanceof HTMLLinkElement) {
@@ -928,8 +928,8 @@ export default function Step4() {
 
     return {
       dataUrl,
-      pxW: root.offsetWidth * 3,
-      pxH: root.offsetHeight * 3,
+      pxW: root.offsetWidth * 8,
+      pxH: root.offsetHeight * 8,
     }
   }, [])
 
