@@ -713,9 +713,13 @@ function ImagesSlotPreview({
 
 // dom-to-image-more onclone 処理
 function applyCaptureOncloneStyles(clonedDocument: Document) {
+  console.log('onclone called', clonedDocument)
   const element = clonedDocument.body || clonedDocument.documentElement
+  console.log('element:', element)
   if (!element) return
-  element.querySelectorAll('[data-print="false"]').forEach((el) => {
+  const printFalse = element.querySelectorAll('[data-print="false"]')
+  console.log('data-print=false elements:', printFalse.length)
+  printFalse.forEach((el) => {
     ;(el as HTMLElement).style.display = 'none'
   })
   element.querySelectorAll('[data-overlay-layer]').forEach((el) => {
