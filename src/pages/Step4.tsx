@@ -910,17 +910,35 @@ export default function Step4() {
       }
     })
 
-    const dataUrl = await domtoimage.toPng(root, {
-      scale: 3,
-      bgcolor: '#ffffff',
-      filter: (node: Node) => {
-        if (node instanceof HTMLLinkElement) {
-          return !node.href?.includes('fonts.googleapis.com')
-        }
-        return true
-      },
-      onclone: applyCaptureOncloneStyles,
+    const disabledSheets: CSSStyleSheet[] = []
+    Array.from(document.styleSheets).forEach((sheet) => {
+      try {
+        sheet.cssRules
+      } catch {
+        sheet.disabled = true
+        disabledSheets.push(sheet)
+      }
     })
+
+    let dataUrl: string
+    try {
+      dataUrl = await domtoimage.toPng(root, {
+        scale: 3,
+        bgcolor: '#ffffff',
+        filter: (node: Node) => {
+          if (node instanceof HTMLLinkElement) {
+            return !node.href?.includes('fonts.googleapis.com')
+          }
+          return true
+        },
+        onclone: applyCaptureOncloneStyles,
+      })
+    } finally {
+      disabledSheets.forEach((sheet) => {
+        sheet.disabled = false
+      })
+    }
+
     return {
       dataUrl,
       pxW: root.offsetWidth * 3,
