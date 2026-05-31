@@ -926,6 +926,11 @@ export default function Step4() {
       })
     }
 
+    console.log('canvas size:', dataUrl.length)
+    const img = new Image()
+    img.onload = () => console.log('actual image size:', img.width, img.height)
+    img.src = dataUrl
+
     return {
       dataUrl,
       pxW: root.offsetWidth * 8,
