@@ -911,6 +911,10 @@ export default function Step4() {
       ;(node as HTMLElement).style.setProperty('display', 'none', 'important')
     })
 
+    clone.querySelectorAll('[data-overlay-layer] svg').forEach((svg) => {
+      ;(svg as HTMLElement).style.opacity = '1'
+    })
+
     promoteBackgroundImagesForCapture(clone)
     await waitForImagesLoaded(clone)
     await rasterizeFitImagesForCapture(clone)
