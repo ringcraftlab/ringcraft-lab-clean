@@ -669,7 +669,7 @@ function ImagesSlotPreview({
   const slotRects = useMemo(() => buildSlotRects(layout), [layout])
 
   return (
-    <ImagesPaperFrame aspectRatio={aspectRatio}>
+    <ImagesPaperFrame aspectRatio={aspectRatio} data-paper-frame>
       {slotRects.map((rect) => {
         const src = images[rect.index]
         const hasImage = Boolean(src)
@@ -890,6 +890,21 @@ export default function Step4() {
     clone.style.width = `${paperW_px}px`
     clone.style.height = `${paperH_px}px`
     host.appendChild(clone)
+
+    // maxWidthを解除してA4全幅を使う
+    clone.style.maxWidth = 'none'
+    clone.style.margin = '0'
+
+    // 内部のImagesPaperFrameをA4サイズに合わせる
+    const paperFrame = clone.querySelector('[data-paper-frame]') as HTMLElement
+    if (paperFrame) {
+      paperFrame.style.width = `${paperW_px}px`
+      paperFrame.style.height = `${paperH_px}px`
+      paperFrame.style.aspectRatio = 'unset'
+      paperFrame.style.borderRadius = '0'
+      paperFrame.style.maxWidth = 'none'
+    }
+
     document.body.appendChild(host)
 
     clone.querySelectorAll('[data-print="false"]').forEach((node) => {
