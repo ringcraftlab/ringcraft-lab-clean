@@ -1032,6 +1032,8 @@ export default function Step4() {
   const capturePreview = useCallback(async () => {
     if (!previewLayout) return null
 
+    console.log('guideImageFit:', guideImageFit)
+
     const { pageWmm, pageHmm } = paperMetrics
     const paperW_px = Math.round(mmToPx(pageWmm))
     const paperH_px = Math.round(mmToPx(pageHmm))
