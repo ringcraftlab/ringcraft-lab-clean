@@ -858,6 +858,7 @@ export default function Step4() {
   }
 
   const capturePreview = useCallback(async () => {
+    console.log('capturePreview start')
     const el = previewRef.current
     if (!el) return null
 
@@ -915,6 +916,7 @@ export default function Step4() {
       ;(svg as HTMLElement).style.opacity = '1'
     })
 
+    console.log('before promote')
     promoteBackgroundImagesForCapture(clone)
     await waitForImagesLoaded(clone)
     const imgs = clone.querySelectorAll('img')
