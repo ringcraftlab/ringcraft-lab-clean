@@ -917,7 +917,11 @@ export default function Step4() {
 
     promoteBackgroundImagesForCapture(clone)
     await waitForImagesLoaded(clone)
-    console.log('images in clone:', clone.querySelectorAll('img').length)
+    const imgs = clone.querySelectorAll('img')
+    console.log('images in clone:', imgs.length)
+    imgs.forEach((img, i) => {
+      console.log(`img[${i}]:`, img.src.slice(0, 50), 'data-fit-mode:', img.getAttribute('data-fit-mode'))
+    })
     await rasterizeFitImagesForCapture(clone)
     console.log('after rasterize')
 
