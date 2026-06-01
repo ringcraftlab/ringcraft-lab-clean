@@ -908,6 +908,21 @@ export default function Step4() {
 
     document.body.appendChild(host)
 
+    // レイアウト計算を待つ
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // クローン内の画像のサイズを確認してから処理
+    const slotButtons = clone.querySelectorAll('[data-slot-button]')
+    slotButtons.forEach((btn) => {
+      const el = btn as HTMLElement
+      if (el.offsetWidth < 1) {
+        const w = paperW_px / 4
+        const h = paperH_px / 2
+        el.style.width = `${w}px`
+        el.style.height = `${h}px`
+      }
+    })
+
     clone.querySelectorAll('[data-print="false"]').forEach((node) => {
       ;(node as HTMLElement).style.setProperty('display', 'none', 'important')
     })
