@@ -4,7 +4,8 @@ import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
@@ -16,7 +17,6 @@ import {
   nextPaintFrames,
   openPrintDocument,
   openSheetPdfBlob,
-  promoteBackgroundImagesForCapture,
   rasterizeFitImagesForCapture,
   waitForImagesLoaded,
 } from '../utils/printCapture'
@@ -711,6 +711,178 @@ function ImagesSlotPreview({
   )
 }
 
+const captureSheetStyle = (
+  paperW_px: number,
+  paperH_px: number,
+): CSSProperties => ({
+  position: 'relative',
+  width: paperW_px,
+  height: paperH_px,
+  backgroundColor: '#ffffff',
+  overflow: 'hidden',
+})
+
+const captureOverlayLayerStyle: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  pointerEvents: 'none',
+  lineHeight: 0,
+}
+
+const captureSlotStyle = (
+  rect: SlotRectPercent,
+): CSSProperties => ({
+  position: 'absolute',
+  left: `${rect.left}%`,
+  top: `${rect.top}%`,
+  width: `${rect.width}%`,
+  height: `${rect.height}%`,
+  overflow: 'hidden',
+  margin: 0,
+  padding: 0,
+})
+
+const captureSlotImageStyle: CSSProperties = {
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+}
+
+/** キャプチャ用 SVG の用紙背景 rect を透明にし、下の写真・背景画像を隠さない */
+function clearCaptureSvgPaperFills(root: HTMLElement) {
+  root.querySelectorAll('svg').forEach((svg) => {
+    const paperRect = svg.querySelector(':scope > rect')
+    if (!paperRect) return
+    const fill = paperRect.getAttribute('fill')
+    if (fill && fill !== 'none') {
+      paperRect.setAttribute('fill', 'none')
+    }
+  })
+}
+
+function fixCaptureSvgDimensions(root: HTMLElement, paperH_px: number) {
+  root.querySelectorAll('svg').forEach((svg) => {
+    svg.setAttribute('width', '100%')
+    if (svg.getAttribute('height') === 'auto' || !svg.getAttribute('height')) {
+      svg.setAttribute('height', String(paperH_px))
+    }
+  })
+}
+
+function createOffscreenCaptureHost(paperW_px: number, paperH_px: number) {
+  const host = document.createElement('div')
+  host.setAttribute('aria-hidden', 'true')
+  Object.assign(host.style, {
+    position: 'fixed',
+    left: '-100000px',
+    top: '0',
+    width: `${paperW_px}px`,
+    height: `${paperH_px}px`,
+    overflow: 'hidden',
+    pointerEvents: 'none',
+    opacity: '0',
+    zIndex: '-1',
+  })
+  const sheet = document.createElement('div')
+  host.appendChild(sheet)
+  return { host, sheet }
+}
+
+interface CaptureSheetProps {
+  paperW_px: number
+  paperH_px: number
+  printType: string
+  previewLayout: PrintTypePreviewLayout
+  layoutParams: PrintTypePreviewLayoutParams
+  images: Record<number, string>
+  imageFitModes: Record<number, GuideImageFit>
+  guideImage: string
+  guideImageFit: GuideImageFit
+  guideImageRotation: number
+  showHoleGuide: boolean
+}
+
+function CaptureSheet({
+  paperW_px,
+  paperH_px,
+  printType,
+  previewLayout,
+  layoutParams,
+  images,
+  imageFitModes,
+  guideImage,
+  guideImageFit,
+  guideImageRotation,
+  showHoleGuide,
+}: CaptureSheetProps) {
+  const sheetStyle = captureSheetStyle(paperW_px, paperH_px)
+  const isImagesMode = printType === 'images'
+  const isBackgroundMode = printType === 'background'
+  const slotRects = buildSlotRects(previewLayout)
+
+  if (isImagesMode) {
+    return (
+      <div style={sheetStyle}>
+        {slotRects.map((rect) => {
+          const src = images[rect.index]
+          if (!src) return null
+          return (
+            <div key={rect.index} style={captureSlotStyle(rect)}>
+              <img
+                src={src}
+                alt=""
+                data-fit-mode={imageFitModes[rect.index] ?? 'cover'}
+                data-rotation="0"
+                style={captureSlotImageStyle}
+              />
+            </div>
+          )
+        })}
+        {showHoleGuide ? (
+          <div style={captureOverlayLayerStyle}>
+            <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (isBackgroundMode && guideImage) {
+    return (
+      <div style={sheetStyle}>
+        <img
+          src={guideImage}
+          alt=""
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: guideImageFit,
+            transform: `rotate(${guideImageRotation}deg)`,
+            transformOrigin: 'center center',
+          }}
+        />
+        <div style={captureOverlayLayerStyle}>
+          <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
+        </div>
+      </div>
+    )
+  }
+
+  const variant: PrintTypePreviewVariant =
+    isBackgroundMode && !guideImage ? 'background' : previewVariantFor(printType)
+
+  return (
+    <div style={sheetStyle}>
+      <PrintTypePreview variant={variant} layoutParams={layoutParams} emphasized />
+    </div>
+  )
+}
+
 export default function Step4() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -858,98 +1030,47 @@ export default function Step4() {
   }
 
   const capturePreview = useCallback(async () => {
-    console.log('capturePreview start')
-    const el = previewRef.current
-    if (!el) return null
+    if (!previewLayout) return null
 
     const { pageWmm, pageHmm } = paperMetrics
     const paperW_px = Math.round(mmToPx(pageWmm))
     const paperH_px = Math.round(mmToPx(pageHmm))
 
-    await nextPaintFrames(2)
-    await waitForImagesLoaded(el)
-
-    const host = document.createElement('div')
-    host.setAttribute('aria-hidden', 'true')
-    Object.assign(host.style, {
-      position: 'fixed',
-      left: '-100000px',
-      top: '0',
-      width: `${paperW_px}px`,
-      height: `${paperH_px}px`,
-      overflow: 'hidden',
-      pointerEvents: 'none',
-      opacity: '0',
-      zIndex: '-1',
-    })
-
-    const clone = el.cloneNode(true) as HTMLElement
-    clone.style.transform = 'scale(1)'
-    clone.style.position = 'absolute'
-    clone.style.left = '0'
-    clone.style.top = '0'
-    clone.style.width = `${paperW_px}px`
-    clone.style.height = `${paperH_px}px`
-    host.appendChild(clone)
-
-    // maxWidthを解除してA4全幅を使う
-    clone.style.maxWidth = 'none'
-    clone.style.margin = '0'
-
-    // 内部のImagesPaperFrameをA4サイズに合わせる
-    const paperFrame = clone.querySelector('[data-paper-frame]') as HTMLElement
-    if (paperFrame) {
-      paperFrame.style.width = `${paperW_px}px`
-      paperFrame.style.height = `${paperH_px}px`
-      paperFrame.style.aspectRatio = 'unset'
-      paperFrame.style.borderRadius = '0'
-      paperFrame.style.maxWidth = 'none'
-    }
-
-    document.body.appendChild(host)
-
-    // レイアウト計算を待つ
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    // クローン内の画像のサイズを確認してから処理
-    const slotButtons = clone.querySelectorAll('[data-slot-button]')
-    slotButtons.forEach((btn) => {
-      const el = btn as HTMLElement
-      if (el.offsetWidth < 1) {
-        const w = paperW_px / 4
-        const h = paperH_px / 2
-        el.style.width = `${w}px`
-        el.style.height = `${h}px`
-      }
-    })
-
-    clone.querySelectorAll('[data-print="false"]').forEach((node) => {
-      ;(node as HTMLElement).style.setProperty('display', 'none', 'important')
-    })
-
-    clone.querySelectorAll('[data-overlay-layer] svg').forEach((svg) => {
-      ;(svg as HTMLElement).style.opacity = '1'
-    })
-
-    console.log('before promote')
-    promoteBackgroundImagesForCapture(clone)
-    await waitForImagesLoaded(clone)
-    const imgs = clone.querySelectorAll('img')
-    console.log('images in clone:', imgs.length)
-    imgs.forEach((img, i) => {
-      console.log(`img[${i}]:`, img.src.slice(0, 50), 'data-fit-mode:', img.getAttribute('data-fit-mode'))
-    })
-    await rasterizeFitImagesForCapture(clone)
-    console.log('after rasterize')
-
-    clone.querySelectorAll('svg').forEach((svg) => {
-      if (svg.getAttribute('height') === 'auto') {
-        svg.setAttribute('height', String(svg.getBoundingClientRect().height))
-      }
-    })
+    const { host, sheet } = createOffscreenCaptureHost(paperW_px, paperH_px)
+    let reactRoot: Root | null = null
 
     try {
-      const canvas = await html2canvas(clone, {
+      reactRoot = createRoot(sheet)
+      reactRoot.render(
+        <CaptureSheet
+          paperW_px={paperW_px}
+          paperH_px={paperH_px}
+          printType={printType}
+          previewLayout={previewLayout}
+          layoutParams={layoutParams}
+          images={images}
+          imageFitModes={imageFitModes}
+          guideImage={guideImage}
+          guideImageFit={guideImageFit}
+          guideImageRotation={guideImageRotation}
+          showHoleGuide={showHoleGuide}
+        />,
+      )
+
+      document.body.appendChild(host)
+      await nextPaintFrames(2)
+      await waitForImagesLoaded(sheet)
+
+      const stripPaperFill =
+        isImagesMode || (isBackgroundMode && Boolean(guideImage))
+      if (stripPaperFill) {
+        clearCaptureSvgPaperFills(sheet)
+      }
+
+      await rasterizeFitImagesForCapture(sheet)
+      fixCaptureSvgDimensions(sheet, paperH_px)
+
+      const canvas = await html2canvas(sheet, {
         scale: printCaptureScale(),
         width: paperW_px,
         height: paperH_px,
@@ -957,15 +1078,32 @@ export default function Step4() {
         logging: false,
         backgroundColor: '#ffffff',
       })
+
       return {
         dataUrl: canvas.toDataURL('image/png'),
         pxW: canvas.width,
         pxH: canvas.height,
       }
     } finally {
-      document.body.removeChild(host)
+      reactRoot?.unmount()
+      if (host.parentNode) {
+        document.body.removeChild(host)
+      }
     }
-  }, [paperMetrics])
+  }, [
+    paperMetrics,
+    previewLayout,
+    printType,
+    layoutParams,
+    images,
+    imageFitModes,
+    guideImage,
+    guideImageFit,
+    guideImageRotation,
+    showHoleGuide,
+    isImagesMode,
+    isBackgroundMode,
+  ])
 
   const handleSavePdf = useCallback(async () => {
     console.log('handleSavePdf 開始')
