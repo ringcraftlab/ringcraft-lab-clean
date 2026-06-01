@@ -158,6 +158,23 @@ const ImagesPickButton = styled(AppButton)({
   boxSizing: 'border-box',
 })
 
+const ImagesClearAllButton = styled('button')({
+  margin: 0,
+  padding: 0,
+  border: 'none',
+  background: 'none',
+  color: '#c62828',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.8125rem',
+  fontWeight: 500,
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  alignSelf: 'center',
+  '&:hover': {
+    color: '#b71c1c',
+  },
+})
+
 const ImagesPaperFrame = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'aspectRatio',
 })<{ aspectRatio: string }>(({ aspectRatio }) => ({
@@ -542,6 +559,12 @@ const OutlineAppButton = styled(AppButton)({
   },
 })
 
+const ImagesFillAllButton = styled(OutlineAppButton)({
+  width: '100%',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
+})
+
 function resolveRefillDimensions(state: Step4LocationState | null): {
   refillW: number
   refillH: number
@@ -898,6 +921,7 @@ export default function Step4() {
   const guideImageInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fileInputMultiRef = useRef<HTMLInputElement>(null)
+  const fileInputFillRef = useRef<HTMLInputElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const [guideImage, setGuideImage] = useState('')
   const [guideImageFit, setGuideImageFit] = useState<GuideImageFit>('contain')
@@ -929,6 +953,11 @@ export default function Step4() {
   const previewLayout = useMemo(
     () => buildPrintTypePreviewLayout(layoutParams),
     [layoutParams],
+  )
+
+  const imageSlotTotal = useMemo(
+    () => (previewLayout ? getSlotCount(previewLayout) : 0),
+    [previewLayout],
   )
 
   const paperMetrics = useMemo(() => {
@@ -1019,6 +1048,32 @@ export default function Step4() {
     },
     [previewLayout],
   )
+
+  const handleFillInput = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      event.target.value = ''
+      if (!file || imageSlotTotal <= 0) return
+
+      const reader = new FileReader()
+      reader.onload = (loadEvent) => {
+        const result = loadEvent.target?.result
+        if (typeof result !== 'string') return
+        const nextImages: Record<number, string> = {}
+        for (let slot = 0; slot < imageSlotTotal; slot += 1) {
+          nextImages[slot] = result
+        }
+        setImages(nextImages)
+      }
+      reader.readAsDataURL(file)
+    },
+    [imageSlotTotal],
+  )
+
+  const handleClearAllImages = useCallback(() => {
+    setImages({})
+    setActiveSlot(null)
+  }, [])
 
   const goBackToStep3 = () => {
     navigate('/tool/step3', {
@@ -1216,6 +1271,12 @@ export default function Step4() {
         <ImagesPickButton type="button" onClick={() => fileInputMultiRef.current?.click()}>
           写真を選ぶ
         </ImagesPickButton>
+        <ImagesFillAllButton type="button" onClick={() => fileInputFillRef.current?.click()}>
+          1枚を全枠に使う
+        </ImagesFillAllButton>
+        <ImagesClearAllButton type="button" onClick={handleClearAllImages}>
+          一括削除
+        </ImagesClearAllButton>
         <HiddenFileInput
           ref={fileInputRef}
           type="file"
@@ -1228,6 +1289,12 @@ export default function Step4() {
           accept="image/*"
           multiple
           onChange={handleMultiInput}
+        />
+        <HiddenFileInput
+          ref={fileInputFillRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFillInput}
         />
       </ImagesSidePanel>
     </SideColumn>
