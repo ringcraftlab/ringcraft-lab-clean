@@ -917,7 +917,9 @@ export default function Step4() {
 
     promoteBackgroundImagesForCapture(clone)
     await waitForImagesLoaded(clone)
+    console.log('images in clone:', clone.querySelectorAll('img').length)
     await rasterizeFitImagesForCapture(clone)
+    console.log('after rasterize')
 
     try {
       const canvas = await html2canvas(clone, {
