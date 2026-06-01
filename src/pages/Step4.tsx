@@ -2,24 +2,24 @@ import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from 'react'
-import { createRoot, type Root } from 'react-dom/client'
+import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
-import PrintTypePreview, { type PrintTypePreviewVariant } from '../components/PrintTypePreview'
-import { getHolePositions, SIZES, type SizeDefinition } from '../config/sizes'
-import { mmToPx, paperOrientationForLayout, printCaptureScale } from '../utils/layout'
+import PrintTypePreview from '../components/PrintTypePreview'
+import Step4ImagesSidePanel, { type ImageAreaMode } from '../components/step4/Step4ImagesSidePanel'
+import Step4SettingsBlock, {
+  DEFAULT_BORDER_COLOR,
+  type HoleSide,
+} from '../components/step4/Step4SettingsBlock'
 import {
-  buildPrintPageHtml,
-  nextPaintFrames,
-  openPrintDocument,
-  openSheetPdfBlob,
-  rasterizeFitImagesForCapture,
-  waitForImagesLoaded,
-} from '../utils/printCapture'
+  buildSlotRects,
+  previewVariantFor,
+  useStep4Capture,
+  type GuideImageFit,
+} from '../components/step4/useStep4Capture'
+import { getHolePositions, SIZES, type SizeDefinition } from '../config/sizes'
+import { paperOrientationForLayout } from '../utils/layout'
 import {
   buildPrintTypePreviewLayout,
   type PrintTypePreviewLayout,
@@ -34,25 +34,11 @@ type Step4LocationState = {
   printType?: string
 }
 
-type HoleSide = 'left' | 'right'
-type ImageAreaMode = 'avoid' | 'full'
-type GuideImageFit = 'contain' | 'cover' | 'fill'
-
 const GUIDE_IMAGE_FIT_OPTIONS: { id: GuideImageFit; label: string }[] = [
   { id: 'cover', label: 'トリミング' },
   { id: 'contain', label: '全体表示' },
   { id: 'fill', label: '引き延ばし' },
 ]
-
-const BORDER_COLOR_PRESETS = [
-  { id: 'gray', label: 'グレー', hex: '#b0a89e' },
-  { id: 'pink', label: 'ピンク', hex: '#e8a0a0' },
-  { id: 'light-pink', label: '薄ピンク', hex: '#f0c0c0' },
-  { id: 'green', label: 'グリーン', hex: '#8fbfb0' },
-  { id: 'blue', label: 'ブルー', hex: '#6080a8' },
-  { id: 'purple', label: 'パープル', hex: '#9080b0' },
-  { id: 'black', label: 'ブラック', hex: '#000000' },
-] as const
 
 const PRINT_TYPE_HEADINGS: Record<string, string> = {
   frame: 'リフィル枠を印刷',
@@ -133,119 +119,6 @@ const TwoColumnLayout = styled(Box)({
   gridTemplateColumns: '280px minmax(0, 1fr)',
   gap: '24px',
   alignItems: 'start',
-})
-
-const SideColumn = styled(Box)({
-  width: '280px',
-  flexShrink: 0,
-  minHeight: '120px',
-  padding: '0 24px 24px',
-  boxSizing: 'border-box',
-})
-
-const ImagesSidePanel = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'stretch',
-  justifyContent: 'flex-start',
-  gap: '24px',
-  width: '100%',
-  minWidth: 0,
-})
-
-const ImagesSideSection = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'stretch',
-  gap: '12px',
-  width: '100%',
-})
-
-const ImagesSideSectionTitle = styled('h3')({
-  margin: 0,
-  color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-body)',
-  fontSize: '0.9375rem',
-  fontWeight: 700,
-  lineHeight: 1.4,
-})
-
-const ImagesSideActionBlock = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'stretch',
-  gap: '6px',
-  width: '100%',
-})
-
-const ImagesSideActionSubtext = styled('p')({
-  margin: 0,
-  color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
-  fontSize: '0.8125rem',
-  lineHeight: 1.5,
-  textAlign: 'center',
-})
-
-const ImagesPickButton = styled(AppButton)({
-  width: '100%',
-  maxWidth: '100%',
-  boxSizing: 'border-box',
-})
-
-const ImagesClearAllButton = styled('button')({
-  margin: 0,
-  padding: 0,
-  border: 'none',
-  background: 'none',
-  color: 'color-mix(in srgb, var(--color-primary) 65%, var(--color-text-h))',
-  fontFamily: 'var(--font-body)',
-  fontSize: '0.8125rem',
-  fontWeight: 500,
-  textDecoration: 'underline',
-  cursor: 'pointer',
-  alignSelf: 'center',
-  '&:hover': {
-    color: 'var(--color-text-h)',
-  },
-})
-
-const ImagesPlacementCard = styled('button', {
-  shouldForwardProp: (prop) => prop !== 'active',
-})<{ active?: boolean }>(({ active }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: '4px',
-  width: '100%',
-  margin: 0,
-  padding: '12px 14px',
-  borderRadius: 'var(--radius-card)',
-  border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
-  backgroundColor: active
-    ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))'
-    : 'var(--color-surface)',
-  textAlign: 'left',
-  cursor: 'pointer',
-  transition: 'border-color 0.2s ease, background-color 0.2s ease',
-  '&:hover': {
-    borderColor: 'var(--color-primary)',
-  },
-}))
-
-const ImagesPlacementCardTitle = styled('span')({
-  color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-body)',
-  fontSize: '0.875rem',
-  fontWeight: 600,
-  lineHeight: 1.4,
-})
-
-const ImagesPlacementCardDesc = styled('span')({
-  color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
-  fontSize: '0.8125rem',
-  lineHeight: 1.5,
 })
 
 const ImagesPaperFrame = styled(Box, {
@@ -528,92 +401,6 @@ const PreviewFallback = styled('p')({
   border: '1px solid var(--color-border)',
 })
 
-const SettingsPanel = styled(Box)({
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '16px',
-  marginBottom: '32px',
-})
-
-const SettingsRow = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'muted',
-})<{ muted?: boolean }>(({ muted }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '16px',
-  opacity: muted ? 0.55 : 1,
-}))
-
-const SettingsLabel = styled('span')({
-  color: 'var(--color-text-h)',
-  fontWeight: 600,
-  fontSize: '0.9rem',
-  flexShrink: 0,
-})
-
-const SettingsControls = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-end',
-})
-
-const SettingsToggleButton = styled('button', {
-  shouldForwardProp: (prop) => prop !== 'active' && prop !== 'disabled',
-})<{ active?: boolean; disabled?: boolean }>(({ active, disabled }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minWidth: '44px',
-  height: '28px',
-  padding: '0 12px',
-  borderRadius: '6px',
-  border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
-  backgroundColor: active
-    ? 'color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))'
-    : 'var(--color-surface)',
-  color: 'var(--color-text-h)',
-  fontFamily: 'var(--font-body)',
-  fontSize: '0.85rem',
-  fontWeight: active ? 600 : 500,
-  cursor: disabled ? 'not-allowed' : 'pointer',
-  opacity: disabled ? 0.45 : 1,
-  '&:hover': disabled
-    ? undefined
-    : {
-        borderColor: 'var(--color-primary)',
-      },
-}))
-
-const ColorSwatchRow = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-end',
-})
-
-const ColorSwatch = styled('button', {
-  shouldForwardProp: (prop) => prop !== 'swatchColor' && prop !== 'selected',
-})<{ swatchColor: string; selected?: boolean }>(({ swatchColor, selected }) => ({
-  width: '28px',
-  height: '28px',
-  padding: 0,
-  border: 'none',
-  borderRadius: '50%',
-  backgroundColor: swatchColor,
-  cursor: 'pointer',
-  boxShadow: selected
-    ? '0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)'
-    : '0 0 0 1px var(--color-border)',
-  '&:hover': {
-    boxShadow: '0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)',
-  },
-}))
-
 const ActionRow = styled(Box)({
   display: 'flex',
   flexWrap: 'wrap',
@@ -630,12 +417,6 @@ const OutlineAppButton = styled(AppButton)({
     filter: 'none',
     backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))',
   },
-})
-
-const ImagesFillAllButton = styled(OutlineAppButton)({
-  width: '100%',
-  maxWidth: '100%',
-  boxSizing: 'border-box',
 })
 
 function resolveRefillDimensions(state: Step4LocationState | null): {
@@ -656,11 +437,6 @@ function resolveRefillDimensions(state: Step4LocationState | null): {
     refillW: fallback?.w ?? 62,
     refillH: fallback?.h ?? 105,
   }
-}
-
-function previewVariantFor(printType: string): PrintTypePreviewVariant {
-  if (printType === 'background' || printType === 'images') return printType
-  return 'frame'
 }
 
 function resolveSizePreset(sizeId?: string): SizeDefinition | undefined {
@@ -691,55 +467,6 @@ function placeImagesInEmptySlots(
     }
   }
   return next
-}
-
-type SlotRectPercent = {
-  index: number
-  left: number
-  top: number
-  width: number
-  height: number
-}
-
-function buildSlotRects(layout: PrintTypePreviewLayout): SlotRectPercent[] {
-  const { paperW, paperH, refillW, refillH } = layout
-  const slots: SlotRectPercent[] = []
-
-  if (layout.kind === 'fold') {
-    const { marginX, marginY, bookCount, foldCount, panelW, holeZoneMm } = layout.fold
-    for (let row = 0; row < bookCount; row += 1) {
-      for (let col = 0; col < foldCount; col += 1) {
-        const index = row * foldCount + col
-        const x = marginX + holeZoneMm + col * panelW
-        const y = marginY + row * refillH
-        slots.push({
-          index,
-          left: (x / paperW) * 100,
-          top: (y / paperH) * 100,
-          width: (panelW / paperW) * 100,
-          height: (refillH / paperH) * 100,
-        })
-      }
-    }
-    return slots
-  }
-
-  const { cols, rows, marginX, marginY } = layout
-  for (let row = 0; row < rows; row += 1) {
-    for (let col = 0; col < cols; col += 1) {
-      const index = row * cols + col
-      const x = marginX + col * refillW
-      const y = marginY + row * refillH
-      slots.push({
-        index,
-        left: (x / paperW) * 100,
-        top: (y / paperH) * 100,
-        width: (refillW / paperW) * 100,
-        height: (refillH / paperH) * 100,
-      })
-    }
-  }
-  return slots
 }
 
 interface ImagesSlotPreviewProps {
@@ -807,180 +534,6 @@ function ImagesSlotPreview({
   )
 }
 
-const captureSheetStyle = (
-  paperW_px: number,
-  paperH_px: number,
-): CSSProperties => ({
-  position: 'relative',
-  width: paperW_px,
-  height: paperH_px,
-  backgroundColor: '#ffffff',
-  overflow: 'hidden',
-})
-
-const captureOverlayLayerStyle: CSSProperties = {
-  position: 'absolute',
-  inset: 0,
-  width: '100%',
-  height: '100%',
-  pointerEvents: 'none',
-  lineHeight: 0,
-}
-
-const captureSlotStyle = (
-  rect: SlotRectPercent,
-): CSSProperties => ({
-  position: 'absolute',
-  left: `${rect.left}%`,
-  top: `${rect.top}%`,
-  width: `${rect.width}%`,
-  height: `${rect.height}%`,
-  overflow: 'hidden',
-  margin: 0,
-  padding: 0,
-})
-
-const captureSlotImageStyle: CSSProperties = {
-  display: 'block',
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-}
-
-/** キャプチャ用 SVG の用紙背景 rect を透明にし、下の写真・背景画像を隠さない */
-function clearCaptureSvgPaperFills(root: HTMLElement) {
-  root.querySelectorAll('svg').forEach((svg) => {
-    const paperRect = svg.querySelector(':scope > rect')
-    if (!paperRect) return
-    const fill = paperRect.getAttribute('fill')
-    if (fill && fill !== 'none') {
-      paperRect.setAttribute('fill', 'none')
-    }
-  })
-}
-
-function fixCaptureSvgDimensions(root: HTMLElement, paperH_px: number) {
-  root.querySelectorAll('svg').forEach((svg) => {
-    svg.setAttribute('width', '100%')
-    if (svg.getAttribute('height') === 'auto' || !svg.getAttribute('height')) {
-      svg.setAttribute('height', String(paperH_px))
-    }
-  })
-}
-
-function createOffscreenCaptureHost(paperW_px: number, paperH_px: number) {
-  const host = document.createElement('div')
-  host.setAttribute('aria-hidden', 'true')
-  Object.assign(host.style, {
-    position: 'fixed',
-    left: '-100000px',
-    top: '0',
-    width: `${paperW_px}px`,
-    height: `${paperH_px}px`,
-    overflow: 'hidden',
-    pointerEvents: 'none',
-    opacity: '0',
-    zIndex: '-1',
-  })
-  const sheet = document.createElement('div')
-  host.appendChild(sheet)
-  return { host, sheet }
-}
-
-interface CaptureSheetProps {
-  paperW_px: number
-  paperH_px: number
-  printType: string
-  previewLayout: PrintTypePreviewLayout
-  layoutParams: PrintTypePreviewLayoutParams
-  images: Record<number, string>
-  imageFitModes: Record<number, GuideImageFit>
-  guideImage: string
-  guideImageFit: GuideImageFit
-  guideImageRotation: number
-  showHoleGuide: boolean
-}
-
-function CaptureSheet({
-  paperW_px,
-  paperH_px,
-  printType,
-  previewLayout,
-  layoutParams,
-  images,
-  imageFitModes,
-  guideImage,
-  guideImageFit,
-  guideImageRotation,
-  showHoleGuide,
-}: CaptureSheetProps) {
-  const sheetStyle = captureSheetStyle(paperW_px, paperH_px)
-  const isImagesMode = printType === 'images'
-  const isBackgroundMode = printType === 'background'
-  const slotRects = buildSlotRects(previewLayout)
-
-  if (isImagesMode) {
-    return (
-      <div style={sheetStyle}>
-        {slotRects.map((rect) => {
-          const src = images[rect.index]
-          if (!src) return null
-          return (
-            <div key={rect.index} style={captureSlotStyle(rect)}>
-              <img
-                src={src}
-                alt=""
-                data-fit-mode={imageFitModes[rect.index] ?? 'cover'}
-                data-rotation="0"
-                style={captureSlotImageStyle}
-              />
-            </div>
-          )
-        })}
-        {showHoleGuide ? (
-          <div style={captureOverlayLayerStyle}>
-            <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
-          </div>
-        ) : null}
-      </div>
-    )
-  }
-
-  if (isBackgroundMode && guideImage) {
-    return (
-      <div style={sheetStyle}>
-        <img
-          src={guideImage}
-          alt=""
-          data-fit-mode={guideImageFit}
-          data-rotation={String(guideImageRotation)}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: guideImageFit,
-            transform: `rotate(${guideImageRotation}deg)`,
-            transformOrigin: 'center center',
-          }}
-        />
-        <div style={captureOverlayLayerStyle}>
-          <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
-        </div>
-      </div>
-    )
-  }
-
-  const variant: PrintTypePreviewVariant =
-    isBackgroundMode && !guideImage ? 'background' : previewVariantFor(printType)
-
-  return (
-    <div style={sheetStyle}>
-      <PrintTypePreview variant={variant} layoutParams={layoutParams} emphasized />
-    </div>
-  )
-}
-
 export default function Step4() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -1044,7 +597,22 @@ export default function Step4() {
     [routeState?.sizeId],
   )
 
-  const [borderColor, setBorderColor] = useState<string>(BORDER_COLOR_PRESETS[6].hex)
+  const [borderColor, setBorderColor] = useState<string>(DEFAULT_BORDER_COLOR)
+
+  const { handleSavePdf, handlePrint } = useStep4Capture({
+    paperMetrics,
+    previewLayout,
+    printType,
+    layoutParams,
+    images,
+    imageFitModes,
+    guideImage,
+    guideImageFit,
+    guideImageRotation,
+    showHoleGuide,
+    isImagesMode,
+    isBackgroundMode,
+  })
 
   const handleGuideImageInput = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -1157,135 +725,6 @@ export default function Step4() {
     })
   }
 
-  const capturePreview = useCallback(async () => {
-    console.log('guideImageFit:', guideImageFit)
-
-    if (!previewLayout) return null
-
-    const { pageWmm, pageHmm } = paperMetrics
-    const paperW_px = Math.round(mmToPx(pageWmm))
-    const paperH_px = Math.round(mmToPx(pageHmm))
-
-    const { host, sheet } = createOffscreenCaptureHost(paperW_px, paperH_px)
-    let reactRoot: Root | null = null
-
-    try {
-      reactRoot = createRoot(sheet)
-      reactRoot.render(
-        <CaptureSheet
-          paperW_px={paperW_px}
-          paperH_px={paperH_px}
-          printType={printType}
-          previewLayout={previewLayout}
-          layoutParams={layoutParams}
-          images={images}
-          imageFitModes={imageFitModes}
-          guideImage={guideImage}
-          guideImageFit={guideImageFit}
-          guideImageRotation={guideImageRotation}
-          showHoleGuide={showHoleGuide}
-        />,
-      )
-
-      document.body.appendChild(host)
-      await nextPaintFrames(2)
-      await waitForImagesLoaded(sheet)
-
-      const stripPaperFill =
-        isImagesMode || (isBackgroundMode && Boolean(guideImage))
-      if (stripPaperFill) {
-        clearCaptureSvgPaperFills(sheet)
-      }
-
-      await rasterizeFitImagesForCapture(sheet)
-      fixCaptureSvgDimensions(sheet, paperH_px)
-
-      const canvas = await html2canvas(sheet, {
-        scale: printCaptureScale(),
-        width: paperW_px,
-        height: paperH_px,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      })
-
-      return {
-        dataUrl: canvas.toDataURL('image/png'),
-        pxW: canvas.width,
-        pxH: canvas.height,
-      }
-    } finally {
-      reactRoot?.unmount()
-      if (host.parentNode) {
-        document.body.removeChild(host)
-      }
-    }
-  }, [
-    paperMetrics,
-    previewLayout,
-    printType,
-    layoutParams,
-    images,
-    imageFitModes,
-    guideImage,
-    guideImageFit,
-    guideImageRotation,
-    showHoleGuide,
-    isImagesMode,
-    isBackgroundMode,
-  ])
-
-  const handleSavePdf = useCallback(async () => {
-    console.log('handleSavePdf 開始')
-    const shot = await capturePreview()
-    console.log('shot:', shot)
-    if (!shot) return
-    const { pageWmm, pageHmm } = paperMetrics
-    console.log('paperMetrics:', pageWmm, pageHmm)
-    const orientation = pageWmm > pageHmm ? 'l' : 'p'
-    const pdf = new jsPDF(orientation, 'mm', 'a4')
-    const addImageArgs = [shot.dataUrl, 'PNG', 0, 0, pageWmm, pageHmm] as const
-    console.log('pdf.addImage args:', {
-      imageData: `(dataUrl, length=${shot.dataUrl.length})`,
-      format: addImageArgs[1],
-      x: addImageArgs[2],
-      y: addImageArgs[3],
-      width: addImageArgs[4],
-      height: addImageArgs[5],
-      compression: undefined,
-    })
-    pdf.addImage(...addImageArgs)
-    const blob = pdf.output('blob')
-    console.log('blob:', blob)
-    const result = await openSheetPdfBlob(blob)
-    console.log('result:', result)
-    if (!result.ok) {
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'refill.pdf'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      setTimeout(() => URL.revokeObjectURL(url), 10000)
-    }
-  }, [capturePreview, paperMetrics])
-
-  const handlePrint = useCallback(async () => {
-    const shot = await capturePreview()
-    if (!shot) return
-
-    const { pageWmm, pageHmm } = paperMetrics
-    const html = buildPrintPageHtml({
-      dataUrl: shot.dataUrl,
-      pxW: shot.pxW,
-      pxH: shot.pxH,
-      pageWmm,
-      pageHmm,
-    })
-    await openPrintDocument(html)
-  }, [capturePreview, paperMetrics])
-
   const previewAspectRatio =
     previewLayout != null
       ? `${previewLayout.paperW} / ${previewLayout.paperH}`
@@ -1335,73 +774,6 @@ export default function Step4() {
     ) : (
       printTypePreview
     )
-
-  const imagesSideColumn = isImagesMode ? (
-    <SideColumn aria-label="操作エリア">
-      <ImagesSidePanel>
-        <ImagesSideSection>
-          <ImagesSideSectionTitle>① 写真を追加</ImagesSideSectionTitle>
-          <ImagesSideActionBlock>
-            <ImagesPickButton type="button" onClick={() => fileInputMultiRef.current?.click()}>
-              写真を選ぶ
-            </ImagesPickButton>
-            <ImagesSideActionSubtext>枠ごとに別々の写真を配置</ImagesSideActionSubtext>
-          </ImagesSideActionBlock>
-          <ImagesSideActionBlock>
-            <ImagesFillAllButton type="button" onClick={() => fileInputFillRef.current?.click()}>
-              1枚を全枠に使う
-            </ImagesFillAllButton>
-            <ImagesSideActionSubtext>全枠に同じ写真を配置したい時</ImagesSideActionSubtext>
-          </ImagesSideActionBlock>
-          <ImagesClearAllButton type="button" onClick={handleClearAllImages}>
-            一括削除
-          </ImagesClearAllButton>
-        </ImagesSideSection>
-
-        <ImagesSideSection>
-          <ImagesSideSectionTitle>② 配置を選ぶ</ImagesSideSectionTitle>
-          <ImagesPlacementCard
-            type="button"
-            active={imageAreaMode === 'avoid'}
-            aria-pressed={imageAreaMode === 'avoid'}
-            onClick={() => setImageAreaMode('avoid')}
-          >
-            <ImagesPlacementCardTitle>リングを避ける</ImagesPlacementCardTitle>
-            <ImagesPlacementCardDesc>リング穴に画像をかけない</ImagesPlacementCardDesc>
-          </ImagesPlacementCard>
-          <ImagesPlacementCard
-            type="button"
-            active={imageAreaMode === 'full'}
-            aria-pressed={imageAreaMode === 'full'}
-            onClick={() => setImageAreaMode('full')}
-          >
-            <ImagesPlacementCardTitle>全面</ImagesPlacementCardTitle>
-            <ImagesPlacementCardDesc>枠いっぱいに配置（穴にかかる）</ImagesPlacementCardDesc>
-          </ImagesPlacementCard>
-        </ImagesSideSection>
-
-        <HiddenFileInput
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileInput}
-        />
-        <HiddenFileInput
-          ref={fileInputMultiRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleMultiInput}
-        />
-        <HiddenFileInput
-          ref={fileInputFillRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFillInput}
-        />
-      </ImagesSidePanel>
-    </SideColumn>
-  ) : null
 
   const backgroundImagePicker = isBackgroundMode ? (
     <BackgroundImagePanel>
@@ -1457,66 +829,6 @@ export default function Step4() {
       </BackgroundImagePanel>
     ) : null
 
-  const settingsBlock = (
-    <SettingsPanel>
-      <SettingsRow>
-        <SettingsLabel>穴あけガイド</SettingsLabel>
-        <SettingsControls>
-          <SettingsToggleButton type="button" active={showHoleGuide} onClick={() => setShowHoleGuide(true)}>
-            ON
-          </SettingsToggleButton>
-          <SettingsToggleButton
-            type="button"
-            active={!showHoleGuide}
-            onClick={() => setShowHoleGuide(false)}
-          >
-            OFF
-          </SettingsToggleButton>
-        </SettingsControls>
-      </SettingsRow>
-      <SettingsRow muted={!showHoleGuide}>
-        <SettingsLabel>穴の位置</SettingsLabel>
-        <SettingsControls>
-          <SettingsToggleButton
-            type="button"
-            active={holeSide === 'left'}
-            disabled={!showHoleGuide}
-            onClick={() => setHoleSide('left')}
-          >
-            左
-          </SettingsToggleButton>
-          <SettingsToggleButton
-            type="button"
-            active={holeSide === 'right'}
-            disabled={!showHoleGuide}
-            onClick={() => setHoleSide('right')}
-          >
-            右
-          </SettingsToggleButton>
-        </SettingsControls>
-      </SettingsRow>
-      <SettingsRow>
-        <SettingsLabel>線の色</SettingsLabel>
-        <SettingsControls>
-          <ColorSwatchRow>
-            {BORDER_COLOR_PRESETS.map((preset) => (
-            <ColorSwatch
-              key={preset.id}
-              type="button"
-              swatchColor={preset.hex}
-              selected={borderColor === preset.hex}
-              title={preset.label}
-              aria-label={preset.label}
-              aria-pressed={borderColor === preset.hex}
-              onClick={() => setBorderColor(preset.hex)}
-            />
-            ))}
-          </ColorSwatchRow>
-        </SettingsControls>
-      </SettingsRow>
-    </SettingsPanel>
-  )
-
   const actionBlock = (
     <ActionRow>
       <OutlineAppButton type="button" onClick={() => void handleSavePdf()}>
@@ -1535,7 +847,14 @@ export default function Step4() {
         {previewContent}
       </PreviewWrap>
       {backgroundImageControls}
-      {settingsBlock}
+      <Step4SettingsBlock
+        showHoleGuide={showHoleGuide}
+        onShowHoleGuideChange={setShowHoleGuide}
+        holeSide={holeSide}
+        onHoleSideChange={setHoleSide}
+        borderColor={borderColor}
+        onBorderColorChange={setBorderColor}
+      />
       {actionBlock}
     </>
   )
@@ -1572,7 +891,17 @@ export default function Step4() {
               <ImagesModeHeading>{pageHeading}</ImagesModeHeading>
             </ImagesModeHeader>
             <TwoColumnLayout>
-              {imagesSideColumn}
+              <Step4ImagesSidePanel
+                fileInputRef={fileInputRef}
+                fileInputMultiRef={fileInputMultiRef}
+                fileInputFillRef={fileInputFillRef}
+                imageAreaMode={imageAreaMode}
+                onImageAreaModeChange={setImageAreaMode}
+                onClearAllImages={handleClearAllImages}
+                onFileInput={handleFileInput}
+                onMultiInput={handleMultiInput}
+                onFillInput={handleFillInput}
+              />
               <MainColumn>{mainContent}</MainColumn>
             </TwoColumnLayout>
           </>
