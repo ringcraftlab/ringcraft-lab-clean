@@ -1029,11 +1029,6 @@ export default function Step4() {
     [layoutParams],
   )
 
-  const imageSlotTotal = useMemo(
-    () => (previewLayout ? getSlotCount(previewLayout) : 0),
-    [previewLayout],
-  )
-
   const paperMetrics = useMemo(() => {
     if (previewLayout) {
       return { pageWmm: previewLayout.paperW, pageHmm: previewLayout.paperH }
@@ -1127,26 +1122,28 @@ export default function Step4() {
     (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
       event.target.value = ''
-      if (!file || imageSlotTotal <= 0) return
+      if (!file || !previewLayout || previewLayout.kind !== 'sheet') return
+
+      const total = previewLayout.cols * previewLayout.rows
+      if (total <= 0) return
 
       const reader = new FileReader()
       reader.onload = (loadEvent) => {
         const result = loadEvent.target?.result
         if (typeof result !== 'string') return
         const nextImages: Record<number, string> = {}
-        for (let slot = 0; slot < imageSlotTotal; slot += 1) {
+        for (let slot = 0; slot < total; slot += 1) {
           nextImages[slot] = result
         }
         setImages(nextImages)
       }
       reader.readAsDataURL(file)
     },
-    [imageSlotTotal],
+    [previewLayout],
   )
 
   const handleClearAllImages = useCallback(() => {
     setImages({})
-    setActiveSlot(null)
   }, [])
 
   const goBackToStep3 = () => {
