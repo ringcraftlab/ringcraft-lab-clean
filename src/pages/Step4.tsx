@@ -16,6 +16,7 @@ import {
   nextPaintFrames,
   openPrintDocument,
   openSheetPdfBlob,
+  promoteBackgroundImagesForCapture,
   rasterizeFitImagesForCapture,
   waitForImagesLoaded,
 } from '../utils/printCapture'
@@ -710,20 +711,6 @@ function ImagesSlotPreview({
   )
 }
 
-// html2canvas onclone 処理
-function applyCaptureOncloneStyles(_clonedDoc: Document, clonedElement: HTMLElement) {
-  if (!clonedElement) return
-  clonedElement.querySelectorAll('[data-print="false"]').forEach((el) => {
-    ;(el as HTMLElement).style.display = 'none'
-  })
-  clonedElement.querySelectorAll('[data-overlay-layer]').forEach((el) => {
-    ;(el as HTMLElement).style.opacity = '1'
-  })
-  clonedElement.querySelectorAll('[data-slot-button]').forEach((el) => {
-    ;(el as HTMLElement).style.backgroundColor = '#ffffff'
-  })
-}
-
 export default function Step4() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -871,53 +858,56 @@ export default function Step4() {
   }
 
   const capturePreview = useCallback(async () => {
-    const root = previewRef.current
-    if (!root) return null
-    console.log('preview size:', root.offsetWidth, root.offsetHeight)
+    const el = previewRef.current
+    if (!el) return null
+
+    const { pageWmm, pageHmm } = paperMetrics
+    const paperW_px = Math.round(mmToPx(pageWmm))
+    const paperH_px = Math.round(mmToPx(pageHmm))
 
     await nextPaintFrames(2)
-    await waitForImagesLoaded(root)
+    await waitForImagesLoaded(el)
 
-    root.querySelectorAll('button img').forEach((img) => {
-      if (!img.getAttribute('data-fit-mode')) {
-        img.setAttribute('data-fit-mode', 'cover')
-        img.setAttribute('data-rotation', '0')
-      }
-    })
-    console.log('before rasterize')
-    await rasterizeFitImagesForCapture(root)
-    console.log('after rasterize')
-
-    const svgs = root.querySelectorAll('svg')
-    svgs.forEach((svg) => {
-      if (svg.getAttribute('height') === 'auto') {
-        svg.setAttribute('height', String(svg.getBoundingClientRect().height))
-      }
+    const host = document.createElement('div')
+    host.setAttribute('aria-hidden', 'true')
+    Object.assign(host.style, {
+      position: 'fixed',
+      left: '-100000px',
+      top: '0',
+      width: `${paperW_px}px`,
+      height: `${paperH_px}px`,
+      overflow: 'hidden',
+      pointerEvents: 'none',
+      opacity: '0',
+      zIndex: '-1',
     })
 
-    const disabledSheets: CSSStyleSheet[] = []
-    Array.from(document.styleSheets).forEach((sheet) => {
-      try {
-        sheet.cssRules
-      } catch {
-        sheet.disabled = true
-        disabledSheets.push(sheet)
-      }
+    const clone = el.cloneNode(true) as HTMLElement
+    clone.style.transform = 'scale(1)'
+    clone.style.position = 'absolute'
+    clone.style.left = '0'
+    clone.style.top = '0'
+    clone.style.width = `${paperW_px}px`
+    clone.style.height = `${paperH_px}px`
+    host.appendChild(clone)
+    document.body.appendChild(host)
+
+    clone.querySelectorAll('[data-print="false"]').forEach((node) => {
+      ;(node as HTMLElement).style.setProperty('display', 'none', 'important')
     })
+
+    promoteBackgroundImagesForCapture(clone)
+    await waitForImagesLoaded(clone)
+    await rasterizeFitImagesForCapture(clone)
 
     try {
-      const { pageWmm, pageHmm } = paperMetrics
-      const paperW_px = Math.round(mmToPx(pageWmm))
-      const paperH_px = Math.round(mmToPx(pageHmm))
-
-      const canvas = await html2canvas(root, {
+      const canvas = await html2canvas(clone, {
         scale: printCaptureScale(),
         width: paperW_px,
         height: paperH_px,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        onclone: applyCaptureOncloneStyles,
       })
       return {
         dataUrl: canvas.toDataURL('image/png'),
@@ -925,9 +915,7 @@ export default function Step4() {
         pxH: canvas.height,
       }
     } finally {
-      disabledSheets.forEach((sheet) => {
-        sheet.disabled = false
-      })
+      document.body.removeChild(host)
     }
   }, [paperMetrics])
 
