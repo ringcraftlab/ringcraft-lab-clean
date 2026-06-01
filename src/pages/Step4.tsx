@@ -856,6 +856,8 @@ function CaptureSheet({
         <img
           src={guideImage}
           alt=""
+          data-fit-mode={guideImageFit}
+          data-rotation={String(guideImageRotation)}
           style={{
             position: 'absolute',
             inset: 0,
