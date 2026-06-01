@@ -921,6 +921,12 @@ export default function Step4() {
     await rasterizeFitImagesForCapture(clone)
     console.log('after rasterize')
 
+    clone.querySelectorAll('svg').forEach((svg) => {
+      if (svg.getAttribute('height') === 'auto') {
+        svg.setAttribute('height', String(svg.getBoundingClientRect().height))
+      }
+    })
+
     try {
       const canvas = await html2canvas(clone, {
         scale: printCaptureScale(),
