@@ -139,6 +139,7 @@ const HiddenFileInput = styled('input')({
 })
 
 export interface Step4ImagesSidePanelProps {
+  images?: Record<number, string>
   fileInputRef: RefObject<HTMLInputElement | null>
   fileInputMultiRef: RefObject<HTMLInputElement | null>
   fileInputFillRef: RefObject<HTMLInputElement | null>
@@ -151,6 +152,7 @@ export interface Step4ImagesSidePanelProps {
 }
 
 export default function Step4ImagesSidePanel({
+  images = {},
   fileInputRef,
   fileInputMultiRef,
   fileInputFillRef,
@@ -161,6 +163,8 @@ export default function Step4ImagesSidePanel({
   onMultiInput,
   onFillInput,
 }: Step4ImagesSidePanelProps) {
+  const hasImages = Object.keys(images).length > 0
+
   return (
     <SideColumn aria-label="操作エリア">
       <ImagesSidePanel>
@@ -172,15 +176,19 @@ export default function Step4ImagesSidePanel({
             </ImagesPickButton>
             <ImagesSideActionSubtext>枠ごとに別々の写真を配置</ImagesSideActionSubtext>
           </ImagesSideActionBlock>
-          <ImagesSideActionBlock>
-            <ImagesFillAllButton type="button" onClick={() => fileInputFillRef.current?.click()}>
-              1枚を全枠に使う
-            </ImagesFillAllButton>
-            <ImagesSideActionSubtext>全枠に同じ写真を配置したい時</ImagesSideActionSubtext>
-          </ImagesSideActionBlock>
-          <ImagesClearAllButton type="button" onClick={onClearAllImages}>
-            一括削除
-          </ImagesClearAllButton>
+          {hasImages ? (
+            <>
+              <ImagesSideActionBlock>
+                <ImagesFillAllButton type="button" onClick={() => fileInputFillRef.current?.click()}>
+                  1枚を全枠に使う
+                </ImagesFillAllButton>
+                <ImagesSideActionSubtext>全枠に同じ写真を配置したい時</ImagesSideActionSubtext>
+              </ImagesSideActionBlock>
+              <ImagesClearAllButton type="button" onClick={onClearAllImages}>
+                一括削除
+              </ImagesClearAllButton>
+            </>
+          ) : null}
         </ImagesSideSection>
 
         <ImagesSideSection>
