@@ -1,3 +1,5 @@
+import FilterCenterFocusIcon from '@mui/icons-material/FilterCenterFocus'
+import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import { type ChangeEvent, type RefObject } from 'react'
@@ -119,6 +121,21 @@ const ImagesPlacementCard = styled('button', {
   },
 }))
 
+const ImagesPlacementCardHeader = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  width: '100%',
+})
+
+const ImagesPlacementCardIcon = styled(Box)({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+  color: 'var(--color-primary)',
+})
+
 const ImagesPlacementCardTitle = styled('span')({
   color: 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
@@ -201,7 +218,12 @@ export default function Step4ImagesSidePanel({
             aria-pressed={imageAreaMode === 'avoid'}
             onClick={() => onImageAreaModeChange('avoid')}
           >
-            <ImagesPlacementCardTitle>リングを避ける</ImagesPlacementCardTitle>
+            <ImagesPlacementCardHeader>
+              <ImagesPlacementCardIcon aria-hidden>
+                <FilterCenterFocusIcon fontSize="small" />
+              </ImagesPlacementCardIcon>
+              <ImagesPlacementCardTitle>リングを避ける</ImagesPlacementCardTitle>
+            </ImagesPlacementCardHeader>
             <ImagesPlacementCardDesc>リング穴に画像をかけない</ImagesPlacementCardDesc>
           </ImagesPlacementCard>
           <ImagesPlacementCard
@@ -210,7 +232,12 @@ export default function Step4ImagesSidePanel({
             aria-pressed={imageAreaMode === 'full'}
             onClick={() => onImageAreaModeChange('full')}
           >
-            <ImagesPlacementCardTitle>全面</ImagesPlacementCardTitle>
+            <ImagesPlacementCardHeader>
+              <ImagesPlacementCardIcon aria-hidden>
+                <FullscreenIcon fontSize="small" />
+              </ImagesPlacementCardIcon>
+              <ImagesPlacementCardTitle>全面</ImagesPlacementCardTitle>
+            </ImagesPlacementCardHeader>
             <ImagesPlacementCardDesc>枠いっぱいに配置（穴にかかる）</ImagesPlacementCardDesc>
           </ImagesPlacementCard>
         </ImagesSideSection>

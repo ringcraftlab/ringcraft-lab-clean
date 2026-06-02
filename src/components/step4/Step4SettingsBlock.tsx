@@ -19,10 +19,11 @@ const SettingsPanel = styled(Box)({
   width: '100%',
   display: 'flex',
   flexDirection: 'row',
-  flexWrap: 'wrap',
-  alignItems: 'flex-start',
-  gap: '24px',
+  flexWrap: 'nowrap',
+  alignItems: 'flex-end',
+  gap: '20px',
   marginBottom: '32px',
+  overflowX: 'auto',
 })
 
 const SettingsGroup = styled(Box, {
@@ -32,8 +33,7 @@ const SettingsGroup = styled(Box, {
   flexDirection: 'column',
   alignItems: 'flex-start',
   gap: '8px',
-  flex: '1 1 auto',
-  minWidth: 'min(100%, 140px)',
+  flex: '0 0 auto',
   opacity: muted ? 0.55 : 1,
 }))
 
@@ -49,7 +49,7 @@ const SettingsControls = styled(Box)({
   alignItems: 'center',
   gap: '8px',
   flexWrap: 'wrap',
-  justifyContent: 'flex-end',
+  justifyContent: 'flex-start',
 })
 
 const SettingsToggleButton = styled('button', {

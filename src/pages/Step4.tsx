@@ -1,5 +1,6 @@
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import PrintIcon from '@mui/icons-material/Print'
+import TuneIcon from '@mui/icons-material/Tune'
 import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
@@ -356,12 +357,53 @@ const HiddenFileInput = styled('input')({
   display: 'none',
 })
 
+const BackgroundSideColumn = styled(Box)({
+  width: '280px',
+  flexShrink: 0,
+  padding: '0 24px 24px',
+  boxSizing: 'border-box',
+})
+
 const BackgroundImagePanel = styled(Box)({
   width: '100%',
   display: 'flex',
   flexDirection: 'column',
   gap: '16px',
+})
+
+const BackgroundPickButton = styled(AppButton)({
+  width: '100%',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
+})
+
+const BackgroundPreviewHint = styled('p')({
+  margin: '0 0 12px',
+  width: '100%',
+  color: 'var(--color-muted)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.9rem',
+  lineHeight: 1.5,
+  textAlign: 'center',
+})
+
+const BackgroundOptionsSection = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'stretch',
+  gap: '12px',
+  width: '100%',
   marginBottom: '24px',
+})
+
+const BackgroundOptionsPanel = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  padding: '16px',
+  borderRadius: 'var(--radius-card)',
+  border: '1px solid var(--color-border)',
+  backgroundColor: 'var(--color-surface)',
 })
 
 const BackgroundImageActions = styled(Box)({
@@ -507,6 +549,12 @@ const OutlineAppButton = styled(AppButton)({
     filter: 'none',
     backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))',
   },
+})
+
+const BackgroundOptionsToggleButton = styled(OutlineAppButton)({
+  width: '100%',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
 })
 
 const ActionButtonLabel = styled('span')({
@@ -831,6 +879,7 @@ export default function Step4() {
   const [showHoleGuide, setShowHoleGuide] = useState(true)
   const [holeSide, setHoleSide] = useState<HoleSide>('left')
   const [imageAreaMode, setImageAreaMode] = useState<ImageAreaMode>('avoid')
+  const [backgroundOptionsOpen, setBackgroundOptionsOpen] = useState(false)
 
   const layoutParams = useMemo(
     () => ({
@@ -917,6 +966,11 @@ export default function Step4() {
   const removeBackgroundImage = useCallback(() => {
     setGuideImage('')
     setGuideImageRotation(0)
+    setBackgroundOptionsOpen(false)
+  }, [])
+
+  const toggleBackgroundOptions = useCallback(() => {
+    setBackgroundOptionsOpen((open) => !open)
   }, [])
 
   const handleSlotClick = useCallback((index: number) => {
@@ -1072,58 +1126,70 @@ export default function Step4() {
       printTypePreview
     )
 
-  const backgroundImagePicker = isBackgroundMode ? (
-    <BackgroundImagePanel>
-      <HiddenFileInput
-        ref={guideImageInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleGuideImageInput}
-      />
-      {!guideImage ? (
-        <BackgroundImageActions>
-          <AppButton type="button" onClick={() => guideImageInputRef.current?.click()}>
-            背景画像を選ぶ
-          </AppButton>
-        </BackgroundImageActions>
-      ) : null}
-    </BackgroundImagePanel>
+  const backgroundLeftColumn = isBackgroundMode ? (
+    <BackgroundSideColumn aria-label="背景画像の操作">
+      <BackgroundImagePanel>
+        <HiddenFileInput
+          ref={guideImageInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleGuideImageInput}
+        />
+        <BackgroundPickButton type="button" onClick={() => guideImageInputRef.current?.click()}>
+          背景画像を選ぶ
+        </BackgroundPickButton>
+      </BackgroundImagePanel>
+    </BackgroundSideColumn>
   ) : null
 
-  const backgroundImageControls =
+  const backgroundDisplayOptions =
     isBackgroundMode && guideImage ? (
-      <BackgroundImagePanel>
-        <BackgroundFitRow>
-          <BackgroundFitLabel>表示方法</BackgroundFitLabel>
-          <BackgroundFitControls>
-            <GuideImageFitToggleGroup
-              exclusive
-              value={guideImageFit}
-              onChange={(_event, value: GuideImageFit | null) => {
-                if (value !== null) setGuideImageFit(value)
-              }}
-              aria-label="表示方法"
-            >
-              {GUIDE_IMAGE_FIT_OPTIONS.map((option) => (
-                <GuideImageFitToggle key={option.id} value={option.id}>
-                  {option.label}
-                </GuideImageFitToggle>
-              ))}
-            </GuideImageFitToggleGroup>
-          </BackgroundFitControls>
-        </BackgroundFitRow>
-        <BackgroundImageActions>
-          <AppButton
-            type="button"
-            onClick={() => setGuideImageRotation((prev) => (prev + 90) % 360)}
-          >
-            90°回転{guideImageRotation > 0 ? `（${guideImageRotation}°）` : ''}
-          </AppButton>
-          <MutedAppButton type="button" onClick={removeBackgroundImage}>
-            画像を削除
-          </MutedAppButton>
-        </BackgroundImageActions>
-      </BackgroundImagePanel>
+      <BackgroundOptionsSection>
+        <BackgroundOptionsToggleButton
+          type="button"
+          aria-expanded={backgroundOptionsOpen}
+          onClick={toggleBackgroundOptions}
+        >
+          <ActionButtonLabel>
+            <TuneIcon fontSize="small" aria-hidden />
+            表示オプション
+          </ActionButtonLabel>
+        </BackgroundOptionsToggleButton>
+        {backgroundOptionsOpen ? (
+          <BackgroundOptionsPanel>
+            <BackgroundFitRow>
+              <BackgroundFitLabel>表示方法</BackgroundFitLabel>
+              <BackgroundFitControls>
+                <GuideImageFitToggleGroup
+                  exclusive
+                  value={guideImageFit}
+                  onChange={(_event, value: GuideImageFit | null) => {
+                    if (value !== null) setGuideImageFit(value)
+                  }}
+                  aria-label="表示方法"
+                >
+                  {GUIDE_IMAGE_FIT_OPTIONS.map((option) => (
+                    <GuideImageFitToggle key={option.id} value={option.id}>
+                      {option.label}
+                    </GuideImageFitToggle>
+                  ))}
+                </GuideImageFitToggleGroup>
+              </BackgroundFitControls>
+            </BackgroundFitRow>
+            <BackgroundImageActions>
+              <AppButton
+                type="button"
+                onClick={() => setGuideImageRotation((prev) => (prev + 90) % 360)}
+              >
+                90°回転{guideImageRotation > 0 ? `（${guideImageRotation}°）` : ''}
+              </AppButton>
+              <MutedAppButton type="button" onClick={removeBackgroundImage}>
+                画像を削除
+              </MutedAppButton>
+            </BackgroundImageActions>
+          </BackgroundOptionsPanel>
+        ) : null}
+      </BackgroundOptionsSection>
     ) : null
 
   const actionBlock = (
@@ -1143,13 +1209,15 @@ export default function Step4() {
     </ActionRow>
   )
 
-  const mainContent = (
+  const rightColumnContent = (
     <>
-      {backgroundImagePicker}
+      {isBackgroundMode && !guideImage ? (
+        <BackgroundPreviewHint>背景を選ぶとここに表示されます</BackgroundPreviewHint>
+      ) : null}
       <PreviewWrap ref={previewRef} data-hole-count={holePositions.length}>
         {previewContent}
       </PreviewWrap>
-      {backgroundImageControls}
+      {backgroundDisplayOptions}
       <Step4SettingsBlock
         showHoleGuide={showHoleGuide}
         onShowHoleGuideChange={setShowHoleGuide}
@@ -1166,7 +1234,7 @@ export default function Step4() {
   const mainBlock = (
     <>
       <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
-      {mainContent}
+      {rightColumnContent}
     </>
   )
 
@@ -1202,7 +1270,15 @@ export default function Step4() {
                 onMultiInput={handleMultiInput}
                 onFillInput={handleFillInput}
               />
-              <MainColumn>{mainContent}</MainColumn>
+              <MainColumn>{rightColumnContent}</MainColumn>
+            </TwoColumnLayout>
+          </>
+        ) : isBackgroundMode ? (
+          <>
+            <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
+            <TwoColumnLayout>
+              {backgroundLeftColumn}
+              <MainColumn>{rightColumnContent}</MainColumn>
             </TwoColumnLayout>
           </>
         ) : (
