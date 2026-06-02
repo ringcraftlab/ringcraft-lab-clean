@@ -39,7 +39,7 @@ const DrawerPanel = styled(Box)({
 
 const DesktopEditDrawer = styled(Drawer)({
   '& .MuiDrawer-paper': {
-    width: '340px',
+    width: '280px',
     boxSizing: 'border-box',
     backgroundColor: 'var(--color-surface)',
     borderLeft: '1px solid var(--color-border)',
@@ -84,8 +84,7 @@ const CloseButton = styled(IconButton)({
 const PreviewFrame = styled(Box)({
   position: 'relative',
   width: '100%',
-  height: '200px',
-  maxHeight: '200px',
+  aspectRatio: '1',
   flexShrink: 0,
   borderRadius: 'var(--radius-card)',
   border: '1px solid var(--color-border)',
@@ -105,16 +104,19 @@ const PreviewImage = styled('img', {
 }))
 
 const FitButtonRow = styled(Box)({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'stretch',
   gap: '4px',
+  width: '100%',
 })
 
 const FitOptionButton = styled('button', {
   shouldForwardProp: (prop) => prop !== 'active',
 })<{ active?: boolean }>(({ active }) => ({
+  flex: 1,
   margin: 0,
-  padding: '4px 8px',
+  padding: '6px 0',
   borderRadius: '6px',
   border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
   backgroundColor: active
@@ -122,9 +124,10 @@ const FitOptionButton = styled('button', {
     : 'var(--color-surface)',
   color: active ? 'var(--color-primary)' : 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
-  fontSize: '0.75rem',
+  fontSize: '0.8rem',
   fontWeight: active ? 600 : 500,
   lineHeight: 1.3,
+  whiteSpace: 'nowrap',
   cursor: 'pointer',
   '&:hover': {
     borderColor: 'var(--color-primary)',
@@ -132,9 +135,11 @@ const FitOptionButton = styled('button', {
 }))
 
 const ActionButtonRow = styled(Box)({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'stretch',
   gap: '6px',
+  width: '100%',
 })
 
 const compactButtonStyles = {
@@ -146,6 +151,7 @@ const compactButtonStyles = {
 
 const ReplaceButton = styled(AppButton)({
   ...compactButtonStyles,
+  flex: 1,
   backgroundColor: 'var(--color-surface)',
   color: 'var(--color-primary)',
   border: '2px solid var(--color-primary)',
@@ -157,6 +163,7 @@ const ReplaceButton = styled(AppButton)({
 
 const DeleteButton = styled(AppButton)({
   ...compactButtonStyles,
+  flex: 1,
   backgroundColor: 'color-mix(in srgb, #c62828 12%, var(--color-surface))',
   color: 'color-mix(in srgb, #c62828 75%, var(--color-text-h))',
   border: '2px solid color-mix(in srgb, #c62828 55%, var(--color-border))',
