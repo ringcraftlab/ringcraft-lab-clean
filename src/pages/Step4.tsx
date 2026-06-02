@@ -891,6 +891,7 @@ export default function Step4() {
 
   const guideImageInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const filePickSlotRef = useRef<number | null>(null)
   const fileInputMultiRef = useRef<HTMLInputElement>(null)
   const fileInputFillRef = useRef<HTMLInputElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
@@ -1032,33 +1033,33 @@ export default function Step4() {
   const handleSlotClick = useCallback(
     (index: number) => {
       if (images[index]) {
+        setActiveSlot(null)
         setActiveSlot(index)
         return
       }
-      setActiveSlot(index)
+      filePickSlotRef.current = index
       fileInputRef.current?.click()
     },
     [images],
   )
 
-  const handleFileInput = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0]
-      event.target.value = ''
-      if (!file || activeSlot === null) return
+  const handleFileInput = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    const slot = filePickSlotRef.current ?? activeSlot
+    filePickSlotRef.current = null
+    if (!file || slot === null) return
 
-      const reader = new FileReader()
-      reader.onload = (loadEvent) => {
-        const result = loadEvent.target?.result
-        if (typeof result !== 'string') return
-        const slot = activeSlot
-        setImages((prev) => ({ ...prev, [slot]: result }))
-        setImageRotations((prev) => ({ ...prev, [slot]: 0 }))
-      }
-      reader.readAsDataURL(file)
-    },
-    [activeSlot],
-  )
+    const reader = new FileReader()
+    reader.onload = (loadEvent) => {
+      const result = loadEvent.target?.result
+      if (typeof result !== 'string') return
+      setImages((prev) => ({ ...prev, [slot]: result }))
+      setImageRotations((prev) => ({ ...prev, [slot]: 0 }))
+      setActiveSlot(slot)
+    }
+    reader.readAsDataURL(file)
+  }, [activeSlot])
 
   const handleEditSetFit = useCallback(
     (mode: Step4SlotFitMode) => {
