@@ -46,6 +46,9 @@ const PRINT_TYPE_HEADINGS: Record<string, string> = {
   images: '個別画像を挿入',
 }
 
+const HOLE_ZONE_MM = 6.5
+const IMAGE_START_MM = 6.7
+
 const Page = styled('div')({
   minHeight: '100vh',
   backgroundColor: 'var(--color-bg)',
@@ -188,6 +191,51 @@ const SlotImage = styled('img')({
   height: '100%',
   objectFit: 'cover',
 })
+
+const SlotHoleZone = styled('div', {
+  shouldForwardProp: (prop) =>
+    prop !== 'holeSide' && prop !== 'zoneWidthPct' && prop !== 'layerZIndex',
+})<{
+  holeSide: HoleSide
+  zoneWidthPct: number
+  layerZIndex: number
+}>(({ holeSide, zoneWidthPct, layerZIndex }) => ({
+  position: 'absolute',
+  top: 0,
+  bottom: 0,
+  ...(holeSide === 'left' ? { left: 0 } : { right: 0 }),
+  width: `${zoneWidthPct}%`,
+  backgroundColor: '#ffffff',
+  zIndex: layerZIndex,
+  pointerEvents: 'none',
+}))
+
+const SlotImageLayer = styled('div', {
+  shouldForwardProp: (prop) =>
+    prop !== 'avoidsHole' &&
+    prop !== 'holeSide' &&
+    prop !== 'insetStartPct' &&
+    prop !== 'widthPct',
+})<{
+  avoidsHole: boolean
+  holeSide: HoleSide
+  insetStartPct: number
+  widthPct: number
+}>(({ avoidsHole, holeSide, insetStartPct, widthPct }) => ({
+  position: 'absolute',
+  top: 0,
+  bottom: 0,
+  overflow: 'hidden',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  ...(avoidsHole
+    ? holeSide === 'left'
+      ? { left: `${insetStartPct}%`, width: `${widthPct}%` }
+      : { right: `${insetStartPct}%`, width: `${widthPct}%` }
+    : { left: 0, right: 0, width: '100%' }),
+  zIndex: avoidsHole ? 1 : 3,
+}))
 
 const SlotPlus = styled('span')({
   position: 'absolute',
@@ -469,6 +517,46 @@ function placeImagesInEmptySlots(
   return next
 }
 
+type SlotAreaMetrics = {
+  avoidsHole: boolean
+  showHoleZoneInSlot: boolean
+  holeZoneWidthPct: number
+  imageInsetPct: number
+  imageWidthPct: number
+}
+
+function getSlotAreaMetrics(
+  layout: PrintTypePreviewLayout,
+  imageAreaMode: ImageAreaMode,
+): SlotAreaMetrics {
+  const avoidsHole = imageAreaMode === 'avoid'
+
+  if (layout.kind === 'fold') {
+    const cellW = layout.fold.panelW
+    const insetMm = avoidsHole ? Math.max(0, IMAGE_START_MM - HOLE_ZONE_MM) : 0
+    return {
+      avoidsHole,
+      showHoleZoneInSlot: false,
+      holeZoneWidthPct: (HOLE_ZONE_MM / cellW) * 100,
+      imageInsetPct: (insetMm / cellW) * 100,
+      imageWidthPct: ((cellW - insetMm) / cellW) * 100,
+    }
+  }
+
+  const cellW = layout.refillW
+  const holeZoneWidthPct = (HOLE_ZONE_MM / cellW) * 100
+  const imageInsetPct = avoidsHole ? (IMAGE_START_MM / cellW) * 100 : 0
+  const imageWidthPct = avoidsHole ? ((cellW - IMAGE_START_MM) / cellW) * 100 : 100
+
+  return {
+    avoidsHole,
+    showHoleZoneInSlot: true,
+    holeZoneWidthPct,
+    imageInsetPct,
+    imageWidthPct,
+  }
+}
+
 interface ImagesSlotPreviewProps {
   layout: PrintTypePreviewLayout
   images: Record<number, string>
@@ -477,6 +565,7 @@ interface ImagesSlotPreviewProps {
   onSlotClick: (index: number) => void
   layoutParams: PrintTypePreviewLayoutParams
   showHoleGuide: boolean
+  imageAreaMode: ImageAreaMode
 }
 
 function ImagesSlotPreview({
@@ -487,9 +576,15 @@ function ImagesSlotPreview({
   onSlotClick,
   layoutParams,
   showHoleGuide,
+  imageAreaMode,
 }: ImagesSlotPreviewProps) {
   const aspectRatio = `${layout.paperW} / ${layout.paperH}`
   const slotRects = useMemo(() => buildSlotRects(layout), [layout])
+  const holeSide = layoutParams.holeSide ?? 'left'
+  const slotAreaMetrics = useMemo(
+    () => getSlotAreaMetrics(layout, imageAreaMode),
+    [layout, imageAreaMode],
+  )
 
   return (
     <ImagesPaperFrame aspectRatio={aspectRatio} data-paper-frame>
@@ -512,16 +607,30 @@ function ImagesSlotPreview({
             aria-label={hasImage ? `${rect.index + 1}番の写真` : `${rect.index + 1}番に写真を追加`}
             onClick={() => onSlotClick(rect.index)}
           >
-            {hasImage ? (
-              <SlotImage
-                src={src}
-                alt=""
-                data-fit-mode={imageFitModes[rect.index] ?? 'cover'}
-                data-rotation="0"
+            {slotAreaMetrics.showHoleZoneInSlot ? (
+              <SlotHoleZone
+                holeSide={holeSide}
+                zoneWidthPct={slotAreaMetrics.holeZoneWidthPct}
+                layerZIndex={slotAreaMetrics.avoidsHole ? 2 : 1}
               />
-            ) : (
-              <SlotPlus data-print="false">+</SlotPlus>
-            )}
+            ) : null}
+            <SlotImageLayer
+              avoidsHole={slotAreaMetrics.avoidsHole}
+              holeSide={holeSide}
+              insetStartPct={slotAreaMetrics.imageInsetPct}
+              widthPct={slotAreaMetrics.imageWidthPct}
+            >
+              {hasImage ? (
+                <SlotImage
+                  src={src}
+                  alt=""
+                  data-fit-mode={imageFitModes[rect.index] ?? 'cover'}
+                  data-rotation="0"
+                />
+              ) : (
+                <SlotPlus data-print="false">+</SlotPlus>
+              )}
+            </SlotImageLayer>
           </SlotButton>
         )
       })}
@@ -780,6 +889,7 @@ export default function Step4() {
         onSlotClick={handleSlotClick}
         layoutParams={layoutParams}
         showHoleGuide={showHoleGuide}
+        imageAreaMode={imageAreaMode}
       />
     ) : isImagesMode ? (
       <PreviewFallback>このサイズ・レイアウトではプレビューを表示できません。</PreviewFallback>
