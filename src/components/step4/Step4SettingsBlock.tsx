@@ -23,7 +23,8 @@ const SettingsPanel = styled(Box)({
   alignItems: 'flex-end',
   gap: '20px',
   marginBottom: '32px',
-  overflowX: 'auto',
+  paddingBottom: '12px',
+  overflow: 'visible',
 })
 
 const SettingsGroup = styled(Box, {
