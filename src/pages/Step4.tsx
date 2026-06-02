@@ -189,12 +189,16 @@ const SlotButton = styled('button', {
   },
 }))
 
-const SlotImage = styled('img')({
+const SlotImage = styled('img', {
+  shouldForwardProp: (prop) => prop !== 'fitMode' && prop !== 'rotation',
+})<{ fitMode: GuideImageFit; rotation: number }>(({ fitMode, rotation }) => ({
   display: 'block',
   width: '100%',
   height: '100%',
-  objectFit: 'cover',
-})
+  objectFit: fitMode,
+  transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
+  transformOrigin: 'center center',
+}))
 
 const SlotHoleZone = styled('div', {
   shouldForwardProp: (prop) =>
@@ -845,6 +849,8 @@ function ImagesSlotPreview({
                 <SlotImage
                   src={src}
                   alt=""
+                  fitMode={imageFitModes[rect.index] ?? 'cover'}
+                  rotation={imageRotations[rect.index] ?? 0}
                   data-fit-mode={imageFitModes[rect.index] ?? 'cover'}
                   data-rotation={String(imageRotations[rect.index] ?? 0)}
                 />
