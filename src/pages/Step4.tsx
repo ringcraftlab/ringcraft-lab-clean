@@ -205,7 +205,7 @@ const SlotHoleZone = styled('div', {
   bottom: 0,
   ...(holeSide === 'left' ? { left: 0 } : { right: 0 }),
   width: `${zoneWidthPct}%`,
-  backgroundColor: '#ffffff',
+  backgroundColor: 'transparent',
   zIndex: layerZIndex,
   pointerEvents: 'none',
 }))
