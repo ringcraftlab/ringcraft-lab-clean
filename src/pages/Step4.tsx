@@ -6,7 +6,7 @@ import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
@@ -901,6 +901,17 @@ export default function Step4() {
   const [imageFitModes, setImageFitModes] = useState<Record<number, GuideImageFit>>({})
   const [imageRotations, setImageRotations] = useState<Record<number, number>>({})
   const [activeSlot, setActiveSlot] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!isImagesMode) return
+    const hasImages = Object.keys(images).length > 0
+    if (hasImages && activeSlot === null) {
+      setActiveSlot(0)
+    }
+    if (!hasImages) {
+      setActiveSlot(null)
+    }
+  }, [images, isImagesMode])
 
   const { refillW, refillH } = useMemo(
     () => resolveRefillDimensions(routeState),
