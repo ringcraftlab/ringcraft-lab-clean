@@ -205,8 +205,24 @@ const SlotHoleZone = styled('div', {
   bottom: 0,
   ...(holeSide === 'left' ? { left: 0 } : { right: 0 }),
   width: `${zoneWidthPct}%`,
-  backgroundColor: 'transparent',
+  backgroundColor: '#ffffff',
   zIndex: layerZIndex,
+  pointerEvents: 'none',
+}))
+
+const SlotHoleCircle = styled('div', {
+  shouldForwardProp: (prop) => prop !== 'topPct',
+})<{ topPct: number }>(({ topPct }) => ({
+  position: 'absolute',
+  borderRadius: '50%',
+  border: '1px solid var(--color-border)',
+  width: '8px',
+  height: '8px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  top: `${topPct}%`,
+  boxSizing: 'border-box',
+  backgroundColor: 'transparent',
   pointerEvents: 'none',
 }))
 
@@ -585,6 +601,14 @@ function ImagesSlotPreview({
     () => getSlotAreaMetrics(layout, imageAreaMode),
     [layout, imageAreaMode],
   )
+  const holePosY = useMemo(() => {
+    const sizePreset =
+      layoutParams.sizeId === 'custom'
+        ? SIZES.find((s) => s.id === 'custom')
+        : SIZES.find((s) => s.id === layoutParams.sizeId)
+    return getHolePositions(sizePreset ?? undefined)
+  }, [layoutParams.sizeId])
+  const refillH = layout.refillH
 
   return (
     <ImagesPaperFrame aspectRatio={aspectRatio} data-paper-frame>
@@ -612,7 +636,16 @@ function ImagesSlotPreview({
                 holeSide={holeSide}
                 zoneWidthPct={slotAreaMetrics.holeZoneWidthPct}
                 layerZIndex={slotAreaMetrics.avoidsHole ? 2 : 1}
-              />
+              >
+                {showHoleGuide
+                  ? holePosY.map((posY, holeIndex) => (
+                      <SlotHoleCircle
+                        key={holeIndex}
+                        topPct={(posY / refillH) * 100}
+                      />
+                    ))
+                  : null}
+              </SlotHoleZone>
             ) : null}
             <SlotImageLayer
               avoidsHole={slotAreaMetrics.avoidsHole}
@@ -636,7 +669,11 @@ function ImagesSlotPreview({
       })}
       {showHoleGuide ? (
         <ImagesPreviewOverlayLayer data-overlay-layer>
-          <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
+          <PrintTypePreview
+            variant="frame"
+            layoutParams={{ ...layoutParams, showHoleGuide: false }}
+            emphasized
+          />
         </ImagesPreviewOverlayLayer>
       ) : null}
     </ImagesPaperFrame>
