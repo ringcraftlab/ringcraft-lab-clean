@@ -133,6 +133,10 @@ const TwoColumnLayout = styled(Box, {
   gridTemplateColumns: gridTemplateColumns ?? '280px minmax(0, 1fr)',
   gap: '24px',
   alignItems: 'start',
+  [`@media (max-width: ${LAYOUT_BREAKPOINT_PX}px)`]: {
+    gridTemplateColumns: 'minmax(0, 1fr)',
+    gap: '16px',
+  },
 }))
 
 const ImagesPaperFrame = styled(Box, {
@@ -1051,7 +1055,8 @@ export default function Step4() {
     return { kind: 'slot' as const, index: activeSlot }
   }, [isImagesMode, activeSlot])
 
-  const reserveEditPanelSpace = imageEditTarget !== null && !isNarrowInteraction
+  const reserveEditPanelSpace =
+    imageEditTarget !== null && !isNarrowInteraction && !isStackedLayout
 
   const resetAreaEditFocus = useCallback(() => {
     setActiveSlot(null)
