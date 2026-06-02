@@ -1443,6 +1443,8 @@ export default function Step4() {
           rotation={
             imageEditTarget !== null ? imageRotations[imageEditTarget.index] ?? 0 : 0
           }
+          previewW={previewLayout?.refillW ?? 53}
+          previewH={previewLayout?.refillH ?? 85}
           onClose={resetAreaEditFocus}
           onSetFit={handleEditSetFit}
           onRotate={handleEditRotate}

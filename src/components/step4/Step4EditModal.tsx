@@ -1,24 +1,17 @@
 import CloseIcon from '@mui/icons-material/Close'
-import CropIcon from '@mui/icons-material/Crop'
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined'
-import FitScreenIcon from '@mui/icons-material/FitScreen'
-import OpenInFullIcon from '@mui/icons-material/OpenInFull'
-import RotateRightIcon from '@mui/icons-material/RotateRight'
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import type { ReactNode } from 'react'
 import AppButton from '../AppButton'
 
 export type Step4SlotFitMode = 'cover' | 'contain' | 'fill'
 
-const FIT_OPTIONS: { id: Step4SlotFitMode; label: string; icon: ReactNode }[] = [
-  { id: 'cover', label: 'トリミング', icon: <CropIcon fontSize="small" /> },
-  { id: 'contain', label: '全体表示', icon: <FitScreenIcon fontSize="small" /> },
-  { id: 'fill', label: '引き延ばし', icon: <OpenInFullIcon fontSize="small" /> },
+const FIT_OPTIONS: { id: Step4SlotFitMode; label: string }[] = [
+  { id: 'cover', label: 'トリミング' },
+  { id: 'contain', label: '全体表示' },
+  { id: 'fill', label: '引き延ばし' },
 ]
 
 export interface Step4EditModalProps {
@@ -27,6 +20,8 @@ export interface Step4EditModalProps {
   imageSrc: string | null
   fitMode: string
   rotation?: number
+  previewW: number
+  previewH: number
   onClose: () => void
   onSetFit: (mode: Step4SlotFitMode) => void
   onRotate: () => void
@@ -34,9 +29,28 @@ export interface Step4EditModalProps {
   onDelete: () => void
 }
 
+function calcPreviewSize(previewW: number, previewH: number) {
+  const safeW = Math.max(previewW, 1)
+  const safeH = Math.max(previewH, 1)
+  const capW = 300
+  const capH = 220
+  const ratio = safeW / safeH
+  let w = capW
+  let h = w / ratio
+  if (h > capH) {
+    h = capH
+    w = h * ratio
+  }
+  if (w > capW) {
+    w = capW
+    h = w / ratio
+  }
+  return { width: Math.round(w), height: Math.round(h) }
+}
+
 const DesktopEditDrawer = styled(Drawer)({
   '& .MuiDrawer-paper': {
-    width: '260px',
+    width: '280px',
     boxSizing: 'border-box',
     backgroundColor: 'var(--color-surface)',
     borderLeft: '1px solid var(--color-border)',
@@ -48,7 +62,6 @@ const MobileEditDrawer = styled(Drawer)({
     boxSizing: 'border-box',
     backgroundColor: 'var(--color-surface)',
     borderRadius: '16px 16px 0 0',
-    padding: '16px',
     maxHeight: '70vh',
     overflowY: 'auto',
   },
@@ -57,23 +70,21 @@ const MobileEditDrawer = styled(Drawer)({
 const DrawerPanel = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
-  padding: '16px',
-  gap: '12px',
-  boxSizing: 'border-box',
+  gap: '10px',
 })
 
-const PanelHeader = styled(Box)({
+const HeaderRow = styled(Box)({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '8px',
 })
 
-const PanelTitle = styled('h2')({
+const Title = styled('h2')({
   margin: 0,
   color: 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
-  fontSize: '1.0625rem',
+  fontSize: '1rem',
   fontWeight: 700,
   lineHeight: 1.4,
 })
@@ -89,19 +100,16 @@ const CloseButton = styled(IconButton)({
 
 const PreviewFrame = styled(Box)({
   position: 'relative',
-  width: '100%',
-  aspectRatio: '1',
-  flexShrink: 0,
-  borderRadius: 'var(--radius-card)',
-  border: '1px solid var(--color-border)',
-  backgroundColor: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
   overflow: 'hidden',
+  margin: '0 auto',
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-card)',
+  backgroundColor: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
 })
 
 const PreviewImage = styled('img', {
   shouldForwardProp: (prop) => prop !== 'fitMode' && prop !== 'rotation',
 })<{ fitMode: Step4SlotFitMode; rotation: number }>(({ fitMode, rotation }) => ({
-  display: 'block',
   width: '100%',
   height: '100%',
   objectFit: fitMode,
@@ -109,92 +117,69 @@ const PreviewImage = styled('img', {
   transformOrigin: 'center center',
 }))
 
-const FitButtonRow = styled(Box)({
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'stretch',
-  gap: '4px',
+const ReplaceButton = styled(AppButton)({
   width: '100%',
-  minWidth: 0,
+  minHeight: '36px',
+  fontSize: '0.8125rem',
+  fontWeight: 600,
+  backgroundColor: 'var(--color-surface)',
+  color: 'var(--color-text-h)',
+  border: '1px solid var(--color-border)',
+  '&:hover': {
+    filter: 'none',
+    backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))',
+  },
 })
 
-const FitOptionButton = styled('button', {
+const FitRow = styled(Box)({
+  display: 'flex',
+  gap: '6px',
+})
+
+const FitButton = styled('button', {
   shouldForwardProp: (prop) => prop !== 'active',
 })<{ active?: boolean }>(({ active }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '4px',
   flex: 1,
-  minWidth: 0,
-  margin: 0,
-  padding: '12px 4px',
-  borderRadius: '6px',
-  border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
-  backgroundColor: active
+  minHeight: '36px',
+  padding: '0 4px',
+  borderRadius: '8px',
+  border: active ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+  background: active
     ? 'color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))'
     : 'var(--color-surface)',
-  color: active ? 'var(--color-primary)' : 'var(--color-text-h)',
+  color: 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
-  fontSize: '0.75rem',
+  fontSize: '0.8125rem',
   fontWeight: active ? 600 : 500,
-  lineHeight: 1.3,
-  whiteSpace: 'nowrap',
   cursor: 'pointer',
-  '&:hover': {
-    borderColor: 'var(--color-primary)',
-  },
 }))
 
-const ActionButtonRow = styled(Box)({
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'stretch',
-  gap: '6px',
+const RotateButton = styled('button')({
   width: '100%',
+  minHeight: '38px',
+  padding: '0 10px',
+  borderRadius: '8px',
+  border: '1px solid var(--color-border)',
+  background: 'color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))',
+  color: 'var(--color-text-h)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  cursor: 'pointer',
 })
 
-const compactButtonStyles = {
-  fontSize: '0.75rem',
-  padding: '4px 8px',
-  minHeight: 'unset',
-  lineHeight: 1.3,
-}
-
-const ReplaceButton = styled(AppButton)({
-  ...compactButtonStyles,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '4px',
-  flex: 1,
-  minWidth: 0,
-  backgroundColor: 'var(--color-surface)',
-  color: 'var(--color-primary)',
-  border: '2px solid var(--color-primary)',
-  '&:hover': {
-    filter: 'none',
-    backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))',
-  },
-})
-
-const DeleteButton = styled(AppButton)({
-  ...compactButtonStyles,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '4px',
-  flex: 1,
-  minWidth: 0,
-  backgroundColor: 'color-mix(in srgb, #c62828 12%, var(--color-surface))',
-  color: 'color-mix(in srgb, #c62828 75%, var(--color-text-h))',
-  border: '2px solid color-mix(in srgb, #c62828 55%, var(--color-border))',
-  '&:hover': {
-    filter: 'none',
-    backgroundColor: 'color-mix(in srgb, #c62828 20%, var(--color-surface))',
-    color: 'color-mix(in srgb, #c62828 85%, var(--color-text-h))',
-  },
+const DeleteButton = styled('button')({
+  width: '100%',
+  minHeight: '40px',
+  padding: '0 12px',
+  borderRadius: '8px',
+  border: '1px solid #fecdca',
+  background: '#fff',
+  color: '#b42318',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  cursor: 'pointer',
 })
 
 function isSlotFitMode(value: string): value is Step4SlotFitMode {
@@ -207,6 +192,8 @@ export default function Step4EditModal({
   imageSrc,
   fitMode,
   rotation = 0,
+  previewW,
+  previewH,
   onClose,
   onSetFit,
   onRotate,
@@ -216,51 +203,52 @@ export default function Step4EditModal({
   const isMobile = useMediaQuery('(max-width: 768px)')
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
   const title = slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集'
+  const { width, height } = calcPreviewSize(previewW, previewH)
+  const hasImage = Boolean(imageSrc)
 
   const panel = (
     <DrawerPanel>
-      <PanelHeader>
-        <PanelTitle id="step4-edit-modal-title">{title}</PanelTitle>
+      <HeaderRow>
+        <Title id="step4-edit-modal-title">{title}</Title>
         <CloseButton type="button" aria-label="閉じる" onClick={onClose}>
           <CloseIcon fontSize="small" />
         </CloseButton>
-      </PanelHeader>
+      </HeaderRow>
 
-      <PreviewFrame>
-        {imageSrc ? (
-          <PreviewImage src={imageSrc} alt="" fitMode={activeFit} rotation={rotation} />
+      <PreviewFrame style={{ width: `${width}px`, height: `${height}px`, maxWidth: '100%' }}>
+        {hasImage ? (
+          <PreviewImage src={imageSrc as string} alt="" fitMode={activeFit} rotation={rotation} />
         ) : null}
       </PreviewFrame>
 
-      <FitButtonRow>
+      {hasImage ? (
+        <ReplaceButton type="button" onClick={onReplace}>
+          画像を差し替え
+        </ReplaceButton>
+      ) : null}
+
+      <FitRow>
         {FIT_OPTIONS.map((option) => (
-          <FitOptionButton
+          <FitButton
             key={option.id}
             type="button"
             active={activeFit === option.id}
             onClick={() => onSetFit(option.id)}
           >
-            {option.icon}
-            <span style={{ fontSize: '0.75rem' }}>{option.label}</span>
-          </FitOptionButton>
+            {option.label}
+          </FitButton>
         ))}
-        <FitOptionButton type="button" active={false} onClick={onRotate}>
-          <RotateRightIcon fontSize="small" />
-          <span style={{ fontSize: '0.75rem' }}>回転</span>
-        </FitOptionButton>
-      </FitButtonRow>
+      </FitRow>
 
-      <ActionButtonRow>
-        <ReplaceButton type="button" onClick={onReplace}>
-          <SwapHorizIcon fontSize="small" />
-          差し替え
-        </ReplaceButton>
+      <RotateButton type="button" onClick={onRotate}>
+        ↻ 90度回転（{rotation}°）
+      </RotateButton>
+
+      {hasImage ? (
         <DeleteButton type="button" onClick={onDelete}>
-          <DeleteOutlineIcon fontSize="small" />
           削除
         </DeleteButton>
-      </ActionButtonRow>
-
+      ) : null}
     </DrawerPanel>
   )
 
@@ -270,6 +258,7 @@ export default function Step4EditModal({
         anchor="bottom"
         open={open}
         onClose={onClose}
+        slotProps={{ paper: { style: { padding: '16px' } } }}
         aria-labelledby="step4-edit-modal-title"
       >
         {panel}
@@ -289,10 +278,9 @@ export default function Step4EditModal({
       }}
       slotProps={{
         paper: {
-          sx: {
+          style: {
             pointerEvents: 'auto',
-            overflowX: 'hidden',
-            boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
+            padding: '16px',
           },
         },
       }}
