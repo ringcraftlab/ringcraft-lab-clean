@@ -16,18 +16,6 @@ const BORDER_COLOR_PRESETS = [
 
 export const DEFAULT_BORDER_COLOR = BORDER_COLOR_PRESETS[6].hex
 
-const SettingsPanel = styled(Box)({
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'center',
-  flexWrap: 'nowrap',
-  gap: '24px',
-  marginBottom: '32px',
-  paddingBottom: '12px',
-  overflow: 'visible',
-})
-
 const SettingsGroup = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'muted',
 })<{ muted?: boolean }>(({ muted }) => ({
@@ -81,14 +69,6 @@ const SettingsToggleButton = styled('button', {
       },
 }))
 
-const ColorSwatchRow = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-start',
-})
-
 const ColorSwatch = styled('button', {
   shouldForwardProp: (prop) => prop !== 'swatchColor' && prop !== 'selected',
 })<{ swatchColor: string; selected?: boolean }>(({ swatchColor, selected }) => ({
@@ -99,6 +79,7 @@ const ColorSwatch = styled('button', {
   borderRadius: '50%',
   backgroundColor: swatchColor,
   cursor: 'pointer',
+  flexShrink: 0,
   boxShadow: selected
     ? '0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)'
     : '0 0 0 1px var(--color-border)',
@@ -125,65 +106,65 @@ export default function Step4SettingsBlock({
   onBorderColorChange,
 }: Step4SettingsBlockProps) {
   return (
-    <SettingsPanel>
-      <SettingsGroup>
-        <SettingsLabel>穴あけガイド</SettingsLabel>
-        <SettingsControls>
-          <Switch
-            checked={showHoleGuide}
-            onChange={(e) => onShowHoleGuideChange(e.target.checked)}
-            size="small"
-            sx={{
-              '& .MuiSwitch-switchBase.Mui-checked': {
-                color: 'var(--color-primary)',
-              },
-              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                backgroundColor: 'var(--color-primary)',
-              },
-            }}
-          />
-        </SettingsControls>
-      </SettingsGroup>
-      <SettingsGroup muted={!showHoleGuide}>
-        <SettingsLabel>穴の位置</SettingsLabel>
-        <SettingsControls>
-          <SettingsToggleButton
-            type="button"
-            active={holeSide === 'left'}
-            disabled={!showHoleGuide}
-            onClick={() => onHoleSideChange('left')}
-          >
-            左
-          </SettingsToggleButton>
-          <SettingsToggleButton
-            type="button"
-            active={holeSide === 'right'}
-            disabled={!showHoleGuide}
-            onClick={() => onHoleSideChange('right')}
-          >
-            右
-          </SettingsToggleButton>
-        </SettingsControls>
-      </SettingsGroup>
-      <SettingsGroup>
+    <Box className="step4-settings" component="section" aria-label="表示設定">
+      <Box className="step4-settings__row--primary">
+        <SettingsGroup>
+          <SettingsLabel>穴あけガイド</SettingsLabel>
+          <SettingsControls>
+            <Switch
+              checked={showHoleGuide}
+              onChange={(e) => onShowHoleGuideChange(e.target.checked)}
+              size="small"
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': {
+                  color: 'var(--color-primary)',
+                },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                  backgroundColor: 'var(--color-primary)',
+                },
+              }}
+            />
+          </SettingsControls>
+        </SettingsGroup>
+        <SettingsGroup muted={!showHoleGuide}>
+          <SettingsLabel>穴の位置</SettingsLabel>
+          <SettingsControls>
+            <SettingsToggleButton
+              type="button"
+              active={holeSide === 'left'}
+              disabled={!showHoleGuide}
+              onClick={() => onHoleSideChange('left')}
+            >
+              左
+            </SettingsToggleButton>
+            <SettingsToggleButton
+              type="button"
+              active={holeSide === 'right'}
+              disabled={!showHoleGuide}
+              onClick={() => onHoleSideChange('right')}
+            >
+              右
+            </SettingsToggleButton>
+          </SettingsControls>
+        </SettingsGroup>
+      </Box>
+      <Box className="step4-settings__row--color">
         <SettingsLabel>線の色</SettingsLabel>
-        <SettingsControls>
-          <ColorSwatchRow>
-            {BORDER_COLOR_PRESETS.map((preset) => (
-              <ColorSwatch
-                key={preset.id}
-                type="button"
-                swatchColor={preset.hex}
-                selected={borderColor === preset.hex}
-                title={preset.label}
-                aria-label={preset.label}
-                aria-pressed={borderColor === preset.hex}
-                onClick={() => onBorderColorChange(preset.hex)}
-              />
-            ))}
-          </ColorSwatchRow>
-        </SettingsControls>
-      </SettingsGroup>
-    </SettingsPanel>
+        <Box className="step4-settings__swatches" role="group" aria-label="線の色">
+          {BORDER_COLOR_PRESETS.map((preset) => (
+            <ColorSwatch
+              key={preset.id}
+              type="button"
+              swatchColor={preset.hex}
+              selected={borderColor === preset.hex}
+              title={preset.label}
+              aria-label={preset.label}
+              aria-pressed={borderColor === preset.hex}
+              onClick={() => onBorderColorChange(preset.hex)}
+            />
+          ))}
+        </Box>
+      </Box>
+    </Box>
   )
 }

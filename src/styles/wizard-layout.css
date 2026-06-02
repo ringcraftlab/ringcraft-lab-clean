@@ -168,6 +168,41 @@
 }
 
 /* Step4 edit panel — desktop shell (behavior split in JS) */
+/* Step4 preview settings (2 rows: guide+position / line color) */
+.step4-settings {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.step4-settings__row--primary {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.step4-settings__row--color {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.step4-settings__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
 .step4-edit-panel--desktop {
   position: fixed;
   right: 16px;
@@ -235,7 +270,8 @@
     padding-right: 16px;
   }
 
-  .step4-main-column > :not(.step4-action-row) {
+  .step4-main-column > :not(.step4-action-row),
+  .step4-single-column > :not(.step4-action-row) {
     padding-left: 16px;
     padding-right: 16px;
     box-sizing: border-box;
@@ -314,5 +350,9 @@
   .step4-action-row button {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  .step4-settings__row--primary {
+    gap: 16px;
   }
 }
