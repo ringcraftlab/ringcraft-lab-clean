@@ -21,7 +21,11 @@ const Bar = styled(Box)({
   display: 'flex',
   alignItems: 'flex-start',
   width: '100%',
-  marginBottom: '24px',
+  cursor: 'default',
+  pointerEvents: 'none',
+  borderBottom: '1px solid var(--color-border)',
+  paddingBottom: '16px',
+  marginBottom: '16px',
 })
 
 const StepItem = styled(Box)({
@@ -47,14 +51,9 @@ const StepNumber = styled('span', {
     state === 'active'
       ? 'color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))'
       : 'var(--color-surface)',
-  color:
-    state === 'active'
-      ? 'var(--color-primary)'
-      : state === 'completed'
-        ? 'var(--color-muted)'
-        : 'var(--color-text)',
+  color: state === 'active' ? 'var(--color-primary)' : 'var(--color-muted)',
   fontFamily: 'var(--font-body)',
-  fontSize: '0.8125rem',
+  fontSize: '0.85rem',
   fontWeight: state === 'active' ? 700 : 500,
   lineHeight: 1,
   opacity: state === 'completed' ? 0.5 : 1,
@@ -64,12 +63,7 @@ const StepNumber = styled('span', {
 const StepLabel = styled('span', {
   shouldForwardProp: (prop) => prop !== 'state',
 })<{ state: StepState }>(({ state }) => ({
-  color:
-    state === 'active'
-      ? 'var(--color-primary)'
-      : state === 'completed'
-        ? 'var(--color-muted)'
-        : 'var(--color-text)',
+  color: state === 'active' ? 'var(--color-primary)' : 'var(--color-muted)',
   fontFamily: 'var(--font-body)',
   fontSize: '0.6875rem',
   fontWeight: state === 'active' ? 700 : 500,
@@ -82,26 +76,16 @@ const StepLabel = styled('span', {
 const StepConnector = styled(Box)({
   display: 'flex',
   alignItems: 'center',
-  flex: '0 1 20px',
+  justifyContent: 'center',
+  flex: '0 1 16px',
   minWidth: '12px',
-  maxWidth: '32px',
-  marginTop: '13px',
-  padding: '0 2px',
-  color: 'var(--color-border)',
+  marginTop: '6px',
+  color: 'var(--color-muted)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '1rem',
+  lineHeight: 1,
   '&::before': {
-    content: '""',
-    flex: 1,
-    height: 0,
-    borderTop: '1px dashed var(--color-border)',
-  },
-  '&::after': {
     content: '"›"',
-    flexShrink: 0,
-    marginLeft: '2px',
-    fontSize: '0.875rem',
-    lineHeight: 1,
-    color: 'var(--color-muted)',
-    opacity: 0.7,
   },
 })
 
