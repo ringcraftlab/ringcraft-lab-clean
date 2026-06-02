@@ -106,12 +106,14 @@ const HeaderTitle = styled('h1')({
   whiteSpace: 'nowrap',
 })
 
-const Container = styled(Box)({
+const Container = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'wide',
+})<{ wide?: boolean }>(({ wide }) => ({
   width: '100%',
-  maxWidth: 'var(--max-width)',
+  maxWidth: wide ? '1280px' : 'var(--max-width)',
   margin: '0 auto',
   padding: '40px 24px 56px',
-})
+}))
 
 const SingleColumn = styled(Box)({
   display: 'flex',
@@ -1042,7 +1044,7 @@ export default function Step4() {
   }, [isImagesMode, activeSlot])
 
   const imagesModeGridColumns = imageEditTarget
-    ? '240px minmax(0, 1fr) 300px'
+    ? '200px minmax(0, 1fr) 280px'
     : '240px minmax(0, 1fr)'
 
   const resetAreaEditFocus = useCallback(() => {
@@ -1387,7 +1389,7 @@ export default function Step4() {
         </HeaderTitle>
       </Header>
 
-      <Container>
+      <Container wide={imageEditTarget !== null}>
         <StepBar currentStep={4} />
         {isImagesMode ? (
           <>
