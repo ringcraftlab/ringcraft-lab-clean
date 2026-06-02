@@ -1,3 +1,4 @@
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import FilterCenterFocusIcon from '@mui/icons-material/FilterCenterFocus'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import Box from '@mui/material/Box'
@@ -101,6 +102,7 @@ const ImagesClearAllButton = styled('button')({
 const ImagesPlacementCard = styled('button', {
   shouldForwardProp: (prop) => prop !== 'active',
 })<{ active?: boolean }>(({ active }) => ({
+  position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
@@ -149,6 +151,14 @@ const ImagesPlacementCardDesc = styled('span')({
   fontFamily: 'var(--font-body)',
   fontSize: '0.8125rem',
   lineHeight: 1.5,
+})
+
+const PlacementCardCheckIcon = styled(CheckCircleIcon)({
+  position: 'absolute',
+  right: '8px',
+  top: '8px',
+  color: 'var(--color-primary)',
+  fontSize: '1.2rem',
 })
 
 const HiddenFileInput = styled('input')({
@@ -218,6 +228,7 @@ export default function Step4ImagesSidePanel({
             aria-pressed={imageAreaMode === 'avoid'}
             onClick={() => onImageAreaModeChange('avoid')}
           >
+            {imageAreaMode === 'avoid' ? <PlacementCardCheckIcon aria-hidden /> : null}
             <ImagesPlacementCardHeader>
               <ImagesPlacementCardIcon aria-hidden>
                 <FilterCenterFocusIcon fontSize="small" />
@@ -232,6 +243,7 @@ export default function Step4ImagesSidePanel({
             aria-pressed={imageAreaMode === 'full'}
             onClick={() => onImageAreaModeChange('full')}
           >
+            {imageAreaMode === 'full' ? <PlacementCardCheckIcon aria-hidden /> : null}
             <ImagesPlacementCardHeader>
               <ImagesPlacementCardIcon aria-hidden>
                 <FullscreenIcon fontSize="small" />
