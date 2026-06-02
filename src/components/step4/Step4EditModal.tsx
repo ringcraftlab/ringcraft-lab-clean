@@ -125,10 +125,11 @@ const FitOptionButton = styled('button', {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
+  justifyContent: 'center',
   gap: '2px',
   flex: 1,
   margin: 0,
-  padding: '6px 0',
+  padding: '6px 4px',
   borderRadius: '6px',
   border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
   backgroundColor: active
@@ -238,12 +239,12 @@ export default function Step4EditModal({
             onClick={() => onSetFit(option.id)}
           >
             {option.icon}
-            <span>{option.label}</span>
+            <span style={{ fontSize: '0.72rem' }}>{option.label}</span>
           </FitOptionButton>
         ))}
         <FitOptionButton type="button" active={false} onClick={onRotate}>
           <RotateRightIcon fontSize="small" />
-          <span>回転</span>
+          <span style={{ fontSize: '0.72rem' }}>回転</span>
         </FitOptionButton>
       </FitButtonRow>
 
