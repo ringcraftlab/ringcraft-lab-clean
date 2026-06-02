@@ -31,7 +31,8 @@ const DrawerPanel = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
-  padding: '20px',
+  padding: '16px',
+  gap: '8px',
   boxSizing: 'border-box',
   backgroundColor: 'var(--color-surface)',
 })
@@ -59,8 +60,7 @@ const DrawerHeader = styled(Box)({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  gap: '12px',
-  marginBottom: '16px',
+  gap: '8px',
 })
 
 const DrawerTitle = styled('h2')({
@@ -84,8 +84,9 @@ const CloseButton = styled(IconButton)({
 const PreviewFrame = styled(Box)({
   position: 'relative',
   width: '100%',
-  aspectRatio: '1',
-  marginBottom: '16px',
+  height: '200px',
+  maxHeight: '200px',
+  flexShrink: 0,
   borderRadius: 'var(--radius-card)',
   border: '1px solid var(--color-border)',
   backgroundColor: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
@@ -106,15 +107,14 @@ const PreviewImage = styled('img', {
 const FitButtonRow = styled(Box)({
   display: 'grid',
   gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-  gap: '8px',
-  marginBottom: '12px',
+  gap: '4px',
 })
 
 const FitOptionButton = styled('button', {
   shouldForwardProp: (prop) => prop !== 'active',
 })<{ active?: boolean }>(({ active }) => ({
   margin: 0,
-  padding: '8px 4px',
+  padding: '4px 8px',
   borderRadius: '6px',
   border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
   backgroundColor: active
@@ -134,10 +134,18 @@ const FitOptionButton = styled('button', {
 const ActionButtonRow = styled(Box)({
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: '10px',
+  gap: '6px',
 })
 
+const compactButtonStyles = {
+  fontSize: '0.75rem',
+  padding: '4px 8px',
+  minHeight: 'unset',
+  lineHeight: 1.3,
+}
+
 const ReplaceButton = styled(AppButton)({
+  ...compactButtonStyles,
   backgroundColor: 'var(--color-surface)',
   color: 'var(--color-primary)',
   border: '2px solid var(--color-primary)',
@@ -148,6 +156,7 @@ const ReplaceButton = styled(AppButton)({
 })
 
 const DeleteButton = styled(AppButton)({
+  ...compactButtonStyles,
   backgroundColor: 'color-mix(in srgb, #c62828 12%, var(--color-surface))',
   color: 'color-mix(in srgb, #c62828 75%, var(--color-text-h))',
   border: '2px solid color-mix(in srgb, #c62828 55%, var(--color-border))',
