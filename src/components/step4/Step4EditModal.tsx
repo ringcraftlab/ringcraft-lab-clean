@@ -1,8 +1,9 @@
 import CloseIcon from '@mui/icons-material/Close'
 import Box from '@mui/material/Box'
+import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
-import Modal from '@mui/material/Modal'
 import { styled } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import AppButton from '../AppButton'
 
 export type Step4SlotFitMode = 'cover' | 'contain' | 'fill'
@@ -26,22 +27,35 @@ export interface Step4EditModalProps {
   onDelete: () => void
 }
 
-const ModalPanel = styled(Box)({
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 'min(420px, calc(100vw - 32px))',
-  maxHeight: 'calc(100vh - 48px)',
-  overflowY: 'auto',
+const DrawerPanel = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
   padding: '20px',
-  borderRadius: 'var(--radius-card)',
-  backgroundColor: 'var(--color-surface)',
-  border: '1px solid var(--color-border)',
   boxSizing: 'border-box',
+  backgroundColor: 'var(--color-surface)',
 })
 
-const ModalHeader = styled(Box)({
+const DesktopEditDrawer = styled(Drawer)({
+  '& .MuiDrawer-paper': {
+    width: '340px',
+    boxSizing: 'border-box',
+    backgroundColor: 'var(--color-surface)',
+    borderLeft: '1px solid var(--color-border)',
+  },
+})
+
+const MobileEditDrawer = styled(Drawer)({
+  '& .MuiDrawer-paper': {
+    height: 'auto',
+    maxHeight: '90vh',
+    borderRadius: '16px 16px 0 0',
+    boxSizing: 'border-box',
+    backgroundColor: 'var(--color-surface)',
+  },
+})
+
+const DrawerHeader = styled(Box)({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -49,7 +63,7 @@ const ModalHeader = styled(Box)({
   marginBottom: '16px',
 })
 
-const ModalTitle = styled('h2')({
+const DrawerTitle = styled('h2')({
   margin: 0,
   color: 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
@@ -160,50 +174,75 @@ export default function Step4EditModal({
   onReplace,
   onDelete,
 }: Step4EditModalProps) {
+  const isMobile = useMediaQuery('(max-width: 768px)')
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
   const title = slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集'
 
-  return (
-    <Modal open={open} onClose={onClose} aria-labelledby="step4-edit-modal-title">
-      <ModalPanel>
-        <ModalHeader>
-          <ModalTitle id="step4-edit-modal-title">{title}</ModalTitle>
-          <CloseButton type="button" aria-label="閉じる" onClick={onClose}>
-            <CloseIcon fontSize="small" />
-          </CloseButton>
-        </ModalHeader>
+  const panel = (
+    <DrawerPanel>
+      <DrawerHeader>
+        <DrawerTitle id="step4-edit-modal-title">{title}</DrawerTitle>
+        <CloseButton type="button" aria-label="閉じる" onClick={onClose}>
+          <CloseIcon fontSize="small" />
+        </CloseButton>
+      </DrawerHeader>
 
-        <PreviewFrame>
-          {imageSrc ? (
-            <PreviewImage src={imageSrc} alt="" fitMode={activeFit} rotation={rotation} />
-          ) : null}
-        </PreviewFrame>
+      <PreviewFrame>
+        {imageSrc ? (
+          <PreviewImage src={imageSrc} alt="" fitMode={activeFit} rotation={rotation} />
+        ) : null}
+      </PreviewFrame>
 
-        <FitButtonRow>
-          {FIT_OPTIONS.map((option) => (
-            <FitOptionButton
-              key={option.id}
-              type="button"
-              active={activeFit === option.id}
-              onClick={() => onSetFit(option.id)}
-            >
-              {option.label}
-            </FitOptionButton>
-          ))}
-          <FitOptionButton type="button" active={false} onClick={onRotate}>
-            回転
+      <FitButtonRow>
+        {FIT_OPTIONS.map((option) => (
+          <FitOptionButton
+            key={option.id}
+            type="button"
+            active={activeFit === option.id}
+            onClick={() => onSetFit(option.id)}
+          >
+            {option.label}
           </FitOptionButton>
-        </FitButtonRow>
+        ))}
+        <FitOptionButton type="button" active={false} onClick={onRotate}>
+          回転
+        </FitOptionButton>
+      </FitButtonRow>
 
-        <ActionButtonRow>
-          <ReplaceButton type="button" onClick={onReplace}>
-            差し替え
-          </ReplaceButton>
-          <DeleteButton type="button" onClick={onDelete}>
-            削除
-          </DeleteButton>
-        </ActionButtonRow>
-      </ModalPanel>
-    </Modal>
+      <ActionButtonRow>
+        <ReplaceButton type="button" onClick={onReplace}>
+          差し替え
+        </ReplaceButton>
+        <DeleteButton type="button" onClick={onDelete}>
+          削除
+        </DeleteButton>
+      </ActionButtonRow>
+    </DrawerPanel>
+  )
+
+  if (isMobile) {
+    return (
+      <MobileEditDrawer
+        anchor="bottom"
+        open={open}
+        onClose={onClose}
+        aria-labelledby="step4-edit-modal-title"
+      >
+        {panel}
+      </MobileEditDrawer>
+    )
+  }
+
+  return (
+    <DesktopEditDrawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      hideBackdrop
+      ModalProps={{ keepMounted: true, disableScrollLock: true }}
+      aria-labelledby="step4-edit-modal-title"
+    >
+      {panel}
+    </DesktopEditDrawer>
   )
 }

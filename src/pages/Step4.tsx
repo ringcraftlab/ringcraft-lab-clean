@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
@@ -274,12 +275,16 @@ const SlotPlus = styled('span')({
   pointerEvents: 'none',
 })
 
-const MainColumn = styled(Box)({
+const MainColumn = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'reserveDrawerSpace',
+})<{ reserveDrawerSpace?: boolean }>(({ reserveDrawerSpace }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'stretch',
   width: '100%',
-})
+  boxSizing: 'border-box',
+  ...(reserveDrawerSpace ? { paddingRight: '340px' } : {}),
+}))
 
 const StepBadge = styled('span')({
   display: 'inline-flex',
@@ -999,10 +1004,15 @@ export default function Step4() {
     setBackgroundOptionsOpen((open) => !open)
   }, [])
 
+  const isMobile = useMediaQuery('(max-width: 768px)')
+
   const imageEditTarget = useMemo(() => {
     if (!isImagesMode || activeSlot === null) return null
     return { kind: 'slot' as const, index: activeSlot }
   }, [isImagesMode, activeSlot])
+
+  const reserveDrawerSpace =
+    isImagesMode && !isMobile && imageEditTarget !== null
 
   const resetAreaEditFocus = useCallback(() => {
     setActiveSlot(null)
@@ -1364,7 +1374,9 @@ export default function Step4() {
                 onMultiInput={handleMultiInput}
                 onFillInput={handleFillInput}
               />
-              <MainColumn>{rightColumnContent}</MainColumn>
+              <MainColumn reserveDrawerSpace={reserveDrawerSpace}>
+                {rightColumnContent}
+              </MainColumn>
             </TwoColumnLayout>
           </>
         ) : isBackgroundMode ? (
