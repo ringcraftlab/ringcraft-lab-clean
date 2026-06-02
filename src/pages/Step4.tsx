@@ -1,3 +1,5 @@
+import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import PrintIcon from '@mui/icons-material/Print'
 import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
@@ -18,8 +20,8 @@ import {
   useStep4Capture,
   type GuideImageFit,
 } from '../components/step4/useStep4Capture'
-import { getHolePositions, SIZES, type SizeDefinition } from '../config/sizes'
-import { paperOrientationForLayout } from '../utils/layout'
+import { getHolePositions, SIZE_PICKER_LINES, SIZES, type SizeDefinition } from '../config/sizes'
+import { calcLayout, isFoldLayoutMode, paperOrientationForLayout } from '../utils/layout'
 import {
   buildPrintTypePreviewLayout,
   type PrintTypePreviewLayout,
@@ -273,15 +275,6 @@ const MainColumn = styled(Box)({
   width: '100%',
 })
 
-const StepBadgeRow = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'align',
-})<{ align?: 'start' | 'center' }>(({ align = 'center' }) => ({
-  display: 'flex',
-  justifyContent: align === 'start' ? 'flex-start' : 'center',
-  width: '100%',
-  marginBottom: '16px',
-}))
-
 const StepBadge = styled('span')({
   display: 'inline-flex',
   alignItems: 'center',
@@ -295,28 +288,61 @@ const StepBadge = styled('span')({
   fontSize: '0.8rem',
 })
 
-const PageHeading = styled('h2')({
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '1.5rem',
-  lineHeight: 1.4,
-  margin: '0 0 24px',
-  textAlign: 'center',
-  width: '100%',
-})
-
-const ImagesModeHeader = styled(Box)({
+const Step4PageHeader = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
   width: '100%',
-  gap: '16px',
+  gap: '8px',
   marginBottom: '24px',
 })
 
-const ImagesModeHeading = styled(PageHeading)({
+const Step4HeaderTitleRow = styled(Box)({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '10px',
+  width: '100%',
+})
+
+const Step4HeaderSeparator = styled('span')({
+  color: 'var(--color-muted)',
+  fontSize: '1rem',
+  fontWeight: 400,
+  lineHeight: 1,
+})
+
+const Step4HeaderIconWrap = styled(Box)({
+  display: 'inline-flex',
+  alignItems: 'center',
+  flexShrink: 0,
+})
+
+const Step4HeaderTitle = styled('h2')({
   margin: 0,
-  textAlign: 'left',
+  color: 'var(--color-text-h)',
+  fontWeight: 700,
+  fontSize: '1.25rem',
+  lineHeight: 1.4,
+})
+
+const Step4HeaderSubtext = styled('p')({
+  margin: 0,
+  color: 'var(--color-muted)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.9rem',
+  lineHeight: 1.5,
+})
+
+const LayoutCountLine = styled('p')({
+  margin: '0 0 24px',
+  width: '100%',
+  textAlign: 'center',
+  color: 'var(--color-text-h)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.9rem',
+  fontWeight: 600,
+  lineHeight: 1.5,
 })
 
 const PreviewWrap = styled(Box)({
@@ -483,6 +509,12 @@ const OutlineAppButton = styled(AppButton)({
   },
 })
 
+const ActionButtonLabel = styled('span')({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+})
+
 function resolveRefillDimensions(state: Step4LocationState | null): {
   refillW: number
   refillH: number
@@ -508,6 +540,95 @@ function resolveSizePreset(sizeId?: string): SizeDefinition | undefined {
     return { id: 'custom' } as SizeDefinition
   }
   return SIZES.find((entry) => entry.id === sizeId)
+}
+
+function getSizeDisplayName(sizeId?: string): string {
+  if (sizeId && SIZE_PICKER_LINES[sizeId]?.[0]) {
+    return SIZE_PICKER_LINES[sizeId][0]
+  }
+  const preset = resolveSizePreset(sizeId)
+  return preset?.shortName ?? preset?.name ?? 'リフィル'
+}
+
+function getSheetMarginSuffix(
+  layoutMode: string | undefined,
+  refillW: number,
+  refillH: number,
+): string {
+  if (!layoutMode || isFoldLayoutMode(layoutMode)) return ''
+  const portrait = calcLayout(refillW, refillH, 'portrait')
+  const landscape = calcLayout(refillW, refillH, 'landscape')
+  if (portrait.total <= 0 || landscape.total <= 0) return ''
+
+  const portraitIsTight = portrait.total > landscape.total
+  const landscapeIsTight = landscape.total >= portrait.total
+
+  if (layoutMode === 'portrait') {
+    return portraitIsTight ? '（余白少なめ）' : '（余白多め）'
+  }
+  if (layoutMode === 'landscape') {
+    return landscapeIsTight ? '（余白少なめ）' : '（余白多め）'
+  }
+  return ''
+}
+
+function buildStep4LayoutSubtext(
+  sizeId: string | undefined,
+  layoutMode: string | undefined,
+  previewLayout: PrintTypePreviewLayout | null,
+  refillW: number,
+  refillH: number,
+): string | null {
+  if (!previewLayout) return null
+
+  const sizeLabel = getSizeDisplayName(sizeId)
+
+  if (previewLayout.kind === 'fold') {
+    const foldTitle =
+      layoutMode === 'fold4' ? '4つ折り' : layoutMode === 'fold3' ? '3つ折り' : '折り'
+    return `${sizeLabel}・${foldTitle}・A4横・${previewLayout.fold.total}面`
+  }
+
+  const marginSuffix = getSheetMarginSuffix(layoutMode, refillW, refillH)
+  return `${sizeLabel}・A4に${previewLayout.total}枚${marginSuffix}`
+}
+
+function buildStep4LayoutCountLine(
+  sizeId: string | undefined,
+  previewLayout: PrintTypePreviewLayout | null,
+): string | null {
+  if (!previewLayout) return null
+
+  const sizeLabel = getSizeDisplayName(sizeId)
+
+  if (previewLayout.kind === 'fold') {
+    return `${sizeLabel} / ${previewLayout.fold.foldCount}面×${previewLayout.fold.bookCount}冊 / ${previewLayout.fold.total}面`
+  }
+
+  return `${sizeLabel} / ${previewLayout.cols}列×${previewLayout.rows}行 / ${previewLayout.total}枚`
+}
+
+function Step4PageHeaderBlock({
+  title,
+  subtext,
+}: {
+  title: string
+  subtext: string | null
+}) {
+  return (
+    <Step4PageHeader>
+      <Step4HeaderTitleRow>
+        <StepBadge>Step4</StepBadge>
+        <Step4HeaderSeparator aria-hidden>|</Step4HeaderSeparator>
+        <Step4HeaderIconWrap aria-hidden>
+          <AppHeaderBrandIcon />
+        </Step4HeaderIconWrap>
+        <Step4HeaderSeparator aria-hidden>|</Step4HeaderSeparator>
+        <Step4HeaderTitle>{title}</Step4HeaderTitle>
+      </Step4HeaderTitleRow>
+      {subtext ? <Step4HeaderSubtext>{subtext}</Step4HeaderSubtext> : null}
+    </Step4PageHeader>
+  )
 }
 
 function getSlotCount(layout: PrintTypePreviewLayout): number {
@@ -726,6 +847,23 @@ export default function Step4() {
   const previewLayout = useMemo(
     () => buildPrintTypePreviewLayout(layoutParams),
     [layoutParams],
+  )
+
+  const layoutSubtext = useMemo(
+    () =>
+      buildStep4LayoutSubtext(
+        routeState?.sizeId,
+        routeState?.layoutMode,
+        previewLayout,
+        refillW,
+        refillH,
+      ),
+    [routeState?.sizeId, routeState?.layoutMode, previewLayout, refillW, refillH],
+  )
+
+  const layoutCountLine = useMemo(
+    () => buildStep4LayoutCountLine(routeState?.sizeId, previewLayout),
+    [routeState?.sizeId, previewLayout],
   )
 
   const paperMetrics = useMemo(() => {
@@ -991,10 +1129,16 @@ export default function Step4() {
   const actionBlock = (
     <ActionRow>
       <OutlineAppButton type="button" onClick={() => void handleSavePdf()}>
-        PDF保存
+        <ActionButtonLabel>
+          <FileDownloadIcon fontSize="small" aria-hidden />
+          PDF保存
+        </ActionButtonLabel>
       </OutlineAppButton>
       <AppButton type="button" onClick={() => void handlePrint()}>
-        印刷する
+        <ActionButtonLabel>
+          <PrintIcon fontSize="small" aria-hidden />
+          印刷する
+        </ActionButtonLabel>
       </AppButton>
     </ActionRow>
   )
@@ -1014,16 +1158,14 @@ export default function Step4() {
         borderColor={borderColor}
         onBorderColorChange={setBorderColor}
       />
+      {layoutCountLine ? <LayoutCountLine>{layoutCountLine}</LayoutCountLine> : null}
       {actionBlock}
     </>
   )
 
   const mainBlock = (
     <>
-      <StepBadgeRow align={isImagesMode ? 'start' : 'center'}>
-        <StepBadge>Step4</StepBadge>
-      </StepBadgeRow>
-      <PageHeading>{pageHeading}</PageHeading>
+      <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
       {mainContent}
     </>
   )
@@ -1045,10 +1187,7 @@ export default function Step4() {
       <Container>
         {isImagesMode ? (
           <>
-            <ImagesModeHeader>
-              <StepBadge>Step4</StepBadge>
-              <ImagesModeHeading>{pageHeading}</ImagesModeHeading>
-            </ImagesModeHeader>
+            <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
             <TwoColumnLayout>
               <Step4ImagesSidePanel
                 images={images}

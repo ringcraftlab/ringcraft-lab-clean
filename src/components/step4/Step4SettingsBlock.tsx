@@ -18,18 +18,22 @@ export const DEFAULT_BORDER_COLOR = BORDER_COLOR_PRESETS[6].hex
 const SettingsPanel = styled(Box)({
   width: '100%',
   display: 'flex',
-  flexDirection: 'column',
-  gap: '16px',
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  alignItems: 'flex-start',
+  gap: '24px',
   marginBottom: '32px',
 })
 
-const SettingsRow = styled(Box, {
+const SettingsGroup = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'muted',
 })<{ muted?: boolean }>(({ muted }) => ({
   display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '16px',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '8px',
+  flex: '1 1 auto',
+  minWidth: 'min(100%, 140px)',
   opacity: muted ? 0.55 : 1,
 }))
 
@@ -80,7 +84,7 @@ const ColorSwatchRow = styled(Box)({
   alignItems: 'center',
   gap: '8px',
   flexWrap: 'wrap',
-  justifyContent: 'flex-end',
+  justifyContent: 'flex-start',
 })
 
 const ColorSwatch = styled('button', {
@@ -120,7 +124,7 @@ export default function Step4SettingsBlock({
 }: Step4SettingsBlockProps) {
   return (
     <SettingsPanel>
-      <SettingsRow>
+      <SettingsGroup>
         <SettingsLabel>穴あけガイド</SettingsLabel>
         <SettingsControls>
           <SettingsToggleButton
@@ -138,8 +142,8 @@ export default function Step4SettingsBlock({
             OFF
           </SettingsToggleButton>
         </SettingsControls>
-      </SettingsRow>
-      <SettingsRow muted={!showHoleGuide}>
+      </SettingsGroup>
+      <SettingsGroup muted={!showHoleGuide}>
         <SettingsLabel>穴の位置</SettingsLabel>
         <SettingsControls>
           <SettingsToggleButton
@@ -159,8 +163,8 @@ export default function Step4SettingsBlock({
             右
           </SettingsToggleButton>
         </SettingsControls>
-      </SettingsRow>
-      <SettingsRow>
+      </SettingsGroup>
+      <SettingsGroup>
         <SettingsLabel>線の色</SettingsLabel>
         <SettingsControls>
           <ColorSwatchRow>
@@ -178,7 +182,7 @@ export default function Step4SettingsBlock({
             ))}
           </ColorSwatchRow>
         </SettingsControls>
-      </SettingsRow>
+      </SettingsGroup>
     </SettingsPanel>
   )
 }
