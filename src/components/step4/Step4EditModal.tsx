@@ -48,13 +48,19 @@ function calcPreviewSize(previewW: number, previewH: number) {
   return { width: Math.round(w), height: Math.round(h) }
 }
 
-const DesktopEditDrawer = styled(Drawer)({
-  '& .MuiDrawer-paper': {
-    width: '280px',
-    boxSizing: 'border-box',
-    backgroundColor: 'var(--color-surface)',
-    borderLeft: '1px solid var(--color-border)',
-  },
+const DesktopFixedPanel = styled(Box)({
+  position: 'fixed',
+  right: '16px',
+  top: '80px',
+  width: '280px',
+  height: 'auto',
+  backgroundColor: 'var(--color-surface)',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+  borderRadius: 'var(--radius-card)',
+  padding: '16px',
+  zIndex: 1200,
+  border: '1px solid var(--color-border)',
+  boxSizing: 'border-box',
 })
 
 const MobileEditDrawer = styled(Drawer)({
@@ -266,27 +272,11 @@ export default function Step4EditModal({
     )
   }
 
+  if (!open) return null
+
   return (
-    <DesktopEditDrawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      hideBackdrop
-      ModalProps={{
-        disableScrollLock: true,
-        style: { pointerEvents: 'none' },
-      }}
-      PaperProps={{
-        sx: {
-          height: 'fit-content',
-          top: '80px',
-          pointerEvents: 'auto',
-          padding: '16px',
-        },
-      }}
-      aria-labelledby="step4-edit-modal-title"
-    >
+    <DesktopFixedPanel aria-labelledby="step4-edit-modal-title">
       {panel}
-    </DesktopEditDrawer>
+    </DesktopFixedPanel>
   )
 }
