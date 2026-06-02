@@ -266,6 +266,8 @@ export default function Step4EditModal({
         anchor="bottom"
         open={open}
         onClose={onClose}
+        hideBackdrop={false}
+        ModalProps={{ keepMounted: true }}
         slotProps={{ paper: { style: { padding: '16px' } } }}
         aria-labelledby="step4-edit-modal-title"
       >
