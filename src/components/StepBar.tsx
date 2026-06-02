@@ -97,16 +97,20 @@ function getStepState(step: StepBarStep, currentStep: StepBarStep): StepState {
 
 export default function StepBar({ currentStep }: StepBarProps) {
   return (
-    <Bar aria-label="進行ステップ">
+    <Bar className="wizard-step-bar" aria-label="進行ステップ">
       {STEPS.map((item, index) => {
         const state = getStepState(item.step, currentStep)
         return (
           <Fragment key={item.step}>
             <StepItem aria-current={state === 'active' ? 'step' : undefined}>
               <StepNumber state={state}>{item.step}</StepNumber>
-              <StepLabel state={state}>{item.label}</StepLabel>
+              <StepLabel className="wizard-step-bar__label" state={state}>
+                {item.label}
+              </StepLabel>
             </StepItem>
-            {index < STEPS.length - 1 ? <StepConnector aria-hidden /> : null}
+            {index < STEPS.length - 1 ? (
+              <StepConnector className="wizard-step-bar__connector" aria-hidden />
+            ) : null}
           </Fragment>
         )
       })}

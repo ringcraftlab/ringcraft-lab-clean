@@ -5,10 +5,9 @@ import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import AppButton from '../AppButton'
+import { interactionMediaQuery } from '../../constants/breakpoints'
 
 export type Step4SlotFitMode = 'cover' | 'contain' | 'fill'
-
-const INTERACTION_BREAKPOINT_PX = 900
 
 const FIT_OPTIONS: { id: Step4SlotFitMode; label: string }[] = [
   { id: 'cover', label: 'トリミング' },
@@ -49,21 +48,6 @@ function calcPreviewSize(previewW: number, previewH: number) {
   }
   return { width: Math.round(w), height: Math.round(h) }
 }
-
-const DesktopFixedPanel = styled(Box)({
-  position: 'fixed',
-  right: '16px',
-  top: '80px',
-  width: '280px',
-  height: 'auto',
-  backgroundColor: 'var(--color-surface)',
-  boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-  borderRadius: 'var(--radius-card)',
-  padding: '16px',
-  zIndex: 1200,
-  border: '1px solid var(--color-border)',
-  boxSizing: 'border-box',
-})
 
 const MobileEditDrawer = styled(Drawer)({
   '& .MuiDrawer-paper': {
@@ -208,7 +192,7 @@ export default function Step4EditModal({
   onReplace,
   onDelete,
 }: Step4EditModalProps) {
-  const isNarrowInteraction = useMediaQuery(`(max-width: ${INTERACTION_BREAKPOINT_PX}px)`)
+  const isNarrowInteraction = useMediaQuery(interactionMediaQuery)
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
   const title = slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集'
   const { width, height } = calcPreviewSize(previewW, previewH)
@@ -279,8 +263,8 @@ export default function Step4EditModal({
   if (!open) return null
 
   return (
-    <DesktopFixedPanel aria-labelledby="step4-edit-modal-title">
+    <Box className="step4-edit-panel--desktop" aria-labelledby="step4-edit-modal-title">
       {panel}
-    </DesktopFixedPanel>
+    </Box>
   )
 }

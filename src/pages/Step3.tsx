@@ -16,91 +16,7 @@ type Step3LocationState = {
   layoutMode?: string
 }
 
-const Page = styled('div')({
-  minHeight: '100vh',
-  backgroundColor: 'var(--color-bg)',
-  color: 'var(--color-text)',
-})
-
-const Header = styled('header')({
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  height: '56px',
-  backgroundColor: 'var(--color-surface)',
-  borderBottom: '1px solid var(--color-border)',
-})
-
-const HeaderInner = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  width: '100%',
-  padding: '0 24px',
-})
-
-const BackButton = styled('button')({
-  border: 'none',
-  background: 'none',
-  padding: 0,
-  cursor: 'pointer',
-  color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
-  fontWeight: 500,
-  fontSize: '1rem',
-  flexShrink: 0,
-  '&:hover': {
-    color: 'var(--color-primary)',
-  },
-})
-
-const HeaderTitle = styled('h1')({
-  position: 'absolute',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  margin: 0,
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '8px',
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '18px',
-  lineHeight: 1.4,
-  whiteSpace: 'nowrap',
-})
-
-const Container = styled(Box)({
-  width: '100%',
-  maxWidth: 'var(--max-width)',
-  margin: '0 auto',
-  padding: '40px 24px 56px',
-})
-
-const StepBadge = styled('span')({
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '4px 14px',
-  borderRadius: 'var(--radius-btn)',
-  backgroundColor: 'var(--color-primary)',
-  color: 'var(--color-surface)',
-  fontWeight: 600,
-  fontSize: '0.8rem',
-  marginBottom: '16px',
-})
-
-const PageHeading = styled('h2')({
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '1.5rem',
-  lineHeight: 1.4,
-  margin: '0 0 28px',
-})
-
-const PrintTypeGrid = styled(Box)({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-  gap: '16px',
-  marginBottom: '40px',
-})
+const PrintTypeGrid = styled(Box)({})
 
 const PrintTypeCard = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'selected',
@@ -152,10 +68,7 @@ const PrintTypeDesc = styled('p')({
   textAlign: 'center',
 })
 
-const Actions = styled(Box)({
-  display: 'flex',
-  justifyContent: 'center',
-})
+const Actions = styled(Box)({})
 
 function resolveRefillDimensions(state: Step3LocationState | null): {
   refillW: number
@@ -233,25 +146,25 @@ export default function Step3() {
   }
 
   return (
-    <Page>
-      <Header>
-        <HeaderInner>
-          <BackButton type="button" onClick={goBackToStep2}>
+    <div className="wizard-page">
+      <header className="wizard-header">
+        <Box className="wizard-header__inner">
+          <button type="button" className="wizard-header__back" onClick={goBackToStep2}>
             ← Step2に戻る
-          </BackButton>
-        </HeaderInner>
-        <HeaderTitle>
+          </button>
+        </Box>
+        <h1 className="wizard-header__title">
           <AppHeaderBrandIcon />
           リフィル作成
-        </HeaderTitle>
-      </Header>
+        </h1>
+      </header>
 
-      <Container>
+      <Box className="wizard-container">
         <StepBar currentStep={3} />
-        <StepBadge>Step3</StepBadge>
-        <PageHeading>印刷タイプは？</PageHeading>
+        <span className="wizard-step-badge">Step3</span>
+        <h2 className="wizard-heading">印刷タイプは？</h2>
 
-        <PrintTypeGrid>
+        <PrintTypeGrid className="wizard-print-type-grid">
           {PRINT_TYPES.map((printType) => {
             const selected = printType.id === selectedPrintTypeId
 
@@ -285,7 +198,7 @@ export default function Step3() {
           })}
         </PrintTypeGrid>
 
-        <Actions>
+        <Actions className="wizard-actions">
           <AppButton
             type="button"
             disabled={!hasLayout || !selectedPrintTypeId}
@@ -294,7 +207,7 @@ export default function Step3() {
             プレビューへ
           </AppButton>
         </Actions>
-      </Container>
-    </Page>
+      </Box>
+    </div>
   )
 }

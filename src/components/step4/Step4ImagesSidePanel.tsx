@@ -8,14 +8,6 @@ import AppButton from '../AppButton'
 
 export type ImageAreaMode = 'avoid' | 'full'
 
-const SideColumn = styled(Box)({
-  width: '280px',
-  flexShrink: 0,
-  minHeight: '120px',
-  padding: '0 24px 24px',
-  boxSizing: 'border-box',
-})
-
 const ImagesSidePanel = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
@@ -195,7 +187,7 @@ export default function Step4ImagesSidePanel({
   const hasImages = Object.keys(images).length > 0
 
   return (
-    <SideColumn aria-label="操作エリア">
+    <Box className="step4-side-column" aria-label="操作エリア">
       <ImagesSidePanel>
         <ImagesSideSection>
           <ImagesSideSectionTitle>① 写真を追加</ImagesSideSectionTitle>
@@ -274,6 +266,6 @@ export default function Step4ImagesSidePanel({
           onChange={onFillInput}
         />
       </ImagesSidePanel>
-    </SideColumn>
+    </Box>
   )
 }

@@ -5,7 +5,6 @@ import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
@@ -52,92 +51,8 @@ const PRINT_TYPE_HEADINGS: Record<string, string> = {
   images: '個別画像を挿入',
 }
 
-const INTERACTION_BREAKPOINT_PX = 900
-const LAYOUT_BREAKPOINT_PX = 1024
-
 const HOLE_ZONE_MM = 6.5
 const IMAGE_START_MM = 6.7
-
-const Page = styled('div')({
-  minHeight: '100vh',
-  backgroundColor: 'var(--color-bg)',
-  color: 'var(--color-text)',
-})
-
-const Header = styled('header')({
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  height: '56px',
-  backgroundColor: 'var(--color-surface)',
-  borderBottom: '1px solid var(--color-border)',
-})
-
-const HeaderInner = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  width: '100%',
-  padding: '0 24px',
-})
-
-const BackButton = styled('button')({
-  border: 'none',
-  background: 'none',
-  padding: 0,
-  cursor: 'pointer',
-  color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
-  fontWeight: 500,
-  fontSize: '1rem',
-  flexShrink: 0,
-  '&:hover': {
-    color: 'var(--color-primary)',
-  },
-})
-
-const HeaderTitle = styled('h1')({
-  position: 'absolute',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  margin: 0,
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '8px',
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '18px',
-  lineHeight: 1.4,
-  whiteSpace: 'nowrap',
-})
-
-const Container = styled(Box)({
-  width: '100%',
-  maxWidth: 'var(--max-width)',
-  margin: '0 auto',
-  padding: '40px 24px 56px',
-})
-
-const SingleColumn = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  width: '100%',
-  maxWidth: '560px',
-  margin: '0 auto',
-})
-
-const TwoColumnLayout = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'gridTemplateColumns',
-})<{ gridTemplateColumns?: string }>(({ gridTemplateColumns }) => ({
-  display: 'grid',
-  gridTemplateColumns: gridTemplateColumns ?? '280px minmax(0, 1fr)',
-  gap: '24px',
-  alignItems: 'start',
-  [`@media (max-width: ${LAYOUT_BREAKPOINT_PX}px)`]: {
-    gridTemplateColumns: 'minmax(0, 1fr)',
-    gap: '16px',
-  },
-}))
 
 const ImagesPaperFrame = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'aspectRatio',
@@ -305,17 +220,6 @@ const SlotPlus = styled('span')({
   pointerEvents: 'none',
 })
 
-const MainColumn = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'reserveEditPanelSpace',
-})<{ reserveEditPanelSpace?: boolean }>(({ reserveEditPanelSpace }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'stretch',
-  width: '100%',
-  boxSizing: 'border-box',
-  ...(reserveEditPanelSpace ? { paddingRight: '276px' } : {}),
-}))
-
 const StepBadge = styled('span')({
   display: 'inline-flex',
   alignItems: 'center',
@@ -411,13 +315,6 @@ const PreviewWrap = styled(Box)({
 
 const HiddenFileInput = styled('input')({
   display: 'none',
-})
-
-const BackgroundSideColumn = styled(Box)({
-  width: '280px',
-  flexShrink: 0,
-  padding: '0 24px 24px',
-  boxSizing: 'border-box',
 })
 
 const BackgroundImagePanel = styled(Box)({
@@ -1047,16 +944,10 @@ export default function Step4() {
     setBackgroundOptionsOpen((open) => !open)
   }, [])
 
-  const isNarrowInteraction = useMediaQuery(`(max-width: ${INTERACTION_BREAKPOINT_PX}px)`)
-  const isStackedLayout = useMediaQuery(`(max-width: ${LAYOUT_BREAKPOINT_PX}px)`)
-
   const imageEditTarget = useMemo(() => {
     if (!isImagesMode || activeSlot === null) return null
     return { kind: 'slot' as const, index: activeSlot }
   }, [isImagesMode, activeSlot])
-
-  const reserveEditPanelSpace =
-    imageEditTarget !== null && !isNarrowInteraction && !isStackedLayout
 
   const resetAreaEditFocus = useCallback(() => {
     setActiveSlot(null)
@@ -1270,7 +1161,7 @@ export default function Step4() {
     )
 
   const backgroundLeftColumn = isBackgroundMode ? (
-    <BackgroundSideColumn aria-label="背景画像の操作">
+    <Box className="step4-side-column" aria-label="背景画像の操作">
       <BackgroundImagePanel>
         <HiddenFileInput
           ref={guideImageInputRef}
@@ -1282,7 +1173,7 @@ export default function Step4() {
           背景画像を選ぶ
         </BackgroundPickButton>
       </BackgroundImagePanel>
-    </BackgroundSideColumn>
+    </Box>
   ) : null
 
   const backgroundDisplayOptions =
@@ -1336,7 +1227,7 @@ export default function Step4() {
     ) : null
 
   const actionBlock = (
-    <ActionRow>
+    <ActionRow className="step4-action-row">
       <OutlineAppButton type="button" onClick={() => void handleSavePdf()}>
         <ActionButtonLabel>
           <FileDownloadIcon fontSize="small" aria-hidden />
@@ -1386,26 +1277,31 @@ export default function Step4() {
     </>
   )
 
+  const editPanelOpen = imageEditTarget !== null
+
   return (
-    <Page>
-      <Header>
-        <HeaderInner>
-          <BackButton type="button" onClick={goBackToStep3}>
+    <div className="wizard-page">
+      <header className="wizard-header">
+        <Box className="wizard-header__inner">
+          <button type="button" className="wizard-header__back" onClick={goBackToStep3}>
             ← Step3に戻る
-          </BackButton>
-        </HeaderInner>
-        <HeaderTitle>
+          </button>
+        </Box>
+        <h1 className="wizard-header__title">
           <AppHeaderBrandIcon />
           リフィル作成
-        </HeaderTitle>
-      </Header>
+        </h1>
+      </header>
 
-      <Container data-step4-layout={isStackedLayout ? 'stacked' : 'wide'}>
+      <Box
+        className="step4-container"
+        data-edit-panel-open={editPanelOpen ? 'true' : undefined}
+      >
         <StepBar currentStep={4} />
         {isImagesMode ? (
           <>
             <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
-            <TwoColumnLayout gridTemplateColumns="240px minmax(0, 1fr)">
+            <Box className="step4-two-column step4-two-column--images">
               <Step4ImagesSidePanel
                 images={images}
                 fileInputRef={fileInputRef}
@@ -1419,23 +1315,21 @@ export default function Step4() {
                 onMultiInput={handleMultiInput}
                 onFillInput={handleFillInput}
               />
-              <MainColumn reserveEditPanelSpace={reserveEditPanelSpace}>
-                {rightColumnContent}
-              </MainColumn>
-            </TwoColumnLayout>
+              <Box className="step4-main-column">{rightColumnContent}</Box>
+            </Box>
           </>
         ) : isBackgroundMode ? (
           <>
             <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
-            <TwoColumnLayout>
+            <Box className="step4-two-column">
               {backgroundLeftColumn}
-              <MainColumn>{rightColumnContent}</MainColumn>
-            </TwoColumnLayout>
+              <Box className="step4-main-column">{rightColumnContent}</Box>
+            </Box>
           </>
         ) : (
-          <SingleColumn>{mainBlock}</SingleColumn>
+          <Box className="step4-single-column">{mainBlock}</Box>
         )}
-      </Container>
+      </Box>
 
       {isImagesMode ? (
         <Step4EditModal
@@ -1461,6 +1355,6 @@ export default function Step4() {
           onDelete={handleEditDelete}
         />
       ) : null}
-    </Page>
+    </div>
   )
 }

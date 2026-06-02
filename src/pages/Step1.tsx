@@ -21,91 +21,7 @@ const PRESET_SUBTITLES: Record<Step1PresetId, string> = {
   bible: '聖書サイズ',
 }
 
-const Page = styled('div')({
-  minHeight: '100vh',
-  backgroundColor: 'var(--color-bg)',
-  color: 'var(--color-text)',
-})
-
-const Header = styled('header')({
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  height: '56px',
-  backgroundColor: 'var(--color-surface)',
-  borderBottom: '1px solid var(--color-border)',
-})
-
-const HeaderInner = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  width: '100%',
-  padding: '0 24px',
-})
-
-const BackButton = styled('button')({
-  border: 'none',
-  background: 'none',
-  padding: 0,
-  cursor: 'pointer',
-  color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
-  fontWeight: 500,
-  fontSize: '1rem',
-  flexShrink: 0,
-  '&:hover': {
-    color: 'var(--color-primary)',
-  },
-})
-
-const HeaderTitle = styled('h1')({
-  position: 'absolute',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  margin: 0,
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '8px',
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '18px',
-  lineHeight: 1.4,
-  whiteSpace: 'nowrap',
-})
-
-const Container = styled(Box)({
-  width: '100%',
-  maxWidth: 'var(--max-width)',
-  margin: '0 auto',
-  padding: '40px 24px 56px',
-})
-
-const StepBadge = styled('span')({
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '4px 14px',
-  borderRadius: 'var(--radius-btn)',
-  backgroundColor: 'var(--color-primary)',
-  color: 'var(--color-surface)',
-  fontWeight: 600,
-  fontSize: '0.8rem',
-  marginBottom: '16px',
-})
-
-const PageHeading = styled('h2')({
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '1.5rem',
-  lineHeight: 1.4,
-  margin: '0 0 28px',
-})
-
-const SizeGrid = styled(Box)({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-  gap: '16px',
-  marginBottom: '20px',
-})
+const SizeGrid = styled(Box)({})
 
 const SizeCard = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'selected',
@@ -187,11 +103,7 @@ const CustomPanel = styled(Box)({
   gap: '20px',
 })
 
-const CustomFieldsRow = styled(Box)({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 160px))',
-  gap: '16px',
-})
+const CustomFieldsRow = styled(Box)({})
 
 const HoleStandardSection = styled(Box)({
   display: 'flex',
@@ -257,10 +169,7 @@ const MmField = styled(TextField)({
   },
 })
 
-const Actions = styled(Box)({
-  display: 'flex',
-  justifyContent: 'center',
-})
+const Actions = styled(Box)({})
 
 function parsePositiveMm(value: string): number | null {
   const n = Number(value)
@@ -319,25 +228,29 @@ export default function Step1() {
   }
 
   return (
-    <Page>
-      <Header>
-        <HeaderInner>
-          <BackButton type="button" onClick={() => navigate('/tool')}>
+    <div className="wizard-page">
+      <header className="wizard-header">
+        <Box className="wizard-header__inner">
+          <button
+            type="button"
+            className="wizard-header__back"
+            onClick={() => navigate('/tool')}
+          >
             ← リフィル作成に戻る
-          </BackButton>
-        </HeaderInner>
-        <HeaderTitle>
+          </button>
+        </Box>
+        <h1 className="wizard-header__title">
           <AppHeaderBrandIcon />
           リフィル作成
-        </HeaderTitle>
-      </Header>
+        </h1>
+      </header>
 
-      <Container>
+      <Box className="wizard-container">
         <StepBar currentStep={1} />
-        <StepBadge>Step1</StepBadge>
-        <PageHeading>あなたの手帳のサイズは？</PageHeading>
+        <span className="wizard-step-badge">Step1</span>
+        <h2 className="wizard-heading">あなたの手帳のサイズは？</h2>
 
-        <SizeGrid>
+        <SizeGrid className="wizard-size-grid">
           {STEP1_PRESET_IDS.map((id) => {
             const size = SIZES.find((entry) => entry.id === id)
             if (!size || size.w == null || size.h == null) return null
@@ -391,7 +304,7 @@ export default function Step1() {
               onClick={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
             >
-              <CustomFieldsRow>
+              <CustomFieldsRow className="wizard-custom-fields-row">
                 <MmField
                   label="幅（mm）"
                   type="number"
@@ -437,12 +350,12 @@ export default function Step1() {
           ) : null}
         </CustomCard>
 
-        <Actions>
+        <Actions className="wizard-actions">
           <AppButton type="button" disabled={!hasSelection} onClick={goToStep2}>
             次へ：作り方を選ぶ
           </AppButton>
         </Actions>
-      </Container>
-    </Page>
+      </Box>
+    </div>
   )
 }

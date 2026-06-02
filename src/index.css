@@ -25,6 +25,8 @@
   --radius-btn: 50px;
   --radius-card: 12px;
   --max-width: 960px;
+  --bp-interaction: 900px;
+  --bp-layout: 1024px;
 }
 
 * {

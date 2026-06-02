@@ -15,91 +15,7 @@ type Step2LocationState = {
   customH?: number
 }
 
-const Page = styled('div')({
-  minHeight: '100vh',
-  backgroundColor: 'var(--color-bg)',
-  color: 'var(--color-text)',
-})
-
-const Header = styled('header')({
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  height: '56px',
-  backgroundColor: 'var(--color-surface)',
-  borderBottom: '1px solid var(--color-border)',
-})
-
-const HeaderInner = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  width: '100%',
-  padding: '0 24px',
-})
-
-const BackButton = styled('button')({
-  border: 'none',
-  background: 'none',
-  padding: 0,
-  cursor: 'pointer',
-  color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
-  fontWeight: 500,
-  fontSize: '1rem',
-  flexShrink: 0,
-  '&:hover': {
-    color: 'var(--color-primary)',
-  },
-})
-
-const HeaderTitle = styled('h1')({
-  position: 'absolute',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  margin: 0,
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '8px',
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '18px',
-  lineHeight: 1.4,
-  whiteSpace: 'nowrap',
-})
-
-const Container = styled(Box)({
-  width: '100%',
-  maxWidth: 'var(--max-width)',
-  margin: '0 auto',
-  padding: '40px 24px 56px',
-})
-
-const StepBadge = styled('span')({
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '4px 14px',
-  borderRadius: 'var(--radius-btn)',
-  backgroundColor: 'var(--color-primary)',
-  color: 'var(--color-surface)',
-  fontWeight: 600,
-  fontSize: '0.8rem',
-  marginBottom: '16px',
-})
-
-const PageHeading = styled('h2')({
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '1.5rem',
-  lineHeight: 1.4,
-  margin: '0 0 28px',
-})
-
-const LayoutGrid = styled(Box)({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: '16px',
-  marginBottom: '40px',
-})
+const LayoutGrid = styled(Box)({})
 
 const LayoutCard = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'selected' && prop !== 'disabled',
@@ -156,10 +72,7 @@ const LayoutCardDetail = styled('p', {
   textAlign: 'center',
 }))
 
-const Actions = styled(Box)({
-  display: 'flex',
-  justifyContent: 'center',
-})
+const Actions = styled(Box)({})
 
 function isOptionDisabled(option: WizardLayoutOption): boolean {
   return option.kind === 'fold' && !option.supported
@@ -235,25 +148,29 @@ export default function Step2() {
   }
 
   return (
-    <Page>
-      <Header>
-        <HeaderInner>
-          <BackButton type="button" onClick={() => navigate('/tool/step1')}>
+    <div className="wizard-page">
+      <header className="wizard-header">
+        <Box className="wizard-header__inner">
+          <button
+            type="button"
+            className="wizard-header__back"
+            onClick={() => navigate('/tool/step1')}
+          >
             ← Step1に戻る
-          </BackButton>
-        </HeaderInner>
-        <HeaderTitle>
+          </button>
+        </Box>
+        <h1 className="wizard-header__title">
           <AppHeaderBrandIcon />
           リフィル作成
-        </HeaderTitle>
-      </Header>
+        </h1>
+      </header>
 
-      <Container>
+      <Box className="wizard-container">
         <StepBar currentStep={2} />
-        <StepBadge>Step2</StepBadge>
-        <PageHeading>作り方は？</PageHeading>
+        <span className="wizard-step-badge">Step2</span>
+        <h2 className="wizard-heading">作り方は？</h2>
 
-        <LayoutGrid>
+        <LayoutGrid className="wizard-layout-grid">
           {layoutOptions.map((option) => {
             const disabled = isOptionDisabled(option)
             const selected = !disabled && option.id === selectedOptionId
@@ -291,12 +208,12 @@ export default function Step2() {
           })}
         </LayoutGrid>
 
-        <Actions>
+        <Actions className="wizard-actions">
           <AppButton type="button" disabled={!selectedOptionId} onClick={goToStep3}>
             次へ：印刷タイプを選ぶ
           </AppButton>
         </Actions>
-      </Container>
-    </Page>
+      </Box>
+    </div>
   )
 }
