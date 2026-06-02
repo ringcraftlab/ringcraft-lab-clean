@@ -6,6 +6,7 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import RotateRightIcon from '@mui/icons-material/RotateRight'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import Box from '@mui/material/Box'
+import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/material/styles'
 import type { ReactNode } from 'react'
@@ -32,16 +33,20 @@ export interface Step4EditModalProps {
   onDelete: () => void
 }
 
-const EditPanel = styled(Box)({
-  position: 'static',
+const EditDrawer = styled(Drawer)({
+  '& .MuiDrawer-paper': {
+    width: '300px',
+    boxSizing: 'border-box',
+    backgroundColor: 'var(--color-surface)',
+    borderLeft: '1px solid var(--color-border)',
+  },
+})
+
+const DrawerPanel = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
-  width: '100%',
-  boxSizing: 'border-box',
-  padding: '16px',
   gap: '8px',
-  backgroundColor: 'var(--color-surface)',
-  borderLeft: '1px solid var(--color-border)',
+  boxSizing: 'border-box',
 })
 
 const PanelHeader = styled(Box)({
@@ -195,51 +200,69 @@ export default function Step4EditModal({
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
   const title = slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集'
 
-  if (!open) return null
-
   return (
-    <EditPanel aria-labelledby="step4-edit-modal-title">
-      <PanelHeader>
-        <PanelTitle id="step4-edit-modal-title">{title}</PanelTitle>
-        <CloseButton type="button" aria-label="閉じる" onClick={onClose}>
-          <CloseIcon fontSize="small" />
-        </CloseButton>
-      </PanelHeader>
+    <EditDrawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      hideBackdrop
+      ModalProps={{
+        disableScrollLock: true,
+        style: { pointerEvents: 'none' },
+      }}
+      slotProps={{
+        paper: {
+          sx: {
+            pointerEvents: 'auto',
+            padding: '16px',
+          },
+        },
+      }}
+      aria-labelledby="step4-edit-modal-title"
+    >
+      <DrawerPanel>
+        <PanelHeader>
+          <PanelTitle id="step4-edit-modal-title">{title}</PanelTitle>
+          <CloseButton type="button" aria-label="閉じる" onClick={onClose}>
+            <CloseIcon fontSize="small" />
+          </CloseButton>
+        </PanelHeader>
 
-      <PreviewFrame>
-        {imageSrc ? (
-          <PreviewImage src={imageSrc} alt="" fitMode={activeFit} rotation={rotation} />
-        ) : null}
-      </PreviewFrame>
+        <PreviewFrame>
+          {imageSrc ? (
+            <PreviewImage src={imageSrc} alt="" fitMode={activeFit} rotation={rotation} />
+          ) : null}
+        </PreviewFrame>
 
-      <FitButtonRow>
-        {FIT_OPTIONS.map((option) => (
-          <FitOptionButton
-            key={option.id}
-            type="button"
-            active={activeFit === option.id}
-            onClick={() => onSetFit(option.id)}
-          >
-            {option.icon}
-            <span style={{ fontSize: '0.72rem' }}>{option.label}</span>
+        <FitButtonRow>
+          {FIT_OPTIONS.map((option) => (
+            <FitOptionButton
+              key={option.id}
+              type="button"
+              active={activeFit === option.id}
+              onClick={() => onSetFit(option.id)}
+            >
+              {option.icon}
+              <span style={{ fontSize: '0.72rem' }}>{option.label}</span>
+            </FitOptionButton>
+          ))}
+          <FitOptionButton type="button" active={false} onClick={onRotate}>
+            <RotateRightIcon fontSize="small" />
+            <span style={{ fontSize: '0.72rem' }}>回転</span>
           </FitOptionButton>
-        ))}
-        <FitOptionButton type="button" active={false} onClick={onRotate}>
-          <RotateRightIcon fontSize="small" />
-          <span style={{ fontSize: '0.72rem' }}>回転</span>
-        </FitOptionButton>
-      </FitButtonRow>
+        </FitButtonRow>
 
-      <ActionButtonRow>
-        <ReplaceButton type="button" onClick={onReplace}>
-          <SwapHorizIcon fontSize="small" />
-          差し替え
-        </ReplaceButton>
-        <DeleteButton type="button" onClick={onDelete}>
-          <DeleteOutlineIcon fontSize="small" />
-          削除
-        </DeleteButton>
-      </ActionButtonRow>
-    </EditPanel>
+        <ActionButtonRow>
+          <ReplaceButton type="button" onClick={onReplace}>
+            <SwapHorizIcon fontSize="small" />
+            差し替え
+          </ReplaceButton>
+          <DeleteButton type="button" onClick={onDelete}>
+            <DeleteOutlineIcon fontSize="small" />
+            削除
+          </DeleteButton>
+        </ActionButtonRow>
+      </DrawerPanel>
+    </EditDrawer>
   )
 }

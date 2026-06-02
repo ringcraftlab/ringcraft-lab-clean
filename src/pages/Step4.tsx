@@ -297,13 +297,16 @@ const SlotPlus = styled('span')({
   pointerEvents: 'none',
 })
 
-const MainColumn = styled(Box)({
+const MainColumn = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'reserveEditPanelSpace',
+})<{ reserveEditPanelSpace?: boolean }>(({ reserveEditPanelSpace }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'stretch',
   width: '100%',
   boxSizing: 'border-box',
-})
+  ...(reserveEditPanelSpace ? { paddingRight: '316px' } : {}),
+}))
 
 const StepBadge = styled('span')({
   display: 'inline-flex',
@@ -1041,10 +1044,6 @@ export default function Step4() {
     return { kind: 'slot' as const, index: activeSlot }
   }, [isImagesMode, activeSlot])
 
-  const imagesModeGridColumns = imageEditTarget
-    ? '180px minmax(0, 1fr) 260px'
-    : '240px minmax(0, 1fr)'
-
   const resetAreaEditFocus = useCallback(() => {
     setActiveSlot(null)
   }, [])
@@ -1392,7 +1391,7 @@ export default function Step4() {
         {isImagesMode ? (
           <>
             <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
-            <TwoColumnLayout gridTemplateColumns={imagesModeGridColumns}>
+            <TwoColumnLayout gridTemplateColumns="240px minmax(0, 1fr)">
               <Step4ImagesSidePanel
                 images={images}
                 fileInputRef={fileInputRef}
@@ -1406,21 +1405,9 @@ export default function Step4() {
                 onMultiInput={handleMultiInput}
                 onFillInput={handleFillInput}
               />
-              <MainColumn>{rightColumnContent}</MainColumn>
-              {imageEditTarget !== null ? (
-                <Step4EditModal
-                  open
-                  slotIndex={imageEditTarget.index}
-                  imageSrc={images[imageEditTarget.index] ?? null}
-                  fitMode={imageFitModes[imageEditTarget.index] ?? 'cover'}
-                  rotation={imageRotations[imageEditTarget.index] ?? 0}
-                  onClose={resetAreaEditFocus}
-                  onSetFit={handleEditSetFit}
-                  onRotate={handleEditRotate}
-                  onReplace={handleEditReplace}
-                  onDelete={handleEditDelete}
-                />
-              ) : null}
+              <MainColumn reserveEditPanelSpace={imageEditTarget !== null}>
+                {rightColumnContent}
+              </MainColumn>
             </TwoColumnLayout>
           </>
         ) : isBackgroundMode ? (
@@ -1435,6 +1422,29 @@ export default function Step4() {
           <SingleColumn>{mainBlock}</SingleColumn>
         )}
       </Container>
+
+      {isImagesMode ? (
+        <Step4EditModal
+          open={imageEditTarget !== null}
+          slotIndex={imageEditTarget?.index ?? null}
+          imageSrc={
+            imageEditTarget !== null ? images[imageEditTarget.index] ?? null : null
+          }
+          fitMode={
+            imageEditTarget !== null
+              ? imageFitModes[imageEditTarget.index] ?? 'cover'
+              : 'cover'
+          }
+          rotation={
+            imageEditTarget !== null ? imageRotations[imageEditTarget.index] ?? 0 : 0
+          }
+          onClose={resetAreaEditFocus}
+          onSetFit={handleEditSetFit}
+          onRotate={handleEditRotate}
+          onReplace={handleEditReplace}
+          onDelete={handleEditDelete}
+        />
+      ) : null}
     </Page>
   )
 }
