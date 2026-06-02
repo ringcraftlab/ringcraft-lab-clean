@@ -1,17 +1,24 @@
 import CloseIcon from '@mui/icons-material/Close'
+import CropIcon from '@mui/icons-material/Crop'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined'
+import FitScreenIcon from '@mui/icons-material/FitScreen'
+import OpenInFullIcon from '@mui/icons-material/OpenInFull'
+import RotateRightIcon from '@mui/icons-material/RotateRight'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import type { ReactNode } from 'react'
 import AppButton from '../AppButton'
 
 export type Step4SlotFitMode = 'cover' | 'contain' | 'fill'
 
-const FIT_OPTIONS: { id: Step4SlotFitMode; label: string }[] = [
-  { id: 'cover', label: 'トリミング' },
-  { id: 'contain', label: '全体表示' },
-  { id: 'fill', label: '引き延ばし' },
+const FIT_OPTIONS: { id: Step4SlotFitMode; label: string; icon: ReactNode }[] = [
+  { id: 'cover', label: 'トリミング', icon: <CropIcon fontSize="small" /> },
+  { id: 'contain', label: '全体表示', icon: <FitScreenIcon fontSize="small" /> },
+  { id: 'fill', label: '引き延ばし', icon: <OpenInFullIcon fontSize="small" /> },
 ]
 
 export interface Step4EditModalProps {
@@ -115,6 +122,10 @@ const FitButtonRow = styled(Box)({
 const FitOptionButton = styled('button', {
   shouldForwardProp: (prop) => prop !== 'active',
 })<{ active?: boolean }>(({ active }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '4px',
   flex: 1,
   margin: 0,
   padding: '6px 0',
@@ -152,6 +163,9 @@ const compactButtonStyles = {
 
 const ReplaceButton = styled(AppButton)({
   ...compactButtonStyles,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
   flex: 1,
   backgroundColor: 'var(--color-surface)',
   color: 'var(--color-primary)',
@@ -164,6 +178,9 @@ const ReplaceButton = styled(AppButton)({
 
 const DeleteButton = styled(AppButton)({
   ...compactButtonStyles,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
   flex: 1,
   backgroundColor: 'color-mix(in srgb, #c62828 12%, var(--color-surface))',
   color: 'color-mix(in srgb, #c62828 75%, var(--color-text-h))',
@@ -218,19 +235,23 @@ export default function Step4EditModal({
             active={activeFit === option.id}
             onClick={() => onSetFit(option.id)}
           >
+            {option.icon}
             {option.label}
           </FitOptionButton>
         ))}
         <FitOptionButton type="button" active={false} onClick={onRotate}>
+          <RotateRightIcon fontSize="small" />
           回転
         </FitOptionButton>
       </FitButtonRow>
 
       <ActionButtonRow>
         <ReplaceButton type="button" onClick={onReplace}>
+          <SwapHorizIcon fontSize="small" />
           差し替え
         </ReplaceButton>
         <DeleteButton type="button" onClick={onDelete}>
+          <DeleteOutlineIcon fontSize="small" />
           削除
         </DeleteButton>
       </ActionButtonRow>

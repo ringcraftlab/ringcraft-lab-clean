@@ -190,6 +190,26 @@ const SlotButton = styled('button', {
   },
 }))
 
+const SlotBadge = styled('span')({
+  position: 'absolute',
+  top: '4px',
+  right: '4px',
+  zIndex: 10,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minWidth: '18px',
+  height: '18px',
+  padding: '0 4px',
+  borderRadius: '4px',
+  backgroundColor: 'var(--color-primary)',
+  color: 'var(--color-surface)',
+  fontSize: '0.65rem',
+  fontWeight: 700,
+  lineHeight: 1,
+  pointerEvents: 'none',
+})
+
 const SlotImage = styled('img', {
   shouldForwardProp: (prop) => prop !== 'fitMode' && prop !== 'rotation',
 })<{ fitMode: GuideImageFit; rotation: number }>(({ fitMode, rotation }) => ({
@@ -828,6 +848,7 @@ function ImagesSlotPreview({
             aria-label={hasImage ? `${rect.index + 1}番の写真` : `${rect.index + 1}番に写真を追加`}
             onClick={() => onSlotClick(rect.index)}
           >
+            <SlotBadge aria-hidden>{rect.index + 1}</SlotBadge>
             {slotAreaMetrics.showHoleZoneInSlot ? (
               <SlotHoleZone
                 holeSide={holeSide}
