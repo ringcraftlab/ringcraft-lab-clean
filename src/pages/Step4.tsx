@@ -710,6 +710,18 @@ export default function Step4() {
     [previewLayout],
   )
 
+  const handleFillAllImages = useCallback(() => {
+    const firstImage = images[0]
+    if (!firstImage) return
+    const sheetLayout = previewLayout?.kind === 'sheet' ? previewLayout : null
+    const total = (sheetLayout?.cols ?? 0) * (sheetLayout?.rows ?? 0)
+    const newImages: Record<number, string> = {}
+    for (let i = 0; i < total; i++) {
+      newImages[i] = firstImage
+    }
+    setImages(newImages)
+  }, [images, previewLayout])
+
   const handleClearAllImages = useCallback(() => {
     setImages({})
   }, [])
@@ -899,6 +911,7 @@ export default function Step4() {
                 imageAreaMode={imageAreaMode}
                 onImageAreaModeChange={setImageAreaMode}
                 onClearAllImages={handleClearAllImages}
+                onFillAllImages={handleFillAllImages}
                 onFileInput={handleFileInput}
                 onMultiInput={handleMultiInput}
                 onFillInput={handleFillInput}

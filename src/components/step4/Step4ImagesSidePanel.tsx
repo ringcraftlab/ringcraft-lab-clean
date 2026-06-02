@@ -146,6 +146,7 @@ export interface Step4ImagesSidePanelProps {
   imageAreaMode: ImageAreaMode
   onImageAreaModeChange: (mode: ImageAreaMode) => void
   onClearAllImages: () => void
+  onFillAllImages: () => void
   onFileInput: (event: ChangeEvent<HTMLInputElement>) => void
   onMultiInput: (event: ChangeEvent<HTMLInputElement>) => void
   onFillInput: (event: ChangeEvent<HTMLInputElement>) => void
@@ -159,6 +160,7 @@ export default function Step4ImagesSidePanel({
   imageAreaMode,
   onImageAreaModeChange,
   onClearAllImages,
+  onFillAllImages,
   onFileInput,
   onMultiInput,
   onFillInput,
@@ -179,7 +181,7 @@ export default function Step4ImagesSidePanel({
           {hasImages ? (
             <>
               <ImagesSideActionBlock>
-                <ImagesFillAllButton type="button" onClick={() => fileInputFillRef.current?.click()}>
+                <ImagesFillAllButton type="button" onClick={onFillAllImages}>
                   1枚を全枠に使う
                 </ImagesFillAllButton>
                 <ImagesSideActionSubtext>全枠に同じ写真を配置したい時</ImagesSideActionSubtext>
