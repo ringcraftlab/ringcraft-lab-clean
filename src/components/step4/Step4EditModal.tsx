@@ -115,6 +115,7 @@ const FitButtonRow = styled(Box)({
   alignItems: 'stretch',
   gap: '4px',
   width: '100%',
+  minWidth: 0,
 })
 
 const FitOptionButton = styled('button', {
@@ -126,6 +127,7 @@ const FitOptionButton = styled('button', {
   justifyContent: 'center',
   gap: '4px',
   flex: 1,
+  minWidth: 0,
   margin: 0,
   padding: '12px 4px',
   borderRadius: '6px',
@@ -167,6 +169,7 @@ const ReplaceButton = styled(AppButton)({
   justifyContent: 'center',
   gap: '4px',
   flex: 1,
+  minWidth: 0,
   backgroundColor: 'var(--color-surface)',
   color: 'var(--color-primary)',
   border: '2px solid var(--color-primary)',
@@ -183,6 +186,7 @@ const DeleteButton = styled(AppButton)({
   justifyContent: 'center',
   gap: '4px',
   flex: 1,
+  minWidth: 0,
   backgroundColor: 'color-mix(in srgb, #c62828 12%, var(--color-surface))',
   color: 'color-mix(in srgb, #c62828 75%, var(--color-text-h))',
   border: '2px solid color-mix(in srgb, #c62828 55%, var(--color-border))',
@@ -287,7 +291,7 @@ export default function Step4EditModal({
         paper: {
           sx: {
             pointerEvents: 'auto',
-            padding: '16px',
+            overflowX: 'hidden',
             boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
           },
         },
