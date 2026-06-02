@@ -10,6 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
 import PrintTypePreview from '../components/PrintTypePreview'
+import Step4EditModal, { type Step4SlotFitMode } from '../components/step4/Step4EditModal'
 import Step4ImagesSidePanel, { type ImageAreaMode } from '../components/step4/Step4ImagesSidePanel'
 import Step4SettingsBlock, {
   DEFAULT_BORDER_COLOR,
@@ -344,6 +345,22 @@ const LayoutCountLine = styled('p')({
   fontSize: '0.9rem',
   fontWeight: 600,
   lineHeight: 1.5,
+})
+
+const ImagesEditModeBanner = styled('p')({
+  margin: '0 0 12px',
+  width: '100%',
+  padding: '8px 12px',
+  borderRadius: 'var(--radius-btn)',
+  backgroundColor: 'color-mix(in srgb, var(--color-primary) 12%, var(--color-surface))',
+  border: '1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border))',
+  color: 'var(--color-text-h)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  lineHeight: 1.5,
+  textAlign: 'center',
+  boxSizing: 'border-box',
 })
 
 const PreviewWrap = styled(Box)({
@@ -746,6 +763,7 @@ interface ImagesSlotPreviewProps {
   layout: PrintTypePreviewLayout
   images: Record<number, string>
   imageFitModes: Record<number, GuideImageFit>
+  imageRotations: Record<number, number>
   activeSlot: number | null
   onSlotClick: (index: number) => void
   layoutParams: PrintTypePreviewLayoutParams
@@ -757,6 +775,7 @@ function ImagesSlotPreview({
   layout,
   images,
   imageFitModes,
+  imageRotations,
   activeSlot,
   onSlotClick,
   layoutParams,
@@ -827,7 +846,7 @@ function ImagesSlotPreview({
                   src={src}
                   alt=""
                   data-fit-mode={imageFitModes[rect.index] ?? 'cover'}
-                  data-rotation="0"
+                  data-rotation={String(imageRotations[rect.index] ?? 0)}
                 />
               ) : (
                 <SlotPlus data-print="false">+</SlotPlus>
@@ -868,7 +887,8 @@ export default function Step4() {
   const [guideImageFit, setGuideImageFit] = useState<GuideImageFit>('contain')
   const [guideImageRotation, setGuideImageRotation] = useState(0)
   const [images, setImages] = useState<Record<number, string>>({})
-  const [imageFitModes] = useState<Record<number, GuideImageFit>>({})
+  const [imageFitModes, setImageFitModes] = useState<Record<number, GuideImageFit>>({})
+  const [imageRotations, setImageRotations] = useState<Record<number, number>>({})
   const [activeSlot, setActiveSlot] = useState<number | null>(null)
 
   const { refillW, refillH } = useMemo(
@@ -973,10 +993,26 @@ export default function Step4() {
     setBackgroundOptionsOpen((open) => !open)
   }, [])
 
-  const handleSlotClick = useCallback((index: number) => {
-    setActiveSlot(index)
-    fileInputRef.current?.click()
+  const imageEditTarget = useMemo(() => {
+    if (!isImagesMode || activeSlot === null) return null
+    return { kind: 'slot' as const, index: activeSlot }
+  }, [isImagesMode, activeSlot])
+
+  const resetAreaEditFocus = useCallback(() => {
+    setActiveSlot(null)
   }, [])
+
+  const handleSlotClick = useCallback(
+    (index: number) => {
+      if (images[index]) {
+        setActiveSlot(index)
+        return
+      }
+      setActiveSlot(index)
+      fileInputRef.current?.click()
+    },
+    [images],
+  )
 
   const handleFileInput = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -990,11 +1026,54 @@ export default function Step4() {
         if (typeof result !== 'string') return
         const slot = activeSlot
         setImages((prev) => ({ ...prev, [slot]: result }))
+        setImageRotations((prev) => ({ ...prev, [slot]: 0 }))
       }
       reader.readAsDataURL(file)
     },
     [activeSlot],
   )
+
+  const handleEditSetFit = useCallback(
+    (mode: Step4SlotFitMode) => {
+      if (imageEditTarget === null) return
+      setImageFitModes((prev) => ({ ...prev, [imageEditTarget.index]: mode }))
+    },
+    [imageEditTarget],
+  )
+
+  const handleEditRotate = useCallback(() => {
+    if (imageEditTarget === null) return
+    const slot = imageEditTarget.index
+    setImageRotations((prev) => ({
+      ...prev,
+      [slot]: ((prev[slot] ?? 0) + 90) % 360,
+    }))
+  }, [imageEditTarget])
+
+  const handleEditReplace = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
+
+  const handleEditDelete = useCallback(() => {
+    if (imageEditTarget === null) return
+    const slot = imageEditTarget.index
+    setImages((prev) => {
+      const next = { ...prev }
+      delete next[slot]
+      return next
+    })
+    setImageFitModes((prev) => {
+      const next = { ...prev }
+      delete next[slot]
+      return next
+    })
+    setImageRotations((prev) => {
+      const next = { ...prev }
+      delete next[slot]
+      return next
+    })
+    resetAreaEditFocus()
+  }, [imageEditTarget, resetAreaEditFocus])
 
   const handleMultiInput = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -1062,7 +1141,10 @@ export default function Step4() {
 
   const handleClearAllImages = useCallback(() => {
     setImages({})
-  }, [])
+    setImageFitModes({})
+    setImageRotations({})
+    resetAreaEditFocus()
+  }, [resetAreaEditFocus])
 
   const goBackToStep3 = () => {
     navigate('/tool/step3', {
@@ -1114,6 +1196,7 @@ export default function Step4() {
         layout={previewLayout}
         images={images}
         imageFitModes={imageFitModes}
+        imageRotations={imageRotations}
         activeSlot={activeSlot}
         onSlotClick={handleSlotClick}
         layoutParams={layoutParams}
@@ -1214,6 +1297,11 @@ export default function Step4() {
       {isBackgroundMode && !guideImage ? (
         <BackgroundPreviewHint>背景を選ぶとここに表示されます</BackgroundPreviewHint>
       ) : null}
+      {imageEditTarget !== null ? (
+        <ImagesEditModeBanner>
+          個別編集モード：{imageEditTarget.index + 1}枚目を編集中
+        </ImagesEditModeBanner>
+      ) : null}
       <PreviewWrap ref={previewRef} data-hole-count={holePositions.length}>
         {previewContent}
       </PreviewWrap>
@@ -1285,6 +1373,29 @@ export default function Step4() {
           <SingleColumn>{mainBlock}</SingleColumn>
         )}
       </Container>
+
+      {isImagesMode ? (
+        <Step4EditModal
+          open={imageEditTarget !== null}
+          slotIndex={imageEditTarget?.index ?? null}
+          imageSrc={
+            imageEditTarget !== null ? images[imageEditTarget.index] ?? null : null
+          }
+          fitMode={
+            imageEditTarget !== null
+              ? imageFitModes[imageEditTarget.index] ?? 'cover'
+              : 'cover'
+          }
+          rotation={
+            imageEditTarget !== null ? imageRotations[imageEditTarget.index] ?? 0 : 0
+          }
+          onClose={resetAreaEditFocus}
+          onSetFit={handleEditSetFit}
+          onRotate={handleEditRotate}
+          onReplace={handleEditReplace}
+          onDelete={handleEditDelete}
+        />
+      ) : null}
     </Page>
   )
 }
