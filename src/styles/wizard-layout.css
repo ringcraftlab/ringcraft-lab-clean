@@ -199,16 +199,46 @@
 
 /* ≤900px: interaction / mobile density (Step1–4) */
 @media (max-width: 900px) {
-  .wizard-header__inner,
-  .step4-container {
+  .wizard-header__inner {
     padding-left: 16px;
     padding-right: 16px;
   }
 
   .wizard-container,
   .step4-container {
+    padding-left: 0;
+    padding-right: 0;
     padding-top: 24px;
     padding-bottom: max(96px, calc(80px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  .wizard-container > :not(.wizard-actions) {
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
+  }
+
+  .step4-container > :not(.step4-two-column):not(.step4-single-column) {
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
+  }
+
+  .step4-two-column,
+  .step4-single-column {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .step4-side-column {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .step4-main-column > :not(.step4-action-row) {
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
   }
 
   .wizard-header__title {
@@ -240,7 +270,6 @@
     position: sticky;
     bottom: 0;
     z-index: 100;
-    margin: 0 -16px;
     padding: 12px 16px max(12px, env(safe-area-inset-bottom, 0px));
     background: linear-gradient(
       to top,
@@ -273,7 +302,6 @@
     position: sticky;
     bottom: 0;
     z-index: 100;
-    margin: 0 -16px;
     padding: 12px 16px max(12px, env(safe-area-inset-bottom, 0px));
     background: linear-gradient(
       to top,
