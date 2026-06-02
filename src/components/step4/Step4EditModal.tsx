@@ -2,6 +2,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import CropIcon from '@mui/icons-material/Crop'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import FitScreenIcon from '@mui/icons-material/FitScreen'
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined'
 import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import RotateRightIcon from '@mui/icons-material/RotateRight'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
@@ -124,10 +125,10 @@ const FitOptionButton = styled('button', {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '2px',
+  gap: '6px',
   flex: 1,
   margin: 0,
-  padding: '6px 4px',
+  padding: '12px 4px',
   borderRadius: '6px',
   border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
   backgroundColor: active
@@ -135,7 +136,7 @@ const FitOptionButton = styled('button', {
     : 'var(--color-surface)',
   color: active ? 'var(--color-primary)' : 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
-  fontSize: '0.8rem',
+  fontSize: '0.78rem',
   fontWeight: active ? 600 : 500,
   lineHeight: 1.3,
   whiteSpace: 'nowrap',
@@ -237,12 +238,12 @@ export default function Step4EditModal({
             onClick={() => onSetFit(option.id)}
           >
             {option.icon}
-            <span style={{ fontSize: '0.72rem' }}>{option.label}</span>
+            <span>{option.label}</span>
           </FitOptionButton>
         ))}
         <FitOptionButton type="button" active={false} onClick={onRotate}>
           <RotateRightIcon fontSize="small" />
-          <span style={{ fontSize: '0.72rem' }}>回転</span>
+          <span>回転</span>
         </FitOptionButton>
       </FitButtonRow>
 
@@ -256,6 +257,20 @@ export default function Step4EditModal({
           削除
         </DeleteButton>
       </ActionButtonRow>
+
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          color: 'var(--color-muted)',
+          fontSize: '0.75rem',
+          mt: 1,
+        }}
+      >
+        <LightbulbOutlinedIcon sx={{ fontSize: '0.9rem' }} />
+        ドラッグで位置を調整できます
+      </Box>
     </DrawerPanel>
   )
 
