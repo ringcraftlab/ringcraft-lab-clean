@@ -1,4 +1,5 @@
 import Box from '@mui/material/Box'
+import Switch from '@mui/material/Switch'
 import { styled } from '@mui/material/styles'
 
 export type HoleSide = 'left' | 'right'
@@ -20,7 +21,7 @@ const SettingsPanel = styled(Box)({
   display: 'flex',
   flexDirection: 'row',
   flexWrap: 'nowrap',
-  alignItems: 'flex-end',
+  alignItems: 'center',
   gap: '20px',
   marginBottom: '32px',
   paddingBottom: '12px',
@@ -128,20 +129,19 @@ export default function Step4SettingsBlock({
       <SettingsGroup>
         <SettingsLabel>穴あけガイド</SettingsLabel>
         <SettingsControls>
-          <SettingsToggleButton
-            type="button"
-            active={showHoleGuide}
-            onClick={() => onShowHoleGuideChange(true)}
-          >
-            ON
-          </SettingsToggleButton>
-          <SettingsToggleButton
-            type="button"
-            active={!showHoleGuide}
-            onClick={() => onShowHoleGuideChange(false)}
-          >
-            OFF
-          </SettingsToggleButton>
+          <Switch
+            checked={showHoleGuide}
+            onChange={(e) => onShowHoleGuideChange(e.target.checked)}
+            size="small"
+            sx={{
+              '& .MuiSwitch-switchBase.Mui-checked': {
+                color: 'var(--color-primary)',
+              },
+              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                backgroundColor: 'var(--color-primary)',
+              },
+            }}
+          />
         </SettingsControls>
       </SettingsGroup>
       <SettingsGroup muted={!showHoleGuide}>

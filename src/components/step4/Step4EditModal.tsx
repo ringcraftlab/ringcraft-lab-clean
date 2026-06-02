@@ -125,7 +125,7 @@ const FitOptionButton = styled('button', {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: '4px',
+  gap: '2px',
   flex: 1,
   margin: 0,
   padding: '6px 0',
@@ -165,7 +165,8 @@ const ReplaceButton = styled(AppButton)({
   ...compactButtonStyles,
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
+  justifyContent: 'center',
+  gap: '6px',
   flex: 1,
   backgroundColor: 'var(--color-surface)',
   color: 'var(--color-primary)',
@@ -180,7 +181,8 @@ const DeleteButton = styled(AppButton)({
   ...compactButtonStyles,
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
+  justifyContent: 'center',
+  gap: '6px',
   flex: 1,
   backgroundColor: 'color-mix(in srgb, #c62828 12%, var(--color-surface))',
   color: 'color-mix(in srgb, #c62828 75%, var(--color-text-h))',
@@ -236,12 +238,12 @@ export default function Step4EditModal({
             onClick={() => onSetFit(option.id)}
           >
             {option.icon}
-            {option.label}
+            <span>{option.label}</span>
           </FitOptionButton>
         ))}
         <FitOptionButton type="button" active={false} onClick={onRotate}>
           <RotateRightIcon fontSize="small" />
-          回転
+          <span>回転</span>
         </FitOptionButton>
       </FitButtonRow>
 
