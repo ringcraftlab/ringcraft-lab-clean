@@ -9,6 +9,7 @@ import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import type { ReactNode } from 'react'
 import AppButton from '../AppButton'
 
@@ -33,12 +34,23 @@ export interface Step4EditModalProps {
   onDelete: () => void
 }
 
-const EditDrawer = styled(Drawer)({
+const DesktopEditDrawer = styled(Drawer)({
   '& .MuiDrawer-paper': {
     width: '300px',
     boxSizing: 'border-box',
     backgroundColor: 'var(--color-surface)',
     borderLeft: '1px solid var(--color-border)',
+  },
+})
+
+const MobileEditDrawer = styled(Drawer)({
+  '& .MuiDrawer-paper': {
+    boxSizing: 'border-box',
+    backgroundColor: 'var(--color-surface)',
+    borderRadius: '16px 16px 0 0',
+    padding: '16px',
+    maxHeight: '70vh',
+    overflowY: 'auto',
   },
 })
 
@@ -197,11 +209,71 @@ export default function Step4EditModal({
   onReplace,
   onDelete,
 }: Step4EditModalProps) {
+  const isMobile = useMediaQuery('(max-width: 768px)')
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
   const title = slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集'
 
+  const panel = (
+    <DrawerPanel>
+      <PanelHeader>
+        <PanelTitle id="step4-edit-modal-title">{title}</PanelTitle>
+        <CloseButton type="button" aria-label="閉じる" onClick={onClose}>
+          <CloseIcon fontSize="small" />
+        </CloseButton>
+      </PanelHeader>
+
+      <PreviewFrame>
+        {imageSrc ? (
+          <PreviewImage src={imageSrc} alt="" fitMode={activeFit} rotation={rotation} />
+        ) : null}
+      </PreviewFrame>
+
+      <FitButtonRow>
+        {FIT_OPTIONS.map((option) => (
+          <FitOptionButton
+            key={option.id}
+            type="button"
+            active={activeFit === option.id}
+            onClick={() => onSetFit(option.id)}
+          >
+            {option.icon}
+            <span style={{ fontSize: '0.72rem' }}>{option.label}</span>
+          </FitOptionButton>
+        ))}
+        <FitOptionButton type="button" active={false} onClick={onRotate}>
+          <RotateRightIcon fontSize="small" />
+          <span style={{ fontSize: '0.72rem' }}>回転</span>
+        </FitOptionButton>
+      </FitButtonRow>
+
+      <ActionButtonRow>
+        <ReplaceButton type="button" onClick={onReplace}>
+          <SwapHorizIcon fontSize="small" />
+          差し替え
+        </ReplaceButton>
+        <DeleteButton type="button" onClick={onDelete}>
+          <DeleteOutlineIcon fontSize="small" />
+          削除
+        </DeleteButton>
+      </ActionButtonRow>
+    </DrawerPanel>
+  )
+
+  if (isMobile) {
+    return (
+      <MobileEditDrawer
+        anchor="bottom"
+        open={open}
+        onClose={onClose}
+        aria-labelledby="step4-edit-modal-title"
+      >
+        {panel}
+      </MobileEditDrawer>
+    )
+  }
+
   return (
-    <EditDrawer
+    <DesktopEditDrawer
       anchor="right"
       open={open}
       onClose={onClose}
@@ -215,54 +287,13 @@ export default function Step4EditModal({
           sx: {
             pointerEvents: 'auto',
             padding: '16px',
+            boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
           },
         },
       }}
       aria-labelledby="step4-edit-modal-title"
     >
-      <DrawerPanel>
-        <PanelHeader>
-          <PanelTitle id="step4-edit-modal-title">{title}</PanelTitle>
-          <CloseButton type="button" aria-label="閉じる" onClick={onClose}>
-            <CloseIcon fontSize="small" />
-          </CloseButton>
-        </PanelHeader>
-
-        <PreviewFrame>
-          {imageSrc ? (
-            <PreviewImage src={imageSrc} alt="" fitMode={activeFit} rotation={rotation} />
-          ) : null}
-        </PreviewFrame>
-
-        <FitButtonRow>
-          {FIT_OPTIONS.map((option) => (
-            <FitOptionButton
-              key={option.id}
-              type="button"
-              active={activeFit === option.id}
-              onClick={() => onSetFit(option.id)}
-            >
-              {option.icon}
-              <span style={{ fontSize: '0.72rem' }}>{option.label}</span>
-            </FitOptionButton>
-          ))}
-          <FitOptionButton type="button" active={false} onClick={onRotate}>
-            <RotateRightIcon fontSize="small" />
-            <span style={{ fontSize: '0.72rem' }}>回転</span>
-          </FitOptionButton>
-        </FitButtonRow>
-
-        <ActionButtonRow>
-          <ReplaceButton type="button" onClick={onReplace}>
-            <SwapHorizIcon fontSize="small" />
-            差し替え
-          </ReplaceButton>
-          <DeleteButton type="button" onClick={onDelete}>
-            <DeleteOutlineIcon fontSize="small" />
-            削除
-          </DeleteButton>
-        </ActionButtonRow>
-      </DrawerPanel>
-    </EditDrawer>
+      {panel}
+    </DesktopEditDrawer>
   )
 }

@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
@@ -1039,10 +1040,14 @@ export default function Step4() {
     setBackgroundOptionsOpen((open) => !open)
   }, [])
 
+  const isMobile = useMediaQuery('(max-width: 768px)')
+
   const imageEditTarget = useMemo(() => {
     if (!isImagesMode || activeSlot === null) return null
     return { kind: 'slot' as const, index: activeSlot }
   }, [isImagesMode, activeSlot])
+
+  const reserveEditPanelSpace = imageEditTarget !== null && !isMobile
 
   const resetAreaEditFocus = useCallback(() => {
     setActiveSlot(null)
@@ -1405,7 +1410,7 @@ export default function Step4() {
                 onMultiInput={handleMultiInput}
                 onFillInput={handleFillInput}
               />
-              <MainColumn reserveEditPanelSpace={imageEditTarget !== null}>
+              <MainColumn reserveEditPanelSpace={reserveEditPanelSpace}>
                 {rightColumnContent}
               </MainColumn>
             </TwoColumnLayout>
