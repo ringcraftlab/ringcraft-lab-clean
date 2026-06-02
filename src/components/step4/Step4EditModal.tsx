@@ -2,7 +2,6 @@ import CloseIcon from '@mui/icons-material/Close'
 import CropIcon from '@mui/icons-material/Crop'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import FitScreenIcon from '@mui/icons-material/FitScreen'
-import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined'
 import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import RotateRightIcon from '@mui/icons-material/RotateRight'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
@@ -35,37 +34,32 @@ export interface Step4EditModalProps {
   onDelete: () => void
 }
 
-// デスクトップ: 右端Drawer。幅280px固定、paddingはpaper側に持たせない
 const DesktopEditDrawer = styled(Drawer)({
   '& .MuiDrawer-paper': {
-    width: '280px',
+    width: '260px',
     boxSizing: 'border-box',
     backgroundColor: 'var(--color-surface)',
     borderLeft: '1px solid var(--color-border)',
-    overflowX: 'hidden',
   },
 })
 
-// モバイル: 下からDrawer
 const MobileEditDrawer = styled(Drawer)({
   '& .MuiDrawer-paper': {
     boxSizing: 'border-box',
     backgroundColor: 'var(--color-surface)',
     borderRadius: '16px 16px 0 0',
+    padding: '16px',
     maxHeight: '70vh',
     overflowY: 'auto',
-    overflowX: 'hidden',
   },
 })
 
-// Drawer内のコンテンツ全体
 const DrawerPanel = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   padding: '16px',
   gap: '12px',
   boxSizing: 'border-box',
-  width: '100%',
 })
 
 const PanelHeader = styled(Box)({
@@ -79,7 +73,7 @@ const PanelTitle = styled('h2')({
   margin: 0,
   color: 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
-  fontSize: '1rem',
+  fontSize: '1.0625rem',
   fontWeight: 700,
   lineHeight: 1.4,
 })
@@ -93,18 +87,15 @@ const CloseButton = styled(IconButton)({
   },
 })
 
-// プレビュー: 幅100%・高さは画像比率に従って自然に決まる
 const PreviewFrame = styled(Box)({
   position: 'relative',
   width: '100%',
+  height: '160px',
   flexShrink: 0,
   borderRadius: 'var(--radius-card)',
   border: '1px solid var(--color-border)',
   backgroundColor: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))',
   overflow: 'hidden',
-  // 最小・最大高さで極端なサイズを防ぐ
-  minHeight: '160px',
-  maxHeight: '340px',
 })
 
 const PreviewImage = styled('img', {
@@ -118,13 +109,13 @@ const PreviewImage = styled('img', {
   transformOrigin: 'center center',
 }))
 
-// 4つのフィットボタン（トリミング・全体表示・引き延ばし・回転）横並び
 const FitButtonRow = styled(Box)({
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'stretch',
-  gap: '6px',
+  gap: '4px',
   width: '100%',
+  minWidth: 0,
 })
 
 const FitOptionButton = styled('button', {
@@ -138,7 +129,7 @@ const FitOptionButton = styled('button', {
   flex: 1,
   minWidth: 0,
   margin: 0,
-  padding: '10px 2px',
+  padding: '12px 4px',
   borderRadius: '6px',
   border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
   backgroundColor: active
@@ -146,9 +137,10 @@ const FitOptionButton = styled('button', {
     : 'var(--color-surface)',
   color: active ? 'var(--color-primary)' : 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
-  fontSize: '0.72rem',
+  fontSize: '0.75rem',
   fontWeight: active ? 600 : 500,
   lineHeight: 1.3,
+  whiteSpace: 'nowrap',
   cursor: 'pointer',
   '&:hover': {
     borderColor: 'var(--color-primary)',
@@ -159,19 +151,25 @@ const ActionButtonRow = styled(Box)({
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'stretch',
-  gap: '8px',
+  gap: '6px',
   width: '100%',
 })
 
+const compactButtonStyles = {
+  fontSize: '0.75rem',
+  padding: '4px 8px',
+  minHeight: 'unset',
+  lineHeight: 1.3,
+}
+
 const ReplaceButton = styled(AppButton)({
+  ...compactButtonStyles,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   gap: '4px',
   flex: 1,
-  fontSize: '0.8rem',
-  padding: '8px',
-  minHeight: 'unset',
+  minWidth: 0,
   backgroundColor: 'var(--color-surface)',
   color: 'var(--color-primary)',
   border: '2px solid var(--color-primary)',
@@ -182,14 +180,13 @@ const ReplaceButton = styled(AppButton)({
 })
 
 const DeleteButton = styled(AppButton)({
+  ...compactButtonStyles,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   gap: '4px',
   flex: 1,
-  fontSize: '0.8rem',
-  padding: '8px',
-  minHeight: 'unset',
+  minWidth: 0,
   backgroundColor: 'color-mix(in srgb, #c62828 12%, var(--color-surface))',
   color: 'color-mix(in srgb, #c62828 75%, var(--color-text-h))',
   border: '2px solid color-mix(in srgb, #c62828 55%, var(--color-border))',
@@ -198,14 +195,6 @@ const DeleteButton = styled(AppButton)({
     backgroundColor: 'color-mix(in srgb, #c62828 20%, var(--color-surface))',
     color: 'color-mix(in srgb, #c62828 85%, var(--color-text-h))',
   },
-})
-
-const HintRow = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4px',
-  color: 'var(--color-muted)',
-  fontSize: '0.75rem',
 })
 
 function isSlotFitMode(value: string): value is Step4SlotFitMode {
@@ -252,12 +241,12 @@ export default function Step4EditModal({
             onClick={() => onSetFit(option.id)}
           >
             {option.icon}
-            <span>{option.label}</span>
+            <span style={{ fontSize: '0.75rem' }}>{option.label}</span>
           </FitOptionButton>
         ))}
         <FitOptionButton type="button" active={false} onClick={onRotate}>
           <RotateRightIcon fontSize="small" />
-          <span>回転</span>
+          <span style={{ fontSize: '0.75rem' }}>回転</span>
         </FitOptionButton>
       </FitButtonRow>
 
@@ -272,10 +261,6 @@ export default function Step4EditModal({
         </DeleteButton>
       </ActionButtonRow>
 
-      <HintRow>
-        <LightbulbOutlinedIcon sx={{ fontSize: '0.85rem' }} />
-        ドラッグで位置を調整できます
-      </HintRow>
     </DrawerPanel>
   )
 
@@ -299,15 +284,17 @@ export default function Step4EditModal({
       onClose={onClose}
       hideBackdrop
       ModalProps={{
-        hideBackdrop: true,
-        disableEnforceFocus: true,
-        disableAutoFocus: true,
         disableScrollLock: true,
-        keepMounted: true,
         style: { pointerEvents: 'none' },
       }}
       slotProps={{
-        paper: { style: { pointerEvents: 'auto' } },
+        paper: {
+          sx: {
+            pointerEvents: 'auto',
+            overflowX: 'hidden',
+            boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
+          },
+        },
       }}
       aria-labelledby="step4-edit-modal-title"
     >
