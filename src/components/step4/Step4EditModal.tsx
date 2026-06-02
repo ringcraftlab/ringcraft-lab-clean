@@ -43,6 +43,7 @@ const DesktopEditDrawer = styled(Drawer)({
     boxSizing: 'border-box',
     backgroundColor: 'var(--color-surface)',
     borderLeft: '1px solid var(--color-border)',
+    pointerEvents: 'auto',
   },
 })
 
@@ -255,7 +256,17 @@ export default function Step4EditModal({
       open={open}
       onClose={onClose}
       hideBackdrop
-      ModalProps={{ keepMounted: true, disableScrollLock: true }}
+      ModalProps={{
+        hideBackdrop: true,
+        disableEnforceFocus: true,
+        disableAutoFocus: true,
+        disableScrollLock: true,
+        keepMounted: true,
+        style: { pointerEvents: 'none' },
+      }}
+      PaperProps={{
+        style: { pointerEvents: 'auto' },
+      }}
       aria-labelledby="step4-edit-modal-title"
     >
       {panel}
