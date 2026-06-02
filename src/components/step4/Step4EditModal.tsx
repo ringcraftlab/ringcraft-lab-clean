@@ -6,10 +6,8 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import RotateRightIcon from '@mui/icons-material/RotateRight'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import Box from '@mui/material/Box'
-import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import type { ReactNode } from 'react'
 import AppButton from '../AppButton'
 
@@ -34,44 +32,26 @@ export interface Step4EditModalProps {
   onDelete: () => void
 }
 
-const DrawerPanel = styled(Box)({
+const EditPanel = styled(Box)({
+  position: 'static',
   display: 'flex',
   flexDirection: 'column',
-  height: '100%',
+  width: '100%',
+  boxSizing: 'border-box',
   padding: '16px',
   gap: '8px',
-  boxSizing: 'border-box',
   backgroundColor: 'var(--color-surface)',
+  borderLeft: '1px solid var(--color-border)',
 })
 
-const DesktopEditDrawer = styled(Drawer)({
-  '& .MuiDrawer-paper': {
-    width: '280px',
-    boxSizing: 'border-box',
-    backgroundColor: 'var(--color-surface)',
-    borderLeft: '1px solid var(--color-border)',
-    pointerEvents: 'auto',
-  },
-})
-
-const MobileEditDrawer = styled(Drawer)({
-  '& .MuiDrawer-paper': {
-    height: 'auto',
-    maxHeight: '90vh',
-    borderRadius: '16px 16px 0 0',
-    boxSizing: 'border-box',
-    backgroundColor: 'var(--color-surface)',
-  },
-})
-
-const DrawerHeader = styled(Box)({
+const PanelHeader = styled(Box)({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '8px',
 })
 
-const DrawerTitle = styled('h2')({
+const PanelTitle = styled('h2')({
   margin: 0,
   color: 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
@@ -211,18 +191,19 @@ export default function Step4EditModal({
   onReplace,
   onDelete,
 }: Step4EditModalProps) {
-  const isMobile = useMediaQuery('(max-width: 768px)')
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
   const title = slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集'
 
-  const panel = (
-    <DrawerPanel>
-      <DrawerHeader>
-        <DrawerTitle id="step4-edit-modal-title">{title}</DrawerTitle>
+  if (!open) return null
+
+  return (
+    <EditPanel aria-labelledby="step4-edit-modal-title">
+      <PanelHeader>
+        <PanelTitle id="step4-edit-modal-title">{title}</PanelTitle>
         <CloseButton type="button" aria-label="閉じる" onClick={onClose}>
           <CloseIcon fontSize="small" />
         </CloseButton>
-      </DrawerHeader>
+      </PanelHeader>
 
       <PreviewFrame>
         {imageSrc ? (
@@ -258,42 +239,6 @@ export default function Step4EditModal({
           削除
         </DeleteButton>
       </ActionButtonRow>
-    </DrawerPanel>
-  )
-
-  if (isMobile) {
-    return (
-      <MobileEditDrawer
-        anchor="bottom"
-        open={open}
-        onClose={onClose}
-        aria-labelledby="step4-edit-modal-title"
-      >
-        {panel}
-      </MobileEditDrawer>
-    )
-  }
-
-  return (
-    <DesktopEditDrawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      hideBackdrop
-      ModalProps={{
-        hideBackdrop: true,
-        disableEnforceFocus: true,
-        disableAutoFocus: true,
-        disableScrollLock: true,
-        keepMounted: true,
-        style: { pointerEvents: 'none' },
-      }}
-      slotProps={{
-        paper: { style: { pointerEvents: 'auto' } },
-      }}
-      aria-labelledby="step4-edit-modal-title"
-    >
-      {panel}
-    </DesktopEditDrawer>
+    </EditPanel>
   )
 }

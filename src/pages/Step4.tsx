@@ -5,7 +5,6 @@ import Box from '@mui/material/Box'
 import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
@@ -123,12 +122,14 @@ const SingleColumn = styled(Box)({
   margin: '0 auto',
 })
 
-const TwoColumnLayout = styled(Box)({
+const TwoColumnLayout = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'gridTemplateColumns',
+})<{ gridTemplateColumns?: string }>(({ gridTemplateColumns }) => ({
   display: 'grid',
-  gridTemplateColumns: '280px minmax(0, 1fr)',
+  gridTemplateColumns: gridTemplateColumns ?? '280px minmax(0, 1fr)',
   gap: '24px',
   alignItems: 'start',
-})
+}))
 
 const ImagesPaperFrame = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'aspectRatio',
@@ -296,16 +297,13 @@ const SlotPlus = styled('span')({
   pointerEvents: 'none',
 })
 
-const MainColumn = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'reserveDrawerSpace',
-})<{ reserveDrawerSpace?: boolean }>(({ reserveDrawerSpace }) => ({
+const MainColumn = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'stretch',
   width: '100%',
   boxSizing: 'border-box',
-  ...(reserveDrawerSpace ? { paddingRight: '340px' } : {}),
-}))
+})
 
 const StepBadge = styled('span')({
   display: 'inline-flex',
@@ -1038,15 +1036,14 @@ export default function Step4() {
     setBackgroundOptionsOpen((open) => !open)
   }, [])
 
-  const isMobile = useMediaQuery('(max-width: 768px)')
-
   const imageEditTarget = useMemo(() => {
     if (!isImagesMode || activeSlot === null) return null
     return { kind: 'slot' as const, index: activeSlot }
   }, [isImagesMode, activeSlot])
 
-  const reserveDrawerSpace =
-    isImagesMode && !isMobile && imageEditTarget !== null
+  const imagesModeGridColumns = imageEditTarget
+    ? '240px minmax(0, 1fr) 300px'
+    : '240px minmax(0, 1fr)'
 
   const resetAreaEditFocus = useCallback(() => {
     setActiveSlot(null)
@@ -1395,7 +1392,7 @@ export default function Step4() {
         {isImagesMode ? (
           <>
             <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
-            <TwoColumnLayout>
+            <TwoColumnLayout gridTemplateColumns={imagesModeGridColumns}>
               <Step4ImagesSidePanel
                 images={images}
                 fileInputRef={fileInputRef}
@@ -1409,9 +1406,21 @@ export default function Step4() {
                 onMultiInput={handleMultiInput}
                 onFillInput={handleFillInput}
               />
-              <MainColumn reserveDrawerSpace={reserveDrawerSpace}>
-                {rightColumnContent}
-              </MainColumn>
+              <MainColumn>{rightColumnContent}</MainColumn>
+              {imageEditTarget !== null ? (
+                <Step4EditModal
+                  open
+                  slotIndex={imageEditTarget.index}
+                  imageSrc={images[imageEditTarget.index] ?? null}
+                  fitMode={imageFitModes[imageEditTarget.index] ?? 'cover'}
+                  rotation={imageRotations[imageEditTarget.index] ?? 0}
+                  onClose={resetAreaEditFocus}
+                  onSetFit={handleEditSetFit}
+                  onRotate={handleEditRotate}
+                  onReplace={handleEditReplace}
+                  onDelete={handleEditDelete}
+                />
+              ) : null}
             </TwoColumnLayout>
           </>
         ) : isBackgroundMode ? (
@@ -1426,29 +1435,6 @@ export default function Step4() {
           <SingleColumn>{mainBlock}</SingleColumn>
         )}
       </Container>
-
-      {isImagesMode ? (
-        <Step4EditModal
-          open={imageEditTarget !== null}
-          slotIndex={imageEditTarget?.index ?? null}
-          imageSrc={
-            imageEditTarget !== null ? images[imageEditTarget.index] ?? null : null
-          }
-          fitMode={
-            imageEditTarget !== null
-              ? imageFitModes[imageEditTarget.index] ?? 'cover'
-              : 'cover'
-          }
-          rotation={
-            imageEditTarget !== null ? imageRotations[imageEditTarget.index] ?? 0 : 0
-          }
-          onClose={resetAreaEditFocus}
-          onSetFit={handleEditSetFit}
-          onRotate={handleEditRotate}
-          onReplace={handleEditReplace}
-          onDelete={handleEditDelete}
-        />
-      ) : null}
     </Page>
   )
 }
