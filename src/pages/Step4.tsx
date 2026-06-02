@@ -306,7 +306,7 @@ const MainColumn = styled(Box, {
   alignItems: 'stretch',
   width: '100%',
   boxSizing: 'border-box',
-  ...(reserveEditPanelSpace ? { paddingRight: '316px' } : {}),
+  ...(reserveEditPanelSpace ? { paddingRight: '276px' } : {}),
 }))
 
 const StepBadge = styled('span')({

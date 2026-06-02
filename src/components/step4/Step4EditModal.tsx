@@ -2,7 +2,6 @@ import CloseIcon from '@mui/icons-material/Close'
 import CropIcon from '@mui/icons-material/Crop'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import FitScreenIcon from '@mui/icons-material/FitScreen'
-import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined'
 import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import RotateRightIcon from '@mui/icons-material/RotateRight'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
@@ -37,7 +36,7 @@ export interface Step4EditModalProps {
 
 const DesktopEditDrawer = styled(Drawer)({
   '& .MuiDrawer-paper': {
-    width: '300px',
+    width: '260px',
     boxSizing: 'border-box',
     backgroundColor: 'var(--color-surface)',
     borderLeft: '1px solid var(--color-border)',
@@ -58,7 +57,8 @@ const MobileEditDrawer = styled(Drawer)({
 const DrawerPanel = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
-  gap: '8px',
+  padding: '16px',
+  gap: '12px',
   boxSizing: 'border-box',
 })
 
@@ -90,8 +90,7 @@ const CloseButton = styled(IconButton)({
 const PreviewFrame = styled(Box)({
   position: 'relative',
   width: '100%',
-  maxHeight: '160px',
-  aspectRatio: '1',
+  aspectRatio: '4 / 3',
   flexShrink: 0,
   borderRadius: 'var(--radius-card)',
   border: '1px solid var(--color-border)',
@@ -136,7 +135,7 @@ const FitOptionButton = styled('button', {
     : 'var(--color-surface)',
   color: active ? 'var(--color-primary)' : 'var(--color-text-h)',
   fontFamily: 'var(--font-body)',
-  fontSize: '0.78rem',
+  fontSize: '0.75rem',
   fontWeight: active ? 600 : 500,
   lineHeight: 1.3,
   whiteSpace: 'nowrap',
@@ -258,19 +257,6 @@ export default function Step4EditModal({
         </DeleteButton>
       </ActionButtonRow>
 
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          color: 'var(--color-muted)',
-          fontSize: '0.75rem',
-          mt: 1,
-        }}
-      >
-        <LightbulbOutlinedIcon sx={{ fontSize: '0.9rem' }} />
-        ドラッグで位置を調整できます
-      </Box>
     </DrawerPanel>
   )
 
