@@ -264,8 +264,8 @@ export default function Step4EditModal({
         keepMounted: true,
         style: { pointerEvents: 'none' },
       }}
-      PaperProps={{
-        style: { pointerEvents: 'auto' },
+      slotProps={{
+        paper: { style: { pointerEvents: 'auto' } },
       }}
       aria-labelledby="step4-edit-modal-title"
     >
