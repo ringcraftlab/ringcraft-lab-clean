@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
+import StepBar from '../components/StepBar'
 import RefillSizeIcon from '../components/RefillSizeIcon'
 import { HOLE_STANDARDS, SIZES } from '../config/sizes'
 
@@ -332,6 +333,7 @@ export default function Step1() {
       </Header>
 
       <Container>
+        <StepBar currentStep={1} />
         <StepBadge>Step1</StepBadge>
         <PageHeading>あなたの手帳のサイズは？</PageHeading>
 

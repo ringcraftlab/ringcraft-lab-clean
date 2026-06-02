@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
+import StepBar from '../components/StepBar'
 import PrintTypePreview, { type PrintTypePreviewVariant } from '../components/PrintTypePreview'
 import { SIZES } from '../config/sizes'
 import { PRINT_TYPES } from '../utils/refillSetupOptions'
@@ -246,6 +247,7 @@ export default function Step3() {
       </Header>
 
       <Container>
+        <StepBar currentStep={3} />
         <StepBadge>Step3</StepBadge>
         <PageHeading>印刷タイプは？</PageHeading>
 

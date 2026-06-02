@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
+import StepBar from '../components/StepBar'
 import LayoutGridIcon from '../components/LayoutGridIcon'
 import { SIZES } from '../config/sizes'
 import { buildWizardLayoutOptions, type WizardLayoutOption } from '../utils/refillSetupOptions'
@@ -248,6 +249,7 @@ export default function Step2() {
       </Header>
 
       <Container>
+        <StepBar currentStep={2} />
         <StepBadge>Step2</StepBadge>
         <PageHeading>作り方は？</PageHeading>
 

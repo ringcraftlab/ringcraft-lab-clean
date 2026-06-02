@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
 import AppButton from '../components/AppButton'
+import StepBar from '../components/StepBar'
 import PrintTypePreview from '../components/PrintTypePreview'
 import Step4EditModal, { type Step4SlotFitMode } from '../components/step4/Step4EditModal'
 import Step4ImagesSidePanel, { type ImageAreaMode } from '../components/step4/Step4ImagesSidePanel'
@@ -1390,6 +1391,7 @@ export default function Step4() {
       </Header>
 
       <Container>
+        <StepBar currentStep={4} />
         {isImagesMode ? (
           <>
             <Step4PageHeaderBlock title={pageHeading} subtext={layoutSubtext} />
