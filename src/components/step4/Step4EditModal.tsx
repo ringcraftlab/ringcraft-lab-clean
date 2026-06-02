@@ -276,12 +276,12 @@ export default function Step4EditModal({
         disableScrollLock: true,
         style: { pointerEvents: 'none' },
       }}
-      slotProps={{
-        paper: {
-          style: {
-            pointerEvents: 'auto',
-            padding: '16px',
-          },
+      PaperProps={{
+        sx: {
+          height: 'fit-content',
+          top: '80px',
+          pointerEvents: 'auto',
+          padding: '16px',
         },
       }}
       aria-labelledby="step4-edit-modal-title"
