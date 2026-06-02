@@ -90,7 +90,7 @@ const CloseButton = styled(IconButton)({
 const PreviewFrame = styled(Box)({
   position: 'relative',
   width: '100%',
-  maxHeight: '180px',
+  maxHeight: '160px',
   aspectRatio: '1',
   flexShrink: 0,
   borderRadius: 'var(--radius-card)',
