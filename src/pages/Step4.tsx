@@ -892,6 +892,7 @@ export default function Step4() {
             </ImagesModeHeader>
             <TwoColumnLayout>
               <Step4ImagesSidePanel
+                images={images}
                 fileInputRef={fileInputRef}
                 fileInputMultiRef={fileInputMultiRef}
                 fileInputFillRef={fileInputFillRef}
