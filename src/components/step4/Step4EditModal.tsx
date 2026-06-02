@@ -8,6 +8,8 @@ import AppButton from '../AppButton'
 
 export type Step4SlotFitMode = 'cover' | 'contain' | 'fill'
 
+const INTERACTION_BREAKPOINT_PX = 900
+
 const FIT_OPTIONS: { id: Step4SlotFitMode; label: string }[] = [
   { id: 'cover', label: 'トリミング' },
   { id: 'contain', label: '全体表示' },
@@ -206,7 +208,7 @@ export default function Step4EditModal({
   onReplace,
   onDelete,
 }: Step4EditModalProps) {
-  const isMobile = useMediaQuery('(max-width: 768px)')
+  const isNarrowInteraction = useMediaQuery(`(max-width: ${INTERACTION_BREAKPOINT_PX}px)`)
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
   const title = slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集'
   const { width, height } = calcPreviewSize(previewW, previewH)
@@ -258,7 +260,7 @@ export default function Step4EditModal({
     </DrawerPanel>
   )
 
-  if (isMobile) {
+  if (isNarrowInteraction) {
     return (
       <MobileEditDrawer
         anchor="bottom"

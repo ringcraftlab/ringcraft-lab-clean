@@ -52,6 +52,9 @@ const PRINT_TYPE_HEADINGS: Record<string, string> = {
   images: '個別画像を挿入',
 }
 
+const INTERACTION_BREAKPOINT_PX = 900
+const LAYOUT_BREAKPOINT_PX = 1024
+
 const HOLE_ZONE_MM = 6.5
 const IMAGE_START_MM = 6.7
 
@@ -1040,14 +1043,15 @@ export default function Step4() {
     setBackgroundOptionsOpen((open) => !open)
   }, [])
 
-  const isMobile = useMediaQuery('(max-width: 768px)')
+  const isNarrowInteraction = useMediaQuery(`(max-width: ${INTERACTION_BREAKPOINT_PX}px)`)
+  const isStackedLayout = useMediaQuery(`(max-width: ${LAYOUT_BREAKPOINT_PX}px)`)
 
   const imageEditTarget = useMemo(() => {
     if (!isImagesMode || activeSlot === null) return null
     return { kind: 'slot' as const, index: activeSlot }
   }, [isImagesMode, activeSlot])
 
-  const reserveEditPanelSpace = imageEditTarget !== null && !isMobile
+  const reserveEditPanelSpace = imageEditTarget !== null && !isNarrowInteraction
 
   const resetAreaEditFocus = useCallback(() => {
     setActiveSlot(null)
@@ -1391,7 +1395,7 @@ export default function Step4() {
         </HeaderTitle>
       </Header>
 
-      <Container>
+      <Container data-step4-layout={isStackedLayout ? 'stacked' : 'wide'}>
         <StepBar currentStep={4} />
         {isImagesMode ? (
           <>
