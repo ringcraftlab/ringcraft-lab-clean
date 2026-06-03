@@ -12,21 +12,26 @@
 ### 0-1. AppLayout
 
 - **全ページで `AppLayout` を使う**（Home / Tool / Step1〜4 を含む）
-- `AppLayout` は **`AppHeader`（共通ヘッダー）を含む** ページシェルとする
+- `AppLayout` は **`AppHeader`（共通ヘッダー・画面上部 sticky）を含む** ページシェルとする（詳細は 0-2）
 - メインコンテンツ領域の **最大幅は `var(--max-width)` で統一** する
 - ページごとに `min-height`・背景色・コンテナ余白のバリエーションは、`AppLayout` の variant（用途別クラス）で吸収し、各ページに重複定義を持たない
 
 ### 0-2. AppHeader
 
 - **全ページで同じヘッダーコンポーネント**（`AppHeader`）を使う
+- **ヘッダー帯（`HeaderBar`）**: 画面上部に **`position: sticky; top: 0`** で固定する（スクロールしても共通ヘッダーが見える）。`z-index` は本文・sticky CTA より上、`AppLayout` の `PageRoot` は縦方向 `flex` でヘッダーを先頭に置く
+- **コンテンツ幅（`HeaderInner`）**: `width: 100%`・**`max-width: var(--max-width)`**・`margin: 0 auto`。タイトル中央の基準は **ビューポート全幅ではなくこの枠**（メインコンテンツと同じ最大幅）
 - **戻るボタン（`showBack: true`）**: **MUI の `ArrowBackIcon` のみ**（テキストラベルは表示しない）
-  - アイコンサイズは **1.5rem 程度**
+  - アイコンサイズは **1.5rem 程度**（クリック領域も **1.5rem × 1.5rem** で固定）
   - **PC・モバイル共通**で同じアイコンのみを使う（画面幅で文言を切り替えない）
-  - 戻り先の意味は **`aria-label` で明記**する（例: 「ホームに戻る」「リフィル作成に戻る」）。視覚はアイコンのみ、読み上げ・支援技術では文言を伝える
-  - 戻る領域の幅が固定されるため、**ページ遷移で戻る文言の長さが変わってもタイトル位置がずれない**（Edge 等でのレイアウトずれも解消しやすい）
-- **ホーム**（`showBack: false`）: **戻るボタンなし**。**タイトルは左寄せ**（ブランド＋ページ名）。右端に `trailing`（グローバルナビなど）を置ける
-- **ツール以降**（`showBack: true`）: 左に **`ArrowBackIcon` のみ**の戻る。**タイトルはヘッダー幅（`HeaderInner`）の中央に固定**。長いタイトルは省略表示（ellipsis）で戻るボタンとの重なりを避ける
-- 戻る導線の有無・戻り先・補助ナビは、`showBack` / `backTo` / `aria-label`（戻る用） / `trailing` など **props で差分を表現**し、別コンポーネントを増やさない
+  - 戻り先の意味は **`aria-label`（`backLabel` prop）で明記**する（例: 「ホームに戻る」「リフィル作成に戻る」）。視覚はアイコンのみ、読み上げ・支援技術では文言を伝える
+- **ホーム**（`showBack: false`）: **戻るボタンなし**。**タイトルは左寄せ**（ブランド＋ページ名）。`HeaderInner` は **flex** 行。右端に `trailing`（グローバルナビなど）を置ける
+- **ツール以降**（`showBack: true`）: 左に **`ArrowBackIcon` のみ**の戻る。**タイトルは `HeaderInner` の中央に固定**。長いタイトルは省略表示（**ellipsis**）で戻るボタンとの重なりを避ける
+  - 中央寄せは **`position: absolute` + `translateX` を使わない**（Edge 等でずれやすいため）
+  - **`HeaderInner` を `grid-template-columns: 1fr auto 1fr`** とし、左列に戻る（固定幅）、中央列にタイトル（`auto`）、右列に `trailing` または **幅 1.5rem の空スペーサ**（左右対称・中央列の位置を安定させる）
+  - 戻る領域の幅が固定されるため、**ページ遷移やブラウザ差でタイトル位置がずれない**
+- 戻る導線の有無・戻り先・補助ナビは、`showBack` / `backTo` / `backLabel`（aria-label） / `trailing` など **props で差分を表現**し、別コンポーネントを増やさない
+- **スタイルの責務**: ヘッダーのレイアウト・固定は **`AppHeader`（Emotion）を正**とする。`wizard-layout.css` 等で **`.app-header__title` の中央寄せを上書きしない**（モバイル含む）
 
 ### 0-3. コンテナ幅
 
