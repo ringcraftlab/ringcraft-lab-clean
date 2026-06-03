@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import AppHeader from '../components/AppHeader'
+import AppLayout from '../components/AppLayout'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
 import PrintTypePreview, { type PrintTypePreviewVariant } from '../components/PrintTypePreview'
@@ -136,18 +136,18 @@ export default function Step3() {
   }
 
   return (
-    <div className="wizard-page">
-      <AppHeader
-        backTo="/tool/step2"
-        backLabel="← Step2に戻る"
-        backState={{
+    <AppLayout
+      header={{
+        backTo: '/tool/step2',
+        backLabel: '← Step2に戻る',
+        backState: {
           sizeId: routeState?.sizeId,
           customW: routeState?.customW,
           customH: routeState?.customH,
-        }}
-      />
-
-      <Box className="wizard-container">
+        },
+      }}
+      containerVariant="wizard"
+    >
         <StepBar currentStep={3} />
         <span className="wizard-step-badge">Step3</span>
         <h2 className="wizard-heading">印刷タイプは？</h2>
@@ -195,7 +195,6 @@ export default function Step3() {
             プレビューへ
           </AppButton>
         </Actions>
-      </Box>
-    </div>
+    </AppLayout>
   )
 }

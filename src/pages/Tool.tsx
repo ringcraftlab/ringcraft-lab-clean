@@ -1,21 +1,8 @@
 import { styled } from '@mui/material/styles'
-import AppHeader from '../components/AppHeader'
+import AppLayout from '../components/AppLayout'
 import HomeFlowCta from '../components/HomeFlowCta'
 import HomeHeroProcessDiagram from '../components/HomeHeroProcessDiagram'
 import HomeHeroPrintImagery from '../components/HomeHeroPrintImagery'
-
-const Page = styled('div')({
-  minHeight: '100vh',
-  backgroundColor: 'var(--color-bg)',
-  color: 'var(--color-text)',
-})
-
-const Container = styled('div')({
-  width: '100%',
-  maxWidth: 'var(--max-width)',
-  margin: '0 auto',
-  padding: '0 24px',
-})
 
 const Hero = styled('section')({
   padding: '56px 0 40px',
@@ -184,10 +171,7 @@ const BottomSection = styled('section')({
 
 export default function Tool() {
   return (
-    <Page>
-      <AppHeader backTo="/" backLabel="← ホームに戻る" />
-
-      <Container>
+    <AppLayout header={{ backTo: '/', backLabel: '← ホームに戻る' }} containerVariant="tool">
         <Hero>
           <HeroHeading>システム手帳のリフィルを、もっと簡単に。</HeroHeading>
           <HeroSub>写真やメモを、そのまま手帳に。</HeroSub>
@@ -213,7 +197,6 @@ export default function Tool() {
             <HomeFlowCta />
           </FlowCtaWrapBottom>
         </BottomSection>
-      </Container>
-    </Page>
+    </AppLayout>
   )
 }

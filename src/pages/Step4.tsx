@@ -8,7 +8,7 @@ import { styled } from '@mui/material/styles'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
-import AppHeader from '../components/AppHeader'
+import AppLayout from '../components/AppLayout'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
 import PrintTypePreview from '../components/PrintTypePreview'
@@ -1269,22 +1269,22 @@ export default function Step4() {
   const editPanelOpen = imageEditTarget !== null
 
   return (
-    <div className="wizard-page">
-      <AppHeader
-        backTo="/tool/step3"
-        backLabel="← Step3に戻る"
-        backState={{
+    <AppLayout
+      header={{
+        backTo: '/tool/step3',
+        backLabel: '← Step3に戻る',
+        backState: {
           sizeId: routeState?.sizeId,
           customW: routeState?.customW,
           customH: routeState?.customH,
           layoutMode: routeState?.layoutMode,
-        }}
-      />
-
-      <Box
-        className="step4-container"
-        data-edit-panel-open={editPanelOpen ? 'true' : undefined}
-      >
+        },
+      }}
+      containerVariant="step4"
+      containerProps={{
+        'data-edit-panel-open': editPanelOpen ? 'true' : undefined,
+      }}
+    >
         <StepBar currentStep={4} />
         {isImagesMode ? (
           <>
@@ -1317,7 +1317,6 @@ export default function Step4() {
         ) : (
           <Box className="step4-single-column">{mainBlock}</Box>
         )}
-      </Box>
 
       {isImagesMode ? (
         <Step4EditModal
@@ -1343,6 +1342,6 @@ export default function Step4() {
           onDelete={handleEditDelete}
         />
       ) : null}
-    </div>
+    </AppLayout>
   )
 }

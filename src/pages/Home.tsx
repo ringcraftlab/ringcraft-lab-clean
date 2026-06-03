@@ -1,35 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 import BookIcon from '@mui/icons-material/Book'
+import { AppHeaderNav } from '../components/AppHeader'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
+import AppLayout from '../components/AppLayout'
 import CreateIcon from '@mui/icons-material/Create'
 import StoreIcon from '@mui/icons-material/Store'
 import AppButton from '../components/AppButton'
-
-const Page = styled('div')({
-  minHeight: '100vh',
-  backgroundColor: 'var(--color-bg)',
-  color: 'var(--color-text)',
-})
-
-const Container = styled('div')({
-  width: '100%',
-  maxWidth: 'var(--max-width)',
-  margin: '0 auto',
-  padding: '0 24px',
-})
-
-const Header = styled('header')({
-  borderBottom: '1px solid var(--color-border)',
-  backgroundColor: 'var(--color-surface)',
-})
-
-const HeaderInner = styled(Container)({
-  minHeight: '72px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-})
 
 const Brand = styled('a')({
   textDecoration: 'none',
@@ -39,20 +16,6 @@ const Brand = styled('a')({
   gap: '10px',
   fontWeight: 700,
   fontSize: '20px',
-})
-
-const Nav = styled('nav')({
-  display: 'flex',
-  gap: '16px',
-})
-
-const NavLink = styled('a')({
-  color: 'var(--color-text)',
-  textDecoration: 'none',
-  fontWeight: 500,
-  '&:hover': {
-    color: 'var(--color-primary)',
-  },
 })
 
 const Hero = styled('section')({
@@ -145,15 +108,22 @@ const Footer = styled('footer')({
   backgroundColor: 'var(--color-surface)',
 })
 
-const FooterInner = styled(Container)({
+const FooterInner = styled('div')({
+  width: '100%',
+  maxWidth: 'var(--max-width)',
+  margin: '0 auto',
+  padding: '20px 24px',
   minHeight: '88px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '20px',
   flexWrap: 'wrap',
-  paddingTop: '20px',
-  paddingBottom: '20px',
+  boxSizing: 'border-box',
+  '@media (max-width: 900px)': {
+    paddingLeft: '16px',
+    paddingRight: '16px',
+  },
 })
 
 const FooterLinks = styled('div')({
@@ -191,21 +161,23 @@ export default function Home() {
   const navigate = useNavigate()
 
   return (
-    <Page>
-      <Header>
-        <HeaderInner>
-          <Brand href="/">
-            <AppHeaderBrandIcon />
-            RingCraft Lab
-          </Brand>
-          <Nav aria-label="global navigation">
-            <NavLink href="/">ホーム</NavLink>
-            <NavLink href="/news">お知らせ</NavLink>
-          </Nav>
-        </HeaderInner>
-      </Header>
-
-      <Container>
+    <AppLayout
+      header={{
+        showBack: false,
+        backTo: '/',
+        backLabel: '',
+        title: 'RingCraft Lab',
+        trailing: (
+          <AppHeaderNav
+            links={[
+              { href: '/', label: 'ホーム' },
+              { href: '/news', label: 'お知らせ' },
+            ]}
+          />
+        ),
+      }}
+      containerVariant="home"
+    >
         <Hero>
           <HeroTitle>小さな手帳と、お気に入りの文具を。</HeroTitle>
           <HeroText>
@@ -248,7 +220,6 @@ export default function Home() {
             </Card>
           </CardGrid>
         </CardSection>
-      </Container>
 
       <Footer>
         <FooterInner>
@@ -273,6 +244,6 @@ export default function Home() {
           </FooterLinks>
         </FooterInner>
       </Footer>
-    </Page>
+    </AppLayout>
   )
 }

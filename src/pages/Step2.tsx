@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import AppHeader from '../components/AppHeader'
+import AppLayout from '../components/AppLayout'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
 import LayoutGridIcon from '../components/LayoutGridIcon'
@@ -148,10 +148,10 @@ export default function Step2() {
   }
 
   return (
-    <div className="wizard-page">
-      <AppHeader backTo="/tool/step1" backLabel="← Step1に戻る" />
-
-      <Box className="wizard-container">
+    <AppLayout
+      header={{ backTo: '/tool/step1', backLabel: '← Step1に戻る' }}
+      containerVariant="wizard"
+    >
         <StepBar currentStep={2} />
         <span className="wizard-step-badge">Step2</span>
         <h2 className="wizard-heading">作り方は？</h2>
@@ -199,7 +199,6 @@ export default function Step2() {
             次へ：印刷タイプを選ぶ
           </AppButton>
         </Actions>
-      </Box>
-    </div>
+    </AppLayout>
   )
 }

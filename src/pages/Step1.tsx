@@ -3,7 +3,7 @@ import TextField from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import AppHeader from '../components/AppHeader'
+import AppLayout from '../components/AppLayout'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
 import RefillSizeIcon from '../components/RefillSizeIcon'
@@ -228,10 +228,10 @@ export default function Step1() {
   }
 
   return (
-    <div className="wizard-page">
-      <AppHeader backTo="/tool" backLabel="← リフィル作成に戻る" />
-
-      <Box className="wizard-container">
+    <AppLayout
+      header={{ backTo: '/tool', backLabel: '← リフィル作成に戻る' }}
+      containerVariant="wizard"
+    >
         <StepBar currentStep={1} />
         <span className="wizard-step-badge">Step1</span>
         <h2 className="wizard-heading">あなたの手帳のサイズは？</h2>
@@ -341,7 +341,6 @@ export default function Step1() {
             次へ：作り方を選ぶ
           </AppButton>
         </Actions>
-      </Box>
-    </div>
+    </AppLayout>
   )
 }
