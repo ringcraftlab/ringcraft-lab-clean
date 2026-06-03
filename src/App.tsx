@@ -6,14 +6,17 @@ import Step3 from './pages/Step3'
 import Step4 from './pages/Step4'
 import Tool from './pages/Tool'
 
-const router = createBrowserRouter([
-  { path: '/', element: <Home /> },
-  { path: '/tool', element: <Tool /> },
-  { path: '/tool/step1', element: <Step1 /> },
-  { path: '/tool/step2', element: <Step2 /> },
-  { path: '/tool/step3', element: <Step3 /> },
-  { path: '/tool/step4', element: <Step4 /> },
-])
+const router = createBrowserRouter(
+  [
+    { path: '/', element: <Home /> },
+    { path: '/tool', element: <Tool /> },
+    { path: '/tool/step1', element: <Step1 /> },
+    { path: '/tool/step2', element: <Step2 /> },
+    { path: '/tool/step3', element: <Step3 /> },
+    { path: '/tool/step4', element: <Step4 /> },
+  ],
+  { basename: import.meta.env.BASE_URL },
+)
 
 function App() {
   return <RouterProvider router={router} />
