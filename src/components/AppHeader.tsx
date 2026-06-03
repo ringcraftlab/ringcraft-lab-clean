@@ -74,11 +74,14 @@ const BackLabelShort = styled('span')({
 
 const Title = styled('h1')({
   position: 'absolute',
-  left: '50%',
-  transform: 'translateX(-50%)',
+  left: 0,
+  right: 0,
+  top: 0,
+  bottom: 0,
   margin: 0,
-  display: 'inline-flex',
+  display: 'flex',
   alignItems: 'center',
+  justifyContent: 'center',
   gap: '8px',
   color: 'var(--color-text-h)',
   fontWeight: 700,
@@ -87,10 +90,11 @@ const Title = styled('h1')({
   whiteSpace: 'nowrap',
   pointerEvents: 'none',
   zIndex: 0,
-  maxWidth: 'calc(100% - 120px)',
+  boxSizing: 'border-box',
+  padding: '0 11rem',
   '@media (max-width: 900px)': {
     fontSize: '14px',
-    maxWidth: 'calc(100% - 96px)',
+    padding: '0 4.5rem 0 5rem',
   },
 })
 
@@ -167,7 +171,7 @@ export default function AppHeader({
             </BackLabelShort>
           </BackLink>
         ) : null}
-        <Title className="wizard-header__title app-header__title">
+        <Title className="app-header__title">
           <AppHeaderBrandIcon />
           <TitleText className="app-header__title-text">{title}</TitleText>
         </Title>
