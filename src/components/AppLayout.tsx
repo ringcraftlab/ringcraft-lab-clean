@@ -19,31 +19,20 @@ const PageRoot = styled('div')({
   color: 'var(--color-text)',
 })
 
-const MainWizard = styled('main')({
+const mainContainerStyles = {
   width: '100%',
   maxWidth: 'var(--max-width)',
   margin: '0 auto',
   padding: '40px 24px 56px',
   boxSizing: 'border-box',
   '@media (max-width: 900px)': {
-    paddingLeft: 0,
-    paddingRight: 0,
-    paddingTop: '24px',
-    paddingBottom: 'max(96px, calc(80px + env(safe-area-inset-bottom, 0px)))',
+    padding: '16px 16px 40px',
   },
-})
+} as const
 
-const MainContent = styled('main')({
-  width: '100%',
-  maxWidth: 'var(--max-width)',
-  margin: '0 auto',
-  padding: '0 24px',
-  boxSizing: 'border-box',
-  '@media (max-width: 900px)': {
-    paddingLeft: '16px',
-    paddingRight: '16px',
-  },
-})
+const MainWizard = styled('main')(mainContainerStyles)
+
+const MainContent = styled('main')(mainContainerStyles)
 
 export default function AppLayout({
   children,
