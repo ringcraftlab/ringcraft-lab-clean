@@ -79,6 +79,7 @@ const Title = styled('h1')({
   top: 0,
   bottom: 0,
   margin: 0,
+  padding: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -157,29 +158,19 @@ export default function AppHeader({
   trailing,
 }: AppHeaderProps) {
   return (
-    <HeaderBar className="wizard-header app-header">
-      <HeaderInner className="wizard-header__inner app-header__inner">
+    <HeaderBar className="app-header">
+      <HeaderInner>
         {showBack ? (
-          <BackLink
-            to={backTo}
-            state={backState}
-            className="wizard-header__back app-header__back"
-          >
-            <BackLabelFull className="app-header__back-label app-header__back-label--full">
-              {backLabel}
-            </BackLabelFull>
-            <BackLabelShort className="app-header__back-label app-header__back-label--short">
-              ← 戻る
-            </BackLabelShort>
+          <BackLink to={backTo} state={backState} aria-label={backLabel}>
+            <BackLabelFull>{backLabel}</BackLabelFull>
+            <BackLabelShort>← 戻る</BackLabelShort>
           </BackLink>
         ) : null}
-        <Title className="app-header__title">
+        <Title>
           <AppHeaderBrandIcon />
-          <TitleText className="app-header__title-text">{title}</TitleText>
+          <TitleText>{title}</TitleText>
         </Title>
-        {trailing ? (
-          <Trailing className="app-header__trailing">{trailing}</Trailing>
-        ) : null}
+        {trailing ? <Trailing>{trailing}</Trailing> : null}
       </HeaderInner>
     </HeaderBar>
   )
