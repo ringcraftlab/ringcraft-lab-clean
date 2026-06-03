@@ -81,6 +81,9 @@ const CardGrid = styled('div')({
   gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
   gap: '16px',
   alignItems: 'stretch',
+  '@media (max-width: 900px)': {
+    gridTemplateColumns: 'repeat(1, minmax(0, 1fr))',
+  },
 })
 
 const CardLink = styled(Link)({
