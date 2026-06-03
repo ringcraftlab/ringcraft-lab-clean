@@ -36,6 +36,7 @@ type Step4LocationState = {
   sizeId?: string
   customW?: number
   customH?: number
+  customHoleStandard?: string
   layoutMode?: string
   printType?: string
 }
@@ -174,8 +175,8 @@ const SlotHoleCircle = styled('div', {
   width: '8px',
   height: '8px',
   left: '50%',
-  transform: 'translateX(-50%)',
   top: `${topPct}%`,
+  transform: 'translate(-50%, -50%)',
   boxSizing: 'border-box',
   backgroundColor: 'transparent',
   pointerEvents: 'none',
@@ -731,8 +732,8 @@ function ImagesSlotPreview({
       layoutParams.sizeId === 'custom'
         ? SIZES.find((s) => s.id === 'custom')
         : SIZES.find((s) => s.id === layoutParams.sizeId)
-    return getHolePositions(sizePreset ?? undefined)
-  }, [layoutParams.sizeId])
+    return getHolePositions(sizePreset ?? undefined, layoutParams.customHoleStandard)
+  }, [layoutParams.sizeId, layoutParams.customHoleStandard])
   const refillH = layout.refillH
 
   return (
@@ -858,6 +859,7 @@ export default function Step4() {
       refillH,
       layoutMode: routeState?.layoutMode,
       sizeId: routeState?.sizeId,
+      customHoleStandard: routeState?.customHoleStandard,
       showHoleGuide,
       holeSide,
     }),
@@ -897,8 +899,12 @@ export default function Step4() {
   }, [previewLayout, layoutParams.layoutMode])
 
   const holePositions = useMemo(
-    () => getHolePositions(resolveSizePreset(routeState?.sizeId)),
-    [routeState?.sizeId],
+    () =>
+      getHolePositions(
+        resolveSizePreset(routeState?.sizeId),
+        routeState?.customHoleStandard,
+      ),
+    [routeState?.sizeId, routeState?.customHoleStandard],
   )
 
   const [borderColor, setBorderColor] = useState<string>(DEFAULT_BORDER_COLOR)
@@ -1277,6 +1283,7 @@ export default function Step4() {
           sizeId: routeState?.sizeId,
           customW: routeState?.customW,
           customH: routeState?.customH,
+          customHoleStandard: routeState?.customHoleStandard,
           layoutMode: routeState?.layoutMode,
         },
       }}

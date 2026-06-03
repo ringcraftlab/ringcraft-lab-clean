@@ -13,6 +13,7 @@ type Step3LocationState = {
   sizeId?: string
   customW?: number
   customH?: number
+  customHoleStandard?: string
   layoutMode?: string
 }
 
@@ -111,6 +112,7 @@ export default function Step3() {
       refillH,
       layoutMode: routeState?.layoutMode,
       sizeId: routeState?.sizeId,
+      customHoleStandard: routeState?.customHoleStandard,
     }),
     [refillW, refillH, routeState],
   )
@@ -129,6 +131,7 @@ export default function Step3() {
         sizeId: routeState?.sizeId,
         customW: routeState?.customW,
         customH: routeState?.customH,
+        customHoleStandard: routeState?.customHoleStandard,
         layoutMode: routeState?.layoutMode,
         printType: selectedPrintTypeId,
       },
@@ -144,6 +147,7 @@ export default function Step3() {
           sizeId: routeState?.sizeId,
           customW: routeState?.customW,
           customH: routeState?.customH,
+          customHoleStandard: routeState?.customHoleStandard,
         },
       }}
       containerVariant="wizard"

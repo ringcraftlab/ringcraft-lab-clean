@@ -189,7 +189,7 @@ export default function Step1() {
   const [customOpen, setCustomOpen] = useState(false)
   const [customWidth, setCustomWidth] = useState('')
   const [customHeight, setCustomHeight] = useState('')
-  const [customHoleStandard, setCustomHoleStandard] = useState<string | null>(null)
+  const [customHoleStandard, setCustomHoleStandard] = useState<string>('microfive')
 
   const customValid =
     parsePositiveMm(customWidth) !== null && parsePositiveMm(customHeight) !== null
@@ -217,7 +217,12 @@ export default function Step1() {
       if (customW === null || customH === null) return
 
       navigate('/tool/step2', {
-        state: { sizeId: 'custom', customW, customH },
+        state: {
+          sizeId: 'custom',
+          customW,
+          customH,
+          customHoleStandard,
+        },
       })
       return
     }

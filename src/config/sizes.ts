@@ -56,7 +56,7 @@ export const SIZES: SizeDefinition[] = [
     h: null,
     holePosY: null,
     // 穴規格を選べる
-    holeStandard: 'mini6',
+    holeStandard: 'microfive',
   },
 ]
 
@@ -76,7 +76,7 @@ export function getHolePositions(
 ): number[] {
   if (!size) return []
   if (size.id === 'custom') {
-    const standard = SIZES.find((s) => s.id === (customHoleStandard || 'mini6'))
+    const standard = SIZES.find((s) => s.id === (customHoleStandard || 'microfive'))
     return standard!.holePosY!
   }
   return size.holePosY!

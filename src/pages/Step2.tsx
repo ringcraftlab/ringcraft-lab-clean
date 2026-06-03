@@ -13,6 +13,7 @@ type Step2LocationState = {
   sizeId?: string
   customW?: number
   customH?: number
+  customHoleStandard?: string
 }
 
 const LayoutGrid = styled(Box)({})
@@ -142,6 +143,7 @@ export default function Step2() {
         sizeId: routeState?.sizeId,
         customW: routeState?.customW,
         customH: routeState?.customH,
+        customHoleStandard: routeState?.customHoleStandard,
         layoutMode: selectedOptionId,
       },
     })
