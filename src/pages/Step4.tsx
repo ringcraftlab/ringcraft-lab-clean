@@ -24,8 +24,23 @@ import {
   useStep4Capture,
   type GuideImageFit,
 } from '../components/step4/useStep4Capture'
+
+type ImageEditTarget =
+  | { kind: 'slot'; index: number }
+  | { kind: 'panorama'; index: number }
 import { getHolePositions, SIZE_PICKER_LINES, SIZES, type SizeDefinition } from '../config/sizes'
-import { calcLayout, isFoldLayoutMode, paperOrientationForLayout } from '../utils/layout'
+import {
+  buildPanoramaStripRects,
+  clearPanoramaState,
+  getFoldPanoramaPreviewMm,
+  type FoldImageMode,
+} from '../utils/foldImagePlacement'
+import {
+  calcLayout,
+  foldCountFromMode,
+  isFoldLayoutMode,
+  paperOrientationForLayout,
+} from '../utils/layout'
 import {
   buildPrintTypePreviewLayout,
   type PrintTypePreviewLayout,
@@ -212,6 +227,62 @@ const SlotImageLayer = styled('div', {
     : { left: 0, right: 0, width: '100%' }),
   zIndex: avoidsHole ? 1 : 3,
 }))
+
+const PanoramaStripButton = styled('button', {
+  shouldForwardProp: (prop) =>
+    prop !== 'hasImage' &&
+    prop !== 'isActive' &&
+    prop !== 'stripLeft' &&
+    prop !== 'stripTop' &&
+    prop !== 'stripWidth' &&
+    prop !== 'stripHeight',
+})<{
+  hasImage?: boolean
+  isActive?: boolean
+  stripLeft: number
+  stripTop: number
+  stripWidth: number
+  stripHeight: number
+}>(({ hasImage, isActive, stripLeft, stripTop, stripWidth, stripHeight }) => ({
+  position: 'absolute',
+  left: `${stripLeft}%`,
+  top: `${stripTop}%`,
+  width: `${stripWidth}%`,
+  height: `${stripHeight}%`,
+  margin: 0,
+  padding: 0,
+  border: 'none',
+  backgroundColor: hasImage ? '#ffffff' : '#fdf5f3',
+  cursor: 'pointer',
+  overflow: 'hidden',
+  boxSizing: 'border-box',
+  zIndex: 4,
+  transition: 'box-shadow 0.2s ease, background-color 0.2s ease',
+  ...(isActive
+    ? {
+        boxShadow: 'inset 0 0 0 2px var(--color-primary)',
+      }
+    : {}),
+}))
+
+const PanoramaStripLabel = styled('span')({
+  position: 'absolute',
+  top: '4px',
+  left: '4px',
+  zIndex: 10,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0 6px',
+  height: '18px',
+  borderRadius: '4px',
+  backgroundColor: 'var(--color-primary)',
+  color: 'var(--color-surface)',
+  fontSize: '0.65rem',
+  fontWeight: 700,
+  lineHeight: 1,
+  pointerEvents: 'none',
+})
 
 const SlotPlus = styled('span')({
   position: 'absolute',
@@ -726,11 +797,17 @@ function getSlotAreaMetrics(
 
 interface ImagesSlotPreviewProps {
   layout: PrintTypePreviewLayout
+  foldImageMode: FoldImageMode
   images: Record<number, string>
   imageFitModes: Record<number, GuideImageFit>
   imageRotations: Record<number, number>
+  panoramaImages: Record<number, string>
+  panoramaFitModes: Record<number, GuideImageFit>
+  panoramaRotations: Record<number, number>
   activeSlot: number | null
+  activePanoramaBook: number | null
   onSlotClick: (index: number) => void
+  onPanoramaClick: (bookIndex: number) => void
   layoutParams: PrintTypePreviewLayoutParams
   showHoleGuide: boolean
   imageAreaMode: ImageAreaMode
@@ -740,11 +817,17 @@ interface ImagesSlotPreviewProps {
 
 function ImagesSlotPreview({
   layout,
+  foldImageMode,
   images,
   imageFitModes,
   imageRotations,
+  panoramaImages,
+  panoramaFitModes,
+  panoramaRotations,
   activeSlot,
+  activePanoramaBook,
   onSlotClick,
+  onPanoramaClick,
   layoutParams,
   showHoleGuide,
   imageAreaMode,
@@ -753,6 +836,15 @@ function ImagesSlotPreview({
 }: ImagesSlotPreviewProps) {
   const aspectRatio = `${layout.paperW} / ${layout.paperH}`
   const slotRects = useMemo(() => buildSlotRects(layout), [layout])
+  const isFoldPanorama =
+    layout.kind === 'fold' && foldImageMode === 'panorama'
+  const panoramaStrips = useMemo(
+    () =>
+      isFoldPanorama
+        ? buildPanoramaStripRects(layout, imageAreaMode, layoutParams.holeSide ?? 'left')
+        : [],
+    [isFoldPanorama, layout, imageAreaMode, layoutParams.holeSide],
+  )
   const gridCols = layout.kind === 'sheet' ? layout.cols : layout.fold.foldCount
   const gridRows =
     layout.kind === 'sheet' ? layout.rows : layout.fold.bookCount
@@ -772,18 +864,87 @@ function ImagesSlotPreview({
 
   return (
     <ImagesPaperFrame aspectRatio={aspectRatio} data-paper-frame>
+      {isFoldPanorama
+        ? panoramaStrips.map((strip) => {
+            const src = panoramaImages[strip.bookIndex]
+            const hasImage = Boolean(src)
+            const isActive = activePanoramaBook === strip.bookIndex
+            return (
+              <PanoramaStripButton
+                key={`panorama-${strip.bookIndex}`}
+                type="button"
+                hasImage={hasImage}
+                isActive={isActive}
+                stripLeft={strip.left}
+                stripTop={strip.top}
+                stripWidth={strip.width}
+                stripHeight={strip.height}
+                aria-label={
+                  hasImage
+                    ? `${strip.bookIndex + 1}冊目のパノラマ画像`
+                    : `${strip.bookIndex + 1}冊目にパノラマ画像を追加`
+                }
+                onClick={() => onPanoramaClick(strip.bookIndex)}
+              >
+                <PanoramaStripLabel aria-hidden>
+                  帯{strip.bookIndex + 1}
+                </PanoramaStripLabel>
+                {hasImage ? (
+                  <SlotImage
+                    src={src}
+                    alt=""
+                    fitMode={panoramaFitModes[strip.bookIndex] ?? 'cover'}
+                    rotation={panoramaRotations[strip.bookIndex] ?? 0}
+                    data-fit-mode={panoramaFitModes[strip.bookIndex] ?? 'cover'}
+                    data-rotation={String(panoramaRotations[strip.bookIndex] ?? 0)}
+                  />
+                ) : (
+                  <SlotPlus data-print="false">+</SlotPlus>
+                )}
+              </PanoramaStripButton>
+            )
+          })
+        : null}
       {slotRects.map((rect) => {
         const src = images[rect.index]
         const hasImage = Boolean(src)
-        const isActive = activeSlot === rect.index
+        const isActive = !isFoldPanorama && activeSlot === rect.index
         const col = rect.index % gridCols
         const row = Math.floor(rect.index / gridCols)
+        const bookIndex =
+          layout.kind === 'fold' ? Math.floor(rect.index / gridCols) : row
         const cellBorders = refillSheetCellBorders(showBorder, borderColor, {
           col,
           row,
           cols: gridCols,
           rows: gridRows,
         })
+
+        if (isFoldPanorama) {
+          return (
+            <SlotButton
+              key={rect.index}
+              type="button"
+              data-slot-button
+              hasImage={false}
+              isActive={activePanoramaBook === bookIndex}
+              slotLeft={rect.left}
+              slotTop={rect.top}
+              slotWidth={rect.width}
+              slotHeight={rect.height}
+              style={{
+                ...cellBorders,
+                backgroundColor: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                zIndex: 3,
+                pointerEvents: 'none',
+              }}
+              tabIndex={-1}
+              aria-hidden
+            />
+          )
+        }
 
         return (
           <SlotButton
@@ -866,6 +1027,8 @@ export default function Step4() {
   const filePickSlotRef = useRef<number | null>(null)
   const fileInputMultiRef = useRef<HTMLInputElement>(null)
   const fileInputFillRef = useRef<HTMLInputElement>(null)
+  const fileInputPanoramaRef = useRef<HTMLInputElement>(null)
+  const filePickPanoramaRef = useRef<number | null>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const [guideImage, setGuideImage] = useState('')
   const [guideImageFit, setGuideImageFit] = useState<GuideImageFit>('contain')
@@ -874,17 +1037,6 @@ export default function Step4() {
   const [imageFitModes, setImageFitModes] = useState<Record<number, GuideImageFit>>({})
   const [imageRotations, setImageRotations] = useState<Record<number, number>>({})
   const [activeSlot, setActiveSlot] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (!isImagesMode) return
-    const hasImages = Object.keys(images).length > 0
-    if (hasImages && activeSlot === null) {
-      setActiveSlot(0)
-    }
-    if (!hasImages) {
-      setActiveSlot(null)
-    }
-  }, [images, isImagesMode])
 
   const { refillW, refillH } = useMemo(
     () => resolveRefillDimensions(routeState),
@@ -897,6 +1049,38 @@ export default function Step4() {
   const [backgroundOptionsOpen, setBackgroundOptionsOpen] = useState(false)
   const [borderColor, setBorderColor] = useState<string>(DEFAULT_BORDER_COLOR)
   const [uniformSheetImage, setUniformSheetImage] = useState(false)
+  const [foldImageMode, setFoldImageMode] = useState<FoldImageMode>('panels')
+  const [panoramaImages, setPanoramaImages] = useState<Record<number, string>>({})
+  const [panoramaFitModes, setPanoramaFitModes] = useState<Record<number, GuideImageFit>>({})
+  const [panoramaRotations, setPanoramaRotations] = useState<Record<number, number>>({})
+  const [activePanoramaBook, setActivePanoramaBook] = useState<number | null>(null)
+
+  const layoutMode = routeState?.layoutMode ?? ''
+  const isFoldLayout = isFoldLayoutMode(layoutMode)
+  const foldCount = foldCountFromMode(layoutMode) || 3
+  const isFoldPanoramaMode = isFoldLayout && foldImageMode === 'panorama'
+
+  useEffect(() => {
+    if (!isImagesMode || isFoldPanoramaMode) return
+    const hasImages = Object.keys(images).length > 0
+    if (hasImages && activeSlot === null) {
+      setActiveSlot(0)
+    }
+    if (!hasImages) {
+      setActiveSlot(null)
+    }
+  }, [images, isImagesMode, isFoldPanoramaMode, activeSlot])
+
+  useEffect(() => {
+    if (!isImagesMode || !isFoldPanoramaMode) return
+    const hasPanorama = Object.keys(panoramaImages).length > 0
+    if (hasPanorama && activePanoramaBook === null) {
+      setActivePanoramaBook(0)
+    }
+    if (!hasPanorama) {
+      setActivePanoramaBook(null)
+    }
+  }, [panoramaImages, isImagesMode, isFoldPanoramaMode, activePanoramaBook])
 
   const layoutParams = useMemo(
     () => ({
@@ -961,6 +1145,13 @@ export default function Step4() {
     layoutParams,
     images,
     imageFitModes,
+    imageRotations,
+    foldImageMode,
+    panoramaImages,
+    panoramaFitModes,
+    panoramaRotations,
+    imageAreaMode,
+    holeSide,
     guideImage,
     guideImageFit,
     guideImageRotation,
@@ -995,19 +1186,36 @@ export default function Step4() {
     setBackgroundOptionsOpen((open) => !open)
   }, [])
 
-  const imageEditTarget = useMemo(() => {
-    if (!isImagesMode || activeSlot === null) return null
-    return { kind: 'slot' as const, index: activeSlot }
-  }, [isImagesMode, activeSlot])
+  const imageEditTarget = useMemo((): ImageEditTarget | null => {
+    if (!isImagesMode) return null
+    if (isFoldPanoramaMode) {
+      if (activePanoramaBook === null) return null
+      return { kind: 'panorama', index: activePanoramaBook }
+    }
+    if (activeSlot === null) return null
+    return { kind: 'slot', index: activeSlot }
+  }, [isImagesMode, isFoldPanoramaMode, activeSlot, activePanoramaBook])
 
   const resetAreaEditFocus = useCallback(() => {
     setActiveSlot(null)
+    setActivePanoramaBook(null)
   }, [])
+
+  const resetPanoramaState = useCallback(() => {
+    const cleared = clearPanoramaState()
+    setPanoramaImages(cleared.panoramaImages)
+    setPanoramaFitModes(cleared.panoramaFitModes)
+    setPanoramaRotations(cleared.panoramaRotations)
+  }, [])
+
+  const switchToPanelsFromPanorama = useCallback(() => {
+    setFoldImageMode('panels')
+    resetPanoramaState()
+  }, [resetPanoramaState])
 
   const handleSlotClick = useCallback(
     (index: number) => {
       if (images[index]) {
-        setActiveSlot(null)
         setActiveSlot(index)
         return
       }
@@ -1016,6 +1224,36 @@ export default function Step4() {
     },
     [images],
   )
+
+  const handlePanoramaClick = useCallback(
+    (bookIndex: number) => {
+      if (panoramaImages[bookIndex]) {
+        setActivePanoramaBook(bookIndex)
+        return
+      }
+      filePickPanoramaRef.current = bookIndex
+      fileInputPanoramaRef.current?.click()
+    },
+    [panoramaImages],
+  )
+
+  const handlePanoramaInput = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    const bookIndex = filePickPanoramaRef.current
+    filePickPanoramaRef.current = null
+    if (!file || bookIndex === null) return
+
+    const reader = new FileReader()
+    reader.onload = (loadEvent) => {
+      const result = loadEvent.target?.result
+      if (typeof result !== 'string') return
+      setPanoramaImages((prev) => ({ ...prev, [bookIndex]: result }))
+      setPanoramaRotations((prev) => ({ ...prev, [bookIndex]: prev[bookIndex] ?? 0 }))
+      setActivePanoramaBook(bookIndex)
+    }
+    reader.readAsDataURL(file)
+  }, [])
 
   const handleFileInput = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -1038,6 +1276,10 @@ export default function Step4() {
   const handleEditSetFit = useCallback(
     (mode: Step4SlotFitMode) => {
       if (imageEditTarget === null || !previewLayout) return
+      if (imageEditTarget.kind === 'panorama') {
+        setPanoramaFitModes((prev) => ({ ...prev, [imageEditTarget.index]: mode }))
+        return
+      }
       if (uniformSheetImage) {
         const total = getSlotCount(previewLayout)
         const next: Record<number, GuideImageFit> = {}
@@ -1054,6 +1296,14 @@ export default function Step4() {
 
   const handleEditRotate = useCallback(() => {
     if (imageEditTarget === null || !previewLayout) return
+    if (imageEditTarget.kind === 'panorama') {
+      const bookIndex = imageEditTarget.index
+      setPanoramaRotations((prev) => ({
+        ...prev,
+        [bookIndex]: ((prev[bookIndex] ?? 0) + 90) % 360,
+      }))
+      return
+    }
     const slot = imageEditTarget.index
     const nextRotation = ((imageRotations[slot] ?? 0) + 90) % 360
     if (uniformSheetImage) {
@@ -1072,11 +1322,39 @@ export default function Step4() {
   }, [imageEditTarget, imageRotations, previewLayout, uniformSheetImage])
 
   const handleEditReplace = useCallback(() => {
+    if (imageEditTarget?.kind === 'panorama') {
+      filePickPanoramaRef.current = imageEditTarget.index
+      fileInputPanoramaRef.current?.click()
+      return
+    }
+    if (imageEditTarget?.kind === 'slot') {
+      filePickSlotRef.current = imageEditTarget.index
+    }
     fileInputRef.current?.click()
-  }, [])
+  }, [imageEditTarget])
 
   const handleEditDelete = useCallback(() => {
     if (imageEditTarget === null) return
+    if (imageEditTarget.kind === 'panorama') {
+      const bookIndex = imageEditTarget.index
+      setPanoramaImages((prev) => {
+        const next = { ...prev }
+        delete next[bookIndex]
+        return next
+      })
+      setPanoramaFitModes((prev) => {
+        const next = { ...prev }
+        delete next[bookIndex]
+        return next
+      })
+      setPanoramaRotations((prev) => {
+        const next = { ...prev }
+        delete next[bookIndex]
+        return next
+      })
+      resetAreaEditFocus()
+      return
+    }
     if (uniformSheetImage) {
       setImages({})
       setImageFitModes({})
@@ -1126,10 +1404,15 @@ export default function Step4() {
       )
 
       void Promise.all(readers).then((urls) => {
+        if (isFoldPanoramaMode) {
+          switchToPanelsFromPanorama()
+        }
         setImages((prev) => placeImagesInEmptySlots(prev, urls, total))
+        setUniformSheetImage(false)
+        setActiveSlot(0)
       })
     },
-    [previewLayout],
+    [previewLayout, isFoldPanoramaMode, switchToPanelsFromPanorama],
   )
 
   const handleFillInput = useCallback(
@@ -1145,16 +1428,20 @@ export default function Step4() {
       reader.onload = (loadEvent) => {
         const result = loadEvent.target?.result
         if (typeof result !== 'string') return
+        if (isFoldPanoramaMode) {
+          switchToPanelsFromPanorama()
+        }
         const applied = applyImageToAllSlots(total, result)
         setImages(applied.images)
         setImageFitModes(applied.imageFitModes)
         setImageRotations(applied.imageRotations)
         setUniformSheetImage(true)
-        setActiveSlot(null)
+        setActiveSlot(0)
+        setActivePanoramaBook(null)
       }
       reader.readAsDataURL(file)
     },
-    [previewLayout],
+    [previewLayout, isFoldPanoramaMode, switchToPanelsFromPanorama],
   )
 
   const handleFillAllImages = useCallback(() => {
@@ -1166,8 +1453,9 @@ export default function Step4() {
     setImageFitModes({})
     setImageRotations({})
     setUniformSheetImage(false)
+    resetPanoramaState()
     resetAreaEditFocus()
-  }, [resetAreaEditFocus])
+  }, [resetAreaEditFocus, resetPanoramaState])
 
   const previewAspectRatio =
     previewLayout != null
@@ -1206,11 +1494,17 @@ export default function Step4() {
     ) : isImagesMode && previewLayout ? (
       <ImagesSlotPreview
         layout={previewLayout}
+        foldImageMode={foldImageMode}
         images={images}
         imageFitModes={imageFitModes}
         imageRotations={imageRotations}
+        panoramaImages={panoramaImages}
+        panoramaFitModes={panoramaFitModes}
+        panoramaRotations={panoramaRotations}
         activeSlot={activeSlot}
+        activePanoramaBook={activePanoramaBook}
         onSlotClick={handleSlotClick}
+        onPanoramaClick={handlePanoramaClick}
         layoutParams={layoutParams}
         showHoleGuide={showHoleGuide}
         imageAreaMode={imageAreaMode}
@@ -1313,9 +1607,11 @@ export default function Step4() {
       ) : null}
       {imageEditTarget !== null ? (
         <ImagesEditModeBanner>
-          {uniformSheetImage
-            ? '全枠に同じ画像を配置中。編集は全エリアに反映されます'
-            : `個別編集モード：${imageEditTarget.index + 1}枚目を編集中`}
+          {imageEditTarget.kind === 'panorama'
+            ? `パノラマ編集：${imageEditTarget.index + 1}冊目の帯を編集中`
+            : uniformSheetImage
+              ? '全枠に同じ画像を配置中。編集は全エリアに反映されます'
+              : `個別編集モード：${imageEditTarget.index + 1}枚目を編集中`}
         </ImagesEditModeBanner>
       ) : uniformSheetImage && Object.keys(images).length > 0 ? (
         <ImagesEditModeBanner>
@@ -1373,9 +1669,14 @@ export default function Step4() {
             <Box className="step4-two-column step4-two-column--images">
               <Step4ImagesSidePanel
                 images={images}
+                isFoldLayout={isFoldLayout}
+                foldCount={foldCount}
+                foldImageMode={foldImageMode}
+                onFoldImageModeChange={setFoldImageMode}
                 fileInputRef={fileInputRef}
                 fileInputMultiRef={fileInputMultiRef}
                 fileInputFillRef={fileInputFillRef}
+                fileInputPanoramaRef={fileInputPanoramaRef}
                 imageAreaMode={imageAreaMode}
                 onImageAreaModeChange={setImageAreaMode}
                 onClearAllImages={handleClearAllImages}
@@ -1383,6 +1684,7 @@ export default function Step4() {
                 onFileInput={handleFileInput}
                 onMultiInput={handleMultiInput}
                 onFillInput={handleFillInput}
+                onPanoramaInput={handlePanoramaInput}
               />
               <Box className="step4-main-column">{rightColumnContent}</Box>
             </Box>
@@ -1402,20 +1704,47 @@ export default function Step4() {
       {isImagesMode ? (
         <Step4EditModal
           open={imageEditTarget !== null}
-          slotIndex={imageEditTarget?.index ?? null}
+          slotIndex={
+            imageEditTarget?.kind === 'slot' ? imageEditTarget.index : null
+          }
+          editTitle={
+            imageEditTarget?.kind === 'panorama'
+              ? `パノラマエリア${imageEditTarget.index + 1}を編集`
+              : undefined
+          }
           imageSrc={
-            imageEditTarget !== null ? images[imageEditTarget.index] ?? null : null
+            imageEditTarget?.kind === 'panorama'
+              ? panoramaImages[imageEditTarget.index] ?? null
+              : imageEditTarget?.kind === 'slot'
+                ? images[imageEditTarget.index] ?? null
+                : null
           }
           fitMode={
-            imageEditTarget !== null
-              ? imageFitModes[imageEditTarget.index] ?? 'cover'
-              : 'cover'
+            imageEditTarget?.kind === 'panorama'
+              ? panoramaFitModes[imageEditTarget.index] ?? 'cover'
+              : imageEditTarget?.kind === 'slot'
+                ? imageFitModes[imageEditTarget.index] ?? 'cover'
+                : 'cover'
           }
           rotation={
-            imageEditTarget !== null ? imageRotations[imageEditTarget.index] ?? 0 : 0
+            imageEditTarget?.kind === 'panorama'
+              ? panoramaRotations[imageEditTarget.index] ?? 0
+              : imageEditTarget?.kind === 'slot'
+                ? imageRotations[imageEditTarget.index] ?? 0
+                : 0
           }
-          previewW={previewLayout?.refillW ?? 53}
-          previewH={previewLayout?.refillH ?? 85}
+          previewW={
+            imageEditTarget?.kind === 'panorama' && previewLayout
+              ? getFoldPanoramaPreviewMm(previewLayout, imageAreaMode)?.previewW ??
+                previewLayout.refillW
+              : previewLayout?.refillW ?? 53
+          }
+          previewH={
+            imageEditTarget?.kind === 'panorama' && previewLayout
+              ? getFoldPanoramaPreviewMm(previewLayout, imageAreaMode)?.previewH ??
+                previewLayout.refillH
+              : previewLayout?.refillH ?? 85
+          }
           onClose={resetAreaEditFocus}
           onSetFit={handleEditSetFit}
           onRotate={handleEditRotate}

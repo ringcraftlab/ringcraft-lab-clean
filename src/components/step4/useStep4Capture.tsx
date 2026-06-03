@@ -12,6 +12,9 @@ import {
   rasterizeFitImagesForCapture,
   waitForImagesLoaded,
 } from '../../utils/printCapture'
+import type { ImageAreaMode } from './Step4ImagesSidePanel'
+import type { HoleSide } from './Step4SettingsBlock'
+import { buildPanoramaStripRects, type FoldImageMode } from '../../utils/foldImagePlacement'
 import type {
   PrintTypePreviewLayout,
   PrintTypePreviewLayoutParams,
@@ -164,6 +167,13 @@ interface CaptureSheetProps {
   layoutParams: PrintTypePreviewLayoutParams
   images: Record<number, string>
   imageFitModes: Record<number, GuideImageFit>
+  imageRotations: Record<number, number>
+  foldImageMode: FoldImageMode
+  panoramaImages: Record<number, string>
+  panoramaFitModes: Record<number, GuideImageFit>
+  panoramaRotations: Record<number, number>
+  imageAreaMode: ImageAreaMode
+  holeSide: HoleSide
   guideImage: string
   guideImageFit: GuideImageFit
   guideImageRotation: number
@@ -178,6 +188,13 @@ function CaptureSheet({
   layoutParams,
   images,
   imageFitModes,
+  imageRotations,
+  foldImageMode,
+  panoramaImages,
+  panoramaFitModes,
+  panoramaRotations,
+  imageAreaMode,
+  holeSide,
   guideImage,
   guideImageFit,
   guideImageRotation,
@@ -186,9 +203,50 @@ function CaptureSheet({
   const sheetStyle = captureSheetStyle(paperW_px, paperH_px)
   const isImagesMode = printType === 'images'
   const isBackgroundMode = printType === 'background'
-  const slotRects = buildSlotRects(previewLayout)
+  const isFoldPanorama =
+    isImagesMode &&
+    previewLayout.kind === 'fold' &&
+    foldImageMode === 'panorama'
 
   if (isImagesMode) {
+    if (isFoldPanorama) {
+      const stripRects = buildPanoramaStripRects(previewLayout, imageAreaMode, holeSide)
+      return (
+        <div style={sheetStyle}>
+          {stripRects.map((rect) => {
+            const src = panoramaImages[rect.bookIndex]
+            if (!src) return null
+            return (
+              <div
+                key={`panorama-${rect.bookIndex}`}
+                style={captureSlotStyle({
+                  index: rect.bookIndex,
+                  left: rect.left,
+                  top: rect.top,
+                  width: rect.width,
+                  height: rect.height,
+                })}
+              >
+                <img
+                  src={src}
+                  alt=""
+                  data-fit-mode={panoramaFitModes[rect.bookIndex] ?? 'cover'}
+                  data-rotation={String(panoramaRotations[rect.bookIndex] ?? 0)}
+                  style={captureSlotImageStyle}
+                />
+              </div>
+            )
+          })}
+          {showHoleGuide ? (
+            <div style={captureOverlayLayerStyle}>
+              <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
+            </div>
+          ) : null}
+        </div>
+      )
+    }
+
+    const slotRects = buildSlotRects(previewLayout)
     return (
       <div style={sheetStyle}>
         {slotRects.map((rect) => {
@@ -200,7 +258,7 @@ function CaptureSheet({
                 src={src}
                 alt=""
                 data-fit-mode={imageFitModes[rect.index] ?? 'cover'}
-                data-rotation="0"
+                data-rotation={String(imageRotations[rect.index] ?? 0)}
                 style={captureSlotImageStyle}
               />
             </div>
@@ -257,6 +315,13 @@ export interface UseStep4CaptureParams {
   layoutParams: PrintTypePreviewLayoutParams
   images: Record<number, string>
   imageFitModes: Record<number, GuideImageFit>
+  imageRotations: Record<number, number>
+  foldImageMode: FoldImageMode
+  panoramaImages: Record<number, string>
+  panoramaFitModes: Record<number, GuideImageFit>
+  panoramaRotations: Record<number, number>
+  imageAreaMode: ImageAreaMode
+  holeSide: HoleSide
   guideImage: string
   guideImageFit: GuideImageFit
   guideImageRotation: number
@@ -272,6 +337,13 @@ export function useStep4Capture({
   layoutParams,
   images,
   imageFitModes,
+  imageRotations,
+  foldImageMode,
+  panoramaImages,
+  panoramaFitModes,
+  panoramaRotations,
+  imageAreaMode,
+  holeSide,
   guideImage,
   guideImageFit,
   guideImageRotation,
@@ -302,6 +374,13 @@ export function useStep4Capture({
           layoutParams={layoutParams}
           images={images}
           imageFitModes={imageFitModes}
+          imageRotations={imageRotations}
+          foldImageMode={foldImageMode}
+          panoramaImages={panoramaImages}
+          panoramaFitModes={panoramaFitModes}
+          panoramaRotations={panoramaRotations}
+          imageAreaMode={imageAreaMode}
+          holeSide={holeSide}
           guideImage={guideImage}
           guideImageFit={guideImageFit}
           guideImageRotation={guideImageRotation}
@@ -349,6 +428,13 @@ export function useStep4Capture({
     layoutParams,
     images,
     imageFitModes,
+    imageRotations,
+    foldImageMode,
+    panoramaImages,
+    panoramaFitModes,
+    panoramaRotations,
+    imageAreaMode,
+    holeSide,
     guideImage,
     guideImageFit,
     guideImageRotation,

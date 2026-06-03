@@ -18,6 +18,8 @@ const FIT_OPTIONS: { id: Step4SlotFitMode; label: string }[] = [
 export interface Step4EditModalProps {
   open: boolean
   slotIndex: number | null
+  /** 指定時は `${slotIndex + 1}枚目を編集` の代わりに表示 */
+  editTitle?: string
   imageSrc: string | null
   fitMode: string
   rotation?: number
@@ -181,6 +183,7 @@ function isSlotFitMode(value: string): value is Step4SlotFitMode {
 export default function Step4EditModal({
   open,
   slotIndex,
+  editTitle,
   imageSrc,
   fitMode,
   rotation = 0,
@@ -194,7 +197,8 @@ export default function Step4EditModal({
 }: Step4EditModalProps) {
   const isNarrowInteraction = useMediaQuery(interactionMediaQuery)
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
-  const title = slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集'
+  const title =
+    editTitle ?? (slotIndex !== null ? `${slotIndex + 1}枚目を編集` : '編集')
   const { width, height } = calcPreviewSize(previewW, previewH)
   const hasImage = Boolean(imageSrc)
 
