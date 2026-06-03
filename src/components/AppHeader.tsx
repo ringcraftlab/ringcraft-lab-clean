@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 import { AppHeaderBrandIcon } from './AppHeaderBrandIcon'
 
+export const APP_HEADER_HEIGHT_PX = 56
+
 export interface AppHeaderProps {
   backTo: string
   /** 戻るボタンの aria-label（例: 「リフィル作成に戻る」） */
@@ -17,34 +19,55 @@ export interface AppHeaderProps {
 }
 
 const HeaderBar = styled('header')({
+  position: 'sticky',
+  top: 0,
+  zIndex: 1100,
+  flexShrink: 0,
+  width: '100%',
   display: 'flex',
   alignItems: 'center',
-  minHeight: '56px',
+  minHeight: `${APP_HEADER_HEIGHT_PX}px`,
   backgroundColor: 'var(--color-surface)',
   borderBottom: '1px solid var(--color-border)',
+  boxSizing: 'border-box',
 })
 
-const HeaderInner = styled('div')({
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
+const HeaderInner = styled('div', {
+  shouldForwardProp: (prop) => prop !== 'centered',
+})<{ centered: boolean }>(({ centered }) => ({
   width: '100%',
   maxWidth: 'var(--max-width)',
   margin: '0 auto',
   padding: '0 24px',
-  gap: '12px',
   boxSizing: 'border-box',
-  minHeight: '56px',
+  minHeight: `${APP_HEADER_HEIGHT_PX}px`,
+  alignItems: 'center',
+  ...(centered
+    ? {
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
+        columnGap: '12px',
+      }
+    : {
+        display: 'flex',
+        gap: '12px',
+      }),
   '@media (max-width: 900px)': {
     paddingLeft: '16px',
     paddingRight: '16px',
-    gap: '8px',
+    ...(centered ? { columnGap: '8px' } : { gap: '8px' }),
   },
+}))
+
+const HeaderLead = styled('div')({
+  justifySelf: 'start',
+  minWidth: 0,
+  display: 'flex',
+  alignItems: 'center',
+  zIndex: 1,
 })
 
 const BackLink = styled(Link)({
-  position: 'relative',
-  zIndex: 1,
   flexShrink: 0,
   display: 'inline-flex',
   alignItems: 'center',
@@ -62,15 +85,15 @@ const BackLink = styled(Link)({
   },
 })
 
-const Title = styled('h1', {
-  shouldForwardProp: (prop) => prop !== 'centered',
-})<{ centered: boolean }>(({ centered }) => ({
+const Title = styled('h1')({
   margin: 0,
   padding: 0,
-  display: 'flex',
+  display: 'inline-flex',
   alignItems: 'center',
+  justifyContent: 'center',
   gap: '8px',
   minWidth: 0,
+  maxWidth: '100%',
   color: 'var(--color-text-h)',
   fontWeight: 700,
   fontSize: '18px',
@@ -79,24 +102,22 @@ const Title = styled('h1', {
   '@media (max-width: 900px)': {
     fontSize: '14px',
   },
-  ...(centered
-    ? {
-        position: 'absolute',
-        left: '50%',
-        top: 0,
-        bottom: 0,
-        transform: 'translateX(-50%)',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        pointerEvents: 'none',
-        zIndex: 0,
-      }
-    : {
-        position: 'static',
-        justifyContent: 'flex-start',
-        flex: '1 1 auto',
-      }),
-}))
+})
+
+const TitleHome = styled(Title)({
+  position: 'static',
+  justifyContent: 'flex-start',
+  flex: '1 1 auto',
+})
+
+const TitleCenter = styled(Title)({
+  position: 'static',
+  justifySelf: 'center',
+  gridColumn: 2,
+  pointerEvents: 'none',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+})
 
 const TitleText = styled('span')({
   overflow: 'hidden',
@@ -106,13 +127,25 @@ const TitleText = styled('span')({
 })
 
 const Trailing = styled('div')({
-  position: 'relative',
-  zIndex: 1,
-  marginLeft: 'auto',
-  flexShrink: 0,
+  justifySelf: 'end',
+  minWidth: 0,
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'flex-end',
   gap: '16px',
+  zIndex: 1,
+})
+
+const TrailingHome = styled(Trailing)({
+  marginLeft: 'auto',
+})
+
+const TrailSpacer = styled('div')({
+  justifySelf: 'end',
+  minWidth: 0,
+  width: '1.5rem',
+  height: '1.5rem',
+  pointerEvents: 'none',
 })
 
 const Nav = styled('nav')({
@@ -156,19 +189,37 @@ export default function AppHeader({
   showBack = true,
   trailing,
 }: AppHeaderProps) {
+  if (!showBack) {
+    return (
+      <HeaderBar className="app-header">
+        <HeaderInner centered={false}>
+          <TitleHome className="app-header__title">
+            <AppHeaderBrandIcon />
+            <TitleText className="app-header__title-text">{title}</TitleText>
+          </TitleHome>
+          {trailing ? <TrailingHome>{trailing}</TrailingHome> : null}
+        </HeaderInner>
+      </HeaderBar>
+    )
+  }
+
   return (
     <HeaderBar className="app-header">
-      <HeaderInner>
-        {showBack ? (
+      <HeaderInner centered>
+        <HeaderLead>
           <BackLink to={backTo} state={backState} aria-label={backLabel}>
             <ArrowBackIcon sx={{ fontSize: '1.5rem' }} />
           </BackLink>
-        ) : null}
-        <Title centered={showBack}>
+        </HeaderLead>
+        <TitleCenter>
           <AppHeaderBrandIcon />
-          <TitleText>{title}</TitleText>
-        </Title>
-        {trailing ? <Trailing>{trailing}</Trailing> : null}
+          <TitleText className="app-header__title-text">{title}</TitleText>
+        </TitleCenter>
+        {trailing ? (
+          <Trailing>{trailing}</Trailing>
+        ) : (
+          <TrailSpacer aria-hidden />
+        )}
       </HeaderInner>
     </HeaderBar>
   )

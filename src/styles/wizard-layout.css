@@ -268,8 +268,8 @@
     display: inline;
   }
 
-  .wizard-header__title,
-  .app-header__title {
+  /* AppHeader 中央タイトルは Emotion の grid で制御（ここで上書きしない） */
+  .wizard-header__title {
     justify-content: flex-start;
     font-size: 16px;
   }

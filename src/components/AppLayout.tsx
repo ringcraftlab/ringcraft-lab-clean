@@ -14,6 +14,8 @@ export interface AppLayoutProps {
 }
 
 const PageRoot = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
   minHeight: '100vh',
   backgroundColor: 'var(--color-bg)',
   color: 'var(--color-text)',
