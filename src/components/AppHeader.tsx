@@ -83,24 +83,26 @@ const Title = styled('h1')({
   alignItems: 'center',
   justifyContent: 'center',
   gap: '8px',
+  minWidth: 0,
   color: 'var(--color-text-h)',
   fontWeight: 700,
   fontSize: '18px',
   lineHeight: 1.4,
   whiteSpace: 'nowrap',
+  overflow: 'hidden',
   pointerEvents: 'none',
   zIndex: 0,
   boxSizing: 'border-box',
-  padding: '0 11rem',
   '@media (max-width: 900px)': {
     fontSize: '14px',
-    padding: '0 4.5rem 0 5rem',
   },
 })
 
 const TitleText = styled('span')({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  minWidth: 0,
 })
 
 const Trailing = styled('div')({
