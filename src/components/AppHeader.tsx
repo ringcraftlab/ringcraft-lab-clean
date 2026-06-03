@@ -1,3 +1,4 @@
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
@@ -5,7 +6,7 @@ import { AppHeaderBrandIcon } from './AppHeaderBrandIcon'
 
 export interface AppHeaderProps {
   backTo: string
-  /** Desktop / wide: full label e.g. 「← リフィル作成に戻る」 */
+  /** 戻るボタンの aria-label（例: 「リフィル作成に戻る」） */
   backLabel: string
   title?: string
   backState?: object
@@ -45,30 +46,19 @@ const BackLink = styled(Link)({
   position: 'relative',
   zIndex: 1,
   flexShrink: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '1.5rem',
+  height: '1.5rem',
   border: 'none',
   background: 'none',
   padding: 0,
   cursor: 'pointer',
   color: 'var(--color-muted)',
-  fontFamily: 'var(--font-body)',
-  fontWeight: 500,
-  fontSize: '1rem',
   textDecoration: 'none',
   '&:hover': {
     color: 'var(--color-primary)',
-  },
-})
-
-const BackLabelFull = styled('span')({
-  '@media (max-width: 900px)': {
-    display: 'none',
-  },
-})
-
-const BackLabelShort = styled('span')({
-  display: 'none',
-  '@media (max-width: 900px)': {
-    display: 'inline',
   },
 })
 
@@ -92,11 +82,10 @@ const Title = styled('h1', {
   ...(centered
     ? {
         position: 'absolute',
-        left: 0,
-        right: 0,
+        left: '50%',
         top: 0,
         bottom: 0,
-        justifyContent: 'center',
+        transform: 'translateX(-50%)',
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         pointerEvents: 'none',
@@ -172,8 +161,7 @@ export default function AppHeader({
       <HeaderInner>
         {showBack ? (
           <BackLink to={backTo} state={backState} aria-label={backLabel}>
-            <BackLabelFull>{backLabel}</BackLabelFull>
-            <BackLabelShort>← 戻る</BackLabelShort>
+            <ArrowBackIcon sx={{ fontSize: '1.5rem' }} />
           </BackLink>
         ) : null}
         <Title centered={showBack}>
