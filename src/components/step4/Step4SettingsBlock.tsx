@@ -89,15 +89,32 @@ export interface Step4SettingsBlockProps {
   onShowHoleGuideChange: (value: boolean) => void
   holeSide: HoleSide
   onHoleSideChange: (side: HoleSide) => void
+  /** シート配置時は全枠の穴。折り時は帯の穴列 */
+  holeSideAppliesToAllSlots?: boolean
+  isFoldLayout?: boolean
+  showFoldGuides?: boolean
+  onShowFoldGuidesChange?: (value: boolean) => void
   borderColor: string
   onBorderColorChange: (color: string) => void
 }
+
+const FoldGuideHint = styled('p')({
+  margin: 0,
+  color: 'var(--color-muted)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.8125rem',
+  lineHeight: 1.55,
+})
 
 export default function Step4SettingsBlock({
   showHoleGuide,
   onShowHoleGuideChange,
   holeSide,
   onHoleSideChange,
+  holeSideAppliesToAllSlots = false,
+  isFoldLayout = false,
+  showFoldGuides = true,
+  onShowFoldGuidesChange,
   borderColor,
   onBorderColorChange,
 }: Step4SettingsBlockProps) {
@@ -123,7 +140,9 @@ export default function Step4SettingsBlock({
           </SettingsControls>
         </SettingsGroup>
         <SettingsGroup muted={!showHoleGuide}>
-          <SettingsLabel>穴の位置</SettingsLabel>
+          <SettingsLabel>
+            {holeSideAppliesToAllSlots ? '穴の位置（全枠）' : '穴の位置'}
+          </SettingsLabel>
           <SettingsControls>
             <SettingsToggleButton
               type="button"
@@ -144,6 +163,31 @@ export default function Step4SettingsBlock({
           </SettingsControls>
         </SettingsGroup>
       </Box>
+      {isFoldLayout && onShowFoldGuidesChange ? (
+        <Box className="step4-settings__row--fold-guide">
+          <SettingsGroup>
+            <SettingsLabel>折り目ガイド</SettingsLabel>
+            <SettingsControls>
+              <Switch
+                checked={showFoldGuides}
+                onChange={(e) => onShowFoldGuidesChange(e.target.checked)}
+                size="small"
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': {
+                    color: 'var(--color-primary)',
+                  },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: 'var(--color-primary)',
+                  },
+                }}
+              />
+            </SettingsControls>
+          </SettingsGroup>
+          <FoldGuideHint>
+            ONのとき、折り位置の上下に短い破線（各2mm）をプレビューとPDFに入れます。
+          </FoldGuideHint>
+        </Box>
+      ) : null}
       <Box className="step4-settings__row--color">
         <SettingsLabel>線の色</SettingsLabel>
         <Box className="step4-settings__swatches" role="group" aria-label="線の色">

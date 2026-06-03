@@ -16,6 +16,10 @@ export interface PrintTypePreviewLayoutParams {
   customHoleStandard?: string
   showHoleGuide?: boolean
   holeSide?: 'left' | 'right'
+  /** シート配置時の枠ごと穴の左右（index = スロット番号） */
+  holeSides?: Record<number, 'left' | 'right'>
+  /** 折りレイアウト時の折り目ガイド（上下チック） */
+  showFoldGuides?: boolean
   /** リフィル枠線色（frame / images オーバーレイ） */
   borderColor?: string
   showBorder?: boolean

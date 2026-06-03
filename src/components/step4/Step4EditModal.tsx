@@ -6,6 +6,7 @@ import { styled } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import AppButton from '../AppButton'
 import { interactionMediaQuery } from '../../constants/breakpoints'
+import type { HoleSide } from './Step4SettingsBlock'
 
 export type Step4SlotFitMode = 'cover' | 'contain' | 'fill'
 
@@ -30,6 +31,11 @@ export interface Step4EditModalProps {
   onRotate: () => void
   onReplace: () => void
   onDelete: () => void
+  /** シート配置の枠編集時のみ。折りは左端固定表示 */
+  showHolePosition?: boolean
+  holeSide?: HoleSide
+  isFoldLayout?: boolean
+  onHoleSideChange?: (side: HoleSide) => void
 }
 
 function calcPreviewSize(previewW: number, previewH: number) {
@@ -162,6 +168,50 @@ const RotateButton = styled('button')({
   cursor: 'pointer',
 })
 
+const HoleSideRow = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '10px',
+  marginTop: '4px',
+})
+
+const HoleSideLabel = styled('span')({
+  color: 'var(--color-text-h)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+})
+
+const HoleSideHint = styled('span')({
+  color: 'var(--color-muted)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.8125rem',
+})
+
+const HoleSideControls = styled(Box)({
+  display: 'flex',
+  gap: '6px',
+})
+
+const HoleSideButton = styled('button', {
+  shouldForwardProp: (prop) => prop !== 'active',
+})<{ active?: boolean }>(({ active }) => ({
+  minWidth: '44px',
+  minHeight: '36px',
+  padding: '0 12px',
+  borderRadius: '8px',
+  border: active ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+  background: active
+    ? 'color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))'
+    : 'var(--color-surface)',
+  color: 'var(--color-text-h)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.8125rem',
+  fontWeight: active ? 600 : 500,
+  cursor: 'pointer',
+}))
+
 const DeleteButton = styled('button')({
   width: '100%',
   minHeight: '40px',
@@ -194,6 +244,10 @@ export default function Step4EditModal({
   onRotate,
   onReplace,
   onDelete,
+  showHolePosition = false,
+  holeSide = 'left',
+  isFoldLayout = false,
+  onHoleSideChange,
 }: Step4EditModalProps) {
   const isNarrowInteraction = useMediaQuery(interactionMediaQuery)
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
@@ -221,6 +275,32 @@ export default function Step4EditModal({
         <ReplaceButton type="button" onClick={onReplace}>
           画像を差し替え
         </ReplaceButton>
+      ) : null}
+
+      {showHolePosition ? (
+        <HoleSideRow>
+          <HoleSideLabel>穴の位置</HoleSideLabel>
+          {isFoldLayout ? (
+            <HoleSideHint>左端固定</HoleSideHint>
+          ) : (
+            <HoleSideControls>
+              <HoleSideButton
+                type="button"
+                active={holeSide === 'left'}
+                onClick={() => onHoleSideChange?.('left')}
+              >
+                左
+              </HoleSideButton>
+              <HoleSideButton
+                type="button"
+                active={holeSide === 'right'}
+                onClick={() => onHoleSideChange?.('right')}
+              >
+                右
+              </HoleSideButton>
+            </HoleSideControls>
+          )}
+        </HoleSideRow>
       ) : null}
 
       <FitRow>

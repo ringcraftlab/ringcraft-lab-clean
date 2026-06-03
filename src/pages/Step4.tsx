@@ -8,6 +8,7 @@ import { styled } from '@mui/material/styles'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
+import FoldGuideTicksOverlay from '../components/FoldGuideTicksOverlay'
 import AppLayout from '../components/AppLayout'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
@@ -47,6 +48,10 @@ import {
   type PrintTypePreviewLayoutParams,
 } from '../utils/printTypePreviewLayout'
 import { refillSheetCellBorders } from '../utils/refillBorderColors'
+import {
+  buildAllSlotHoleSides,
+  resolveSlotHoleSide,
+} from '../utils/slotHoleSide'
 
 type Step4LocationState = {
   sizeId?: string
@@ -813,6 +818,7 @@ interface ImagesSlotPreviewProps {
   imageAreaMode: ImageAreaMode
   borderColor: string
   showBorder: boolean
+  showFoldGuides: boolean
 }
 
 function ImagesSlotPreview({
@@ -833,6 +839,7 @@ function ImagesSlotPreview({
   imageAreaMode,
   borderColor,
   showBorder,
+  showFoldGuides,
 }: ImagesSlotPreviewProps) {
   const aspectRatio = `${layout.paperW} / ${layout.paperH}`
   const slotRects = useMemo(() => buildSlotRects(layout), [layout])
@@ -848,7 +855,8 @@ function ImagesSlotPreview({
   const gridCols = layout.kind === 'sheet' ? layout.cols : layout.fold.foldCount
   const gridRows =
     layout.kind === 'sheet' ? layout.rows : layout.fold.bookCount
-  const holeSide = layoutParams.holeSide ?? 'left'
+  const defaultHoleSide = layoutParams.holeSide ?? 'left'
+  const holeSlotSides = layoutParams.holeSides ?? {}
   const slotAreaMetrics = useMemo(
     () => getSlotAreaMetrics(layout, imageAreaMode),
     [layout, imageAreaMode],
@@ -913,6 +921,11 @@ function ImagesSlotPreview({
         const row = Math.floor(rect.index / gridCols)
         const bookIndex =
           layout.kind === 'fold' ? Math.floor(rect.index / gridCols) : row
+        const slotHoleSide = resolveSlotHoleSide(
+          rect.index,
+          holeSlotSides,
+          defaultHoleSide,
+        )
         const cellBorders = refillSheetCellBorders(showBorder, borderColor, {
           col,
           row,
@@ -964,7 +977,7 @@ function ImagesSlotPreview({
             <SlotBadge aria-hidden>{rect.index + 1}</SlotBadge>
             {slotAreaMetrics.showHoleZoneInSlot ? (
               <SlotHoleZone
-                holeSide={holeSide}
+                holeSide={slotHoleSide}
                 zoneWidthPct={slotAreaMetrics.holeZoneWidthPct}
                 layerZIndex={slotAreaMetrics.avoidsHole ? 2 : 1}
               >
@@ -980,7 +993,7 @@ function ImagesSlotPreview({
             ) : null}
             <SlotImageLayer
               avoidsHole={slotAreaMetrics.avoidsHole}
-              holeSide={holeSide}
+              holeSide={slotHoleSide}
               insetStartPct={slotAreaMetrics.imageInsetPct}
               widthPct={slotAreaMetrics.imageWidthPct}
             >
@@ -1000,6 +1013,14 @@ function ImagesSlotPreview({
           </SlotButton>
         )
       })}
+      {layout.kind === 'fold' ? (
+        <FoldGuideTicksOverlay
+          layout={layout}
+          show={showFoldGuides && showBorder}
+          lineColor={borderColor}
+          holeSide={defaultHoleSide}
+        />
+      ) : null}
       {showHoleGuide ? (
         <ImagesPreviewOverlayLayer data-overlay-layer>
           <PrintTypePreview
@@ -1045,6 +1066,8 @@ export default function Step4() {
 
   const [showHoleGuide, setShowHoleGuide] = useState(true)
   const [holeSide, setHoleSide] = useState<HoleSide>('left')
+  const [holeSlotSides, setHoleSlotSides] = useState<Record<number, HoleSide>>({})
+  const [showFoldGuides, setShowFoldGuides] = useState(true)
   const [imageAreaMode, setImageAreaMode] = useState<ImageAreaMode>('avoid')
   const [backgroundOptionsOpen, setBackgroundOptionsOpen] = useState(false)
   const [borderColor, setBorderColor] = useState<string>(DEFAULT_BORDER_COLOR)
@@ -1091,15 +1114,50 @@ export default function Step4() {
       customHoleStandard: routeState?.customHoleStandard,
       showHoleGuide,
       holeSide,
+      holeSides: holeSlotSides,
+      showFoldGuides,
       borderColor,
       showBorder: true,
     }),
-    [refillW, refillH, routeState, showHoleGuide, holeSide, borderColor],
+    [
+      refillW,
+      refillH,
+      routeState,
+      showHoleGuide,
+      holeSide,
+      holeSlotSides,
+      showFoldGuides,
+      borderColor,
+    ],
   )
 
   const previewLayout = useMemo(
     () => buildPrintTypePreviewLayout(layoutParams),
     [layoutParams],
+  )
+
+  const handleHoleSideChange = useCallback(
+    (side: HoleSide) => {
+      setHoleSide(side)
+      if (!previewLayout || previewLayout.kind === 'fold') return
+      const total = getSlotCount(previewLayout)
+      setHoleSlotSides(buildAllSlotHoleSides(total, side))
+    },
+    [previewLayout],
+  )
+
+  const setSlotHoleSide = useCallback(
+    (slotIndex: number, side: HoleSide) => {
+      if (!previewLayout) return
+      if (uniformSheetImage) {
+        const total = getSlotCount(previewLayout)
+        setHoleSlotSides(buildAllSlotHoleSides(total, side))
+        setHoleSide(side)
+        return
+      }
+      setHoleSlotSides((prev) => ({ ...prev, [slotIndex]: side }))
+    },
+    [previewLayout, uniformSheetImage],
   )
 
   const layoutSubtext = useMemo(
@@ -1408,11 +1466,18 @@ export default function Step4() {
           switchToPanelsFromPanorama()
         }
         setImages((prev) => placeImagesInEmptySlots(prev, urls, total))
+        setHoleSlotSides((prev) => {
+          const next = { ...prev }
+          for (let slot = 0; slot < total; slot += 1) {
+            if (next[slot] === undefined) next[slot] = holeSide
+          }
+          return next
+        })
         setUniformSheetImage(false)
         setActiveSlot(0)
       })
     },
-    [previewLayout, isFoldPanoramaMode, switchToPanelsFromPanorama],
+    [previewLayout, isFoldPanoramaMode, switchToPanelsFromPanorama, holeSide],
   )
 
   const handleFillInput = useCallback(
@@ -1435,13 +1500,14 @@ export default function Step4() {
         setImages(applied.images)
         setImageFitModes(applied.imageFitModes)
         setImageRotations(applied.imageRotations)
+        setHoleSlotSides(buildAllSlotHoleSides(total, holeSide))
         setUniformSheetImage(true)
         setActiveSlot(0)
         setActivePanoramaBook(null)
       }
       reader.readAsDataURL(file)
     },
-    [previewLayout, isFoldPanoramaMode, switchToPanelsFromPanorama],
+    [previewLayout, isFoldPanoramaMode, switchToPanelsFromPanorama, holeSide],
   )
 
   const handleFillAllImages = useCallback(() => {
@@ -1453,6 +1519,7 @@ export default function Step4() {
     setImageFitModes({})
     setImageRotations({})
     setUniformSheetImage(false)
+    setHoleSlotSides({})
     resetPanoramaState()
     resetAreaEditFocus()
   }, [resetAreaEditFocus, resetPanoramaState])
@@ -1510,6 +1577,7 @@ export default function Step4() {
         imageAreaMode={imageAreaMode}
         borderColor={borderColor}
         showBorder
+        showFoldGuides={showFoldGuides}
       />
     ) : isImagesMode ? (
       <PreviewFallback>このサイズ・レイアウトではプレビューを表示できません。</PreviewFallback>
@@ -1626,7 +1694,11 @@ export default function Step4() {
         showHoleGuide={showHoleGuide}
         onShowHoleGuideChange={setShowHoleGuide}
         holeSide={holeSide}
-        onHoleSideChange={setHoleSide}
+        onHoleSideChange={handleHoleSideChange}
+        holeSideAppliesToAllSlots={previewLayout?.kind === 'sheet'}
+        isFoldLayout={isFoldLayout}
+        showFoldGuides={showFoldGuides}
+        onShowFoldGuidesChange={setShowFoldGuides}
         borderColor={borderColor}
         onBorderColorChange={setBorderColor}
       />
@@ -1745,6 +1817,18 @@ export default function Step4() {
                 previewLayout.refillH
               : previewLayout?.refillH ?? 85
           }
+          showHolePosition={imageEditTarget?.kind === 'slot'}
+          holeSide={
+            imageEditTarget?.kind === 'slot'
+              ? resolveSlotHoleSide(imageEditTarget.index, holeSlotSides, holeSide)
+              : 'left'
+          }
+          isFoldLayout={isFoldLayout}
+          onHoleSideChange={(side) => {
+            if (imageEditTarget?.kind === 'slot') {
+              setSlotHoleSide(imageEditTarget.index, side)
+            }
+          }}
           onClose={resetAreaEditFocus}
           onSetFit={handleEditSetFit}
           onRotate={handleEditRotate}
