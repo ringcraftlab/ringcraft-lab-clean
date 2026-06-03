@@ -36,6 +36,8 @@ export interface Step4EditModalProps {
   holeSide?: HoleSide
   isFoldLayout?: boolean
   onHoleSideChange?: (side: HoleSide) => void
+  /** パノラマ編集時: 2冊以上あるとき全帯へコピー */
+  onCopyPanoramaToAll?: () => void
 }
 
 function calcPreviewSize(previewW: number, previewH: number) {
@@ -116,6 +118,20 @@ const PreviewImage = styled('img', {
   transform: `rotate(${rotation}deg)`,
   transformOrigin: 'center center',
 }))
+
+const CopyPanoramaButton = styled(AppButton)({
+  width: '100%',
+  minHeight: '36px',
+  fontSize: '0.8125rem',
+  fontWeight: 600,
+  backgroundColor: 'var(--color-surface)',
+  color: 'var(--color-primary)',
+  border: '2px solid var(--color-primary)',
+  '&:hover': {
+    filter: 'none',
+    backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))',
+  },
+})
 
 const ReplaceButton = styled(AppButton)({
   width: '100%',
@@ -248,6 +264,7 @@ export default function Step4EditModal({
   holeSide = 'left',
   isFoldLayout = false,
   onHoleSideChange,
+  onCopyPanoramaToAll,
 }: Step4EditModalProps) {
   const isNarrowInteraction = useMediaQuery(interactionMediaQuery)
   const activeFit: Step4SlotFitMode = isSlotFitMode(fitMode) ? fitMode : 'cover'
@@ -275,6 +292,12 @@ export default function Step4EditModal({
         <ReplaceButton type="button" onClick={onReplace}>
           画像を差し替え
         </ReplaceButton>
+      ) : null}
+
+      {hasImage && onCopyPanoramaToAll ? (
+        <CopyPanoramaButton type="button" onClick={onCopyPanoramaToAll}>
+          この帯の画像を全帯にコピー
+        </CopyPanoramaButton>
       ) : null}
 
       {showHolePosition ? (

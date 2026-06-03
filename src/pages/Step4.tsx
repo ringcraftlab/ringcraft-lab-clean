@@ -33,6 +33,7 @@ import { getHolePositions, SIZE_PICKER_LINES, SIZES, type SizeDefinition } from 
 import {
   buildPanoramaStripRects,
   clearPanoramaState,
+  copyPanoramaToAllBooks,
   getFoldPanoramaPreviewMm,
   type FoldImageMode,
 } from '../utils/foldImagePlacement'
@@ -1068,6 +1069,7 @@ export default function Step4() {
   const [holeSide, setHoleSide] = useState<HoleSide>('left')
   const [holeSlotSides, setHoleSlotSides] = useState<Record<number, HoleSide>>({})
   const [showFoldGuides, setShowFoldGuides] = useState(true)
+  const [showBorder, setShowBorder] = useState(true)
   const [imageAreaMode, setImageAreaMode] = useState<ImageAreaMode>('avoid')
   const [backgroundOptionsOpen, setBackgroundOptionsOpen] = useState(false)
   const [borderColor, setBorderColor] = useState<string>(DEFAULT_BORDER_COLOR)
@@ -1117,7 +1119,7 @@ export default function Step4() {
       holeSides: holeSlotSides,
       showFoldGuides,
       borderColor,
-      showBorder: true,
+      showBorder,
     }),
     [
       refillW,
@@ -1128,6 +1130,7 @@ export default function Step4() {
       holeSlotSides,
       showFoldGuides,
       borderColor,
+      showBorder,
     ],
   )
 
@@ -1258,6 +1261,30 @@ export default function Step4() {
     setActiveSlot(null)
     setActivePanoramaBook(null)
   }, [])
+
+  const panoramaBookCount =
+    previewLayout?.kind === 'fold' ? previewLayout.fold.bookCount : 0
+
+  const handleCopyPanoramaToAll = useCallback(() => {
+    if (imageEditTarget?.kind !== 'panorama' || panoramaBookCount < 2) return
+    const copied = copyPanoramaToAllBooks(
+      imageEditTarget.index,
+      panoramaBookCount,
+      panoramaImages,
+      panoramaFitModes,
+      panoramaRotations,
+    )
+    if (!copied) return
+    setPanoramaImages(copied.panoramaImages)
+    setPanoramaFitModes(copied.panoramaFitModes)
+    setPanoramaRotations(copied.panoramaRotations)
+  }, [
+    imageEditTarget,
+    panoramaBookCount,
+    panoramaImages,
+    panoramaFitModes,
+    panoramaRotations,
+  ])
 
   const resetPanoramaState = useCallback(() => {
     const cleared = clearPanoramaState()
@@ -1576,7 +1603,7 @@ export default function Step4() {
         showHoleGuide={showHoleGuide}
         imageAreaMode={imageAreaMode}
         borderColor={borderColor}
-        showBorder
+        showBorder={showBorder}
         showFoldGuides={showFoldGuides}
       />
     ) : isImagesMode ? (
@@ -1699,6 +1726,8 @@ export default function Step4() {
         isFoldLayout={isFoldLayout}
         showFoldGuides={showFoldGuides}
         onShowFoldGuidesChange={setShowFoldGuides}
+        showBorder={showBorder}
+        onShowBorderChange={setShowBorder}
         borderColor={borderColor}
         onBorderColorChange={setBorderColor}
       />
@@ -1829,6 +1858,13 @@ export default function Step4() {
               setSlotHoleSide(imageEditTarget.index, side)
             }
           }}
+          onCopyPanoramaToAll={
+            imageEditTarget?.kind === 'panorama' &&
+            panoramaBookCount >= 2 &&
+            panoramaImages[imageEditTarget.index]
+              ? handleCopyPanoramaToAll
+              : undefined
+          }
           onClose={resetAreaEditFocus}
           onSetFit={handleEditSetFit}
           onRotate={handleEditRotate}

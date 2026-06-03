@@ -94,6 +94,8 @@ export interface Step4SettingsBlockProps {
   isFoldLayout?: boolean
   showFoldGuides?: boolean
   onShowFoldGuidesChange?: (value: boolean) => void
+  showBorder: boolean
+  onShowBorderChange: (value: boolean) => void
   borderColor: string
   onBorderColorChange: (color: string) => void
 }
@@ -115,6 +117,8 @@ export default function Step4SettingsBlock({
   isFoldLayout = false,
   showFoldGuides = true,
   onShowFoldGuidesChange,
+  showBorder,
+  onShowBorderChange,
   borderColor,
   onBorderColorChange,
 }: Step4SettingsBlockProps) {
@@ -188,7 +192,30 @@ export default function Step4SettingsBlock({
           </FoldGuideHint>
         </Box>
       ) : null}
-      <Box className="step4-settings__row--color">
+      <Box className="step4-settings__row--border">
+        <SettingsGroup>
+          <SettingsLabel>枠線を表示</SettingsLabel>
+          <SettingsControls>
+            <Switch
+              checked={showBorder}
+              onChange={(e) => onShowBorderChange(e.target.checked)}
+              size="small"
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': {
+                  color: 'var(--color-primary)',
+                },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                  backgroundColor: 'var(--color-primary)',
+                },
+              }}
+            />
+          </SettingsControls>
+        </SettingsGroup>
+      </Box>
+      <Box
+        className="step4-settings__row--color"
+        sx={{ opacity: showBorder ? 1 : 0.55 }}
+      >
         <SettingsLabel>線の色</SettingsLabel>
         <Box className="step4-settings__swatches" role="group" aria-label="線の色">
           {BORDER_COLOR_PRESETS.map((preset) => (

@@ -63,6 +63,42 @@ export function getFoldPanoramaPreviewMm(
   }
 }
 
+export type PanoramaFitMode = 'cover' | 'contain' | 'fill'
+
+/** 1冊分のパノラマを全帯へ複製 */
+export function copyPanoramaToAllBooks(
+  sourceBookIndex: number,
+  bookCount: number,
+  panoramaImages: Record<number, string>,
+  panoramaFitModes: Record<number, PanoramaFitMode>,
+  panoramaRotations: Record<number, number>,
+): {
+  panoramaImages: Record<number, string>
+  panoramaFitModes: Record<number, PanoramaFitMode>
+  panoramaRotations: Record<number, number>
+} | null {
+  const sourceImage = panoramaImages[sourceBookIndex]
+  if (!sourceImage || bookCount <= 0) return null
+
+  const sourceFit = panoramaFitModes[sourceBookIndex]
+  const sourceRotation = panoramaRotations[sourceBookIndex] ?? 0
+  const panoramaImagesNext: Record<number, string> = {}
+  const panoramaFitModesNext: Record<number, PanoramaFitMode> = {}
+  const panoramaRotationsNext: Record<number, number> = {}
+
+  for (let i = 0; i < bookCount; i += 1) {
+    panoramaImagesNext[i] = sourceImage
+    if (sourceFit) panoramaFitModesNext[i] = sourceFit
+    panoramaRotationsNext[i] = sourceRotation
+  }
+
+  return {
+    panoramaImages: panoramaImagesNext,
+    panoramaFitModes: panoramaFitModesNext,
+    panoramaRotations: panoramaRotationsNext,
+  }
+}
+
 export function clearPanoramaState(): {
   panoramaImages: Record<number, string>
   panoramaFitModes: Record<number, 'cover' | 'contain' | 'fill'>
