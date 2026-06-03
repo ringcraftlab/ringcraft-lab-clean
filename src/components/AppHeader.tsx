@@ -23,11 +23,9 @@ const HeaderBar = styled('header')({
   borderBottom: '1px solid var(--color-border)',
 })
 
-const HeaderInner = styled('div', {
-  shouldForwardProp: (prop) => prop !== 'noBack',
-})<{ noBack?: boolean }>(({ noBack }) => ({
-  display: 'grid',
-  gridTemplateColumns: noBack ? '1fr auto' : 'auto 1fr auto',
+const HeaderInner = styled('div')({
+  position: 'relative',
+  display: 'flex',
   alignItems: 'center',
   width: '100%',
   maxWidth: 'var(--max-width)',
@@ -35,16 +33,18 @@ const HeaderInner = styled('div', {
   padding: '0 24px',
   gap: '12px',
   boxSizing: 'border-box',
+  minHeight: '56px',
   '@media (max-width: 900px)': {
-    gridTemplateColumns: noBack ? '1fr auto' : 'auto minmax(0, 1fr)',
     paddingLeft: '16px',
     paddingRight: '16px',
     gap: '8px',
   },
-}))
+})
 
 const BackLink = styled(Link)({
-  gridColumn: '1',
+  position: 'relative',
+  zIndex: 1,
+  flexShrink: 0,
   border: 'none',
   background: 'none',
   padding: 0,
@@ -54,8 +54,6 @@ const BackLink = styled(Link)({
   fontWeight: 500,
   fontSize: '1rem',
   textDecoration: 'none',
-  flexShrink: 0,
-  justifySelf: 'start',
   '&:hover': {
     color: 'var(--color-primary)',
   },
@@ -74,41 +72,42 @@ const BackLabelShort = styled('span')({
   },
 })
 
-const Title = styled('h1', {
-  shouldForwardProp: (prop) => prop !== 'noBack',
-})<{ noBack?: boolean }>(({ noBack }) => ({
-  gridColumn: noBack ? '1' : '2',
+const Title = styled('h1')({
+  position: 'absolute',
+  left: '50%',
+  transform: 'translateX(-50%)',
   margin: 0,
   display: 'inline-flex',
   alignItems: 'center',
-  justifyContent: 'center',
   gap: '8px',
-  minWidth: 0,
   color: 'var(--color-text-h)',
   fontWeight: 700,
   fontSize: '18px',
   lineHeight: 1.4,
+  whiteSpace: 'nowrap',
+  pointerEvents: 'none',
+  zIndex: 0,
+  maxWidth: 'calc(100% - 120px)',
   '@media (max-width: 900px)': {
-    justifyContent: noBack ? 'flex-start' : 'flex-start',
-    fontSize: '16px',
+    fontSize: '14px',
+    maxWidth: 'calc(100% - 96px)',
   },
-}))
+})
 
 const TitleText = styled('span')({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
 })
 
-const Trailing = styled('div', {
-  shouldForwardProp: (prop) => prop !== 'noBack',
-})<{ noBack?: boolean }>(({ noBack }) => ({
-  gridColumn: noBack ? '2' : '3',
+const Trailing = styled('div')({
+  position: 'relative',
+  zIndex: 1,
+  marginLeft: 'auto',
+  flexShrink: 0,
   display: 'flex',
   alignItems: 'center',
   gap: '16px',
-  flexShrink: 0,
-}))
+})
 
 const Nav = styled('nav')({
   display: 'flex',
@@ -151,11 +150,9 @@ export default function AppHeader({
   showBack = true,
   trailing,
 }: AppHeaderProps) {
-  const noBack = !showBack
-
   return (
     <HeaderBar className="wizard-header app-header">
-      <HeaderInner className="wizard-header__inner app-header__inner" noBack={noBack}>
+      <HeaderInner className="wizard-header__inner app-header__inner">
         {showBack ? (
           <BackLink
             to={backTo}
@@ -170,14 +167,12 @@ export default function AppHeader({
             </BackLabelShort>
           </BackLink>
         ) : null}
-        <Title className="wizard-header__title app-header__title" noBack={noBack}>
+        <Title className="wizard-header__title app-header__title">
           <AppHeaderBrandIcon />
           <TitleText className="app-header__title-text">{title}</TitleText>
         </Title>
         {trailing ? (
-          <Trailing className="app-header__trailing" noBack={noBack}>
-            {trailing}
-          </Trailing>
+          <Trailing className="app-header__trailing">{trailing}</Trailing>
         ) : null}
       </HeaderInner>
     </HeaderBar>
