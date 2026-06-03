@@ -20,6 +20,8 @@ export interface PrintTypePreviewLayoutParams {
   holeSides?: Record<number, 'left' | 'right'>
   /** 折りレイアウト時の折り目ガイド（上下チック） */
   showFoldGuides?: boolean
+  /** 個別画像の枠オーバーレイ用。塗りを透明にし線・穴のみ描画 */
+  strokeOnlyOverlay?: boolean
   /** リフィル枠線色（frame / images オーバーレイ） */
   borderColor?: string
   showBorder?: boolean

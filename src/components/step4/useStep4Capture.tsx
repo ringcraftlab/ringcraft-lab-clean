@@ -111,7 +111,13 @@ const captureSlotStyle = (rect: SlotRectPercent): CSSProperties => ({
   overflow: 'hidden',
   margin: 0,
   padding: 0,
+  zIndex: 2,
 })
+
+const captureFrameOverlayStyle: CSSProperties = {
+  ...captureOverlayLayerStyle,
+  zIndex: 1,
+}
 
 const captureSlotImageStyle: CSSProperties = {
   display: 'block',
@@ -208,11 +214,27 @@ function CaptureSheet({
     previewLayout.kind === 'fold' &&
     foldImageMode === 'panorama'
 
+  const frameOverlayParams: PrintTypePreviewLayoutParams = {
+    ...layoutParams,
+    strokeOnlyOverlay: true,
+  }
+
+  const frameOverlay = showHoleGuide ? (
+    <div style={captureFrameOverlayStyle}>
+      <PrintTypePreview
+        variant="frame"
+        layoutParams={frameOverlayParams}
+        emphasized
+      />
+    </div>
+  ) : null
+
   if (isImagesMode) {
     if (isFoldPanorama) {
       const stripRects = buildPanoramaStripRects(previewLayout, imageAreaMode, holeSide)
       return (
         <div style={sheetStyle}>
+          {frameOverlay}
           {stripRects.map((rect) => {
             const src = panoramaImages[rect.bookIndex]
             if (!src) return null
@@ -237,11 +259,6 @@ function CaptureSheet({
               </div>
             )
           })}
-          {showHoleGuide ? (
-            <div style={captureOverlayLayerStyle}>
-              <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
-            </div>
-          ) : null}
         </div>
       )
     }
@@ -249,6 +266,7 @@ function CaptureSheet({
     const slotRects = buildSlotRects(previewLayout)
     return (
       <div style={sheetStyle}>
+        {frameOverlay}
         {slotRects.map((rect) => {
           const src = images[rect.index]
           if (!src) return null
@@ -264,11 +282,6 @@ function CaptureSheet({
             </div>
           )
         })}
-        {showHoleGuide ? (
-          <div style={captureOverlayLayerStyle}>
-            <PrintTypePreview variant="frame" layoutParams={layoutParams} emphasized />
-          </div>
-        ) : null}
       </div>
     )
   }

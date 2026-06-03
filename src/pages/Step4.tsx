@@ -257,7 +257,6 @@ const PanoramaStripButton = styled('button', {
   height: `${stripHeight}%`,
   margin: 0,
   padding: 0,
-  border: 'none',
   backgroundColor: hasImage ? '#ffffff' : '#fdf5f3',
   cursor: 'pointer',
   overflow: 'hidden',
@@ -878,6 +877,12 @@ function ImagesSlotPreview({
             const src = panoramaImages[strip.bookIndex]
             const hasImage = Boolean(src)
             const isActive = activePanoramaBook === strip.bookIndex
+            const stripBorders = refillSheetCellBorders(showBorder, borderColor, {
+              col: 0,
+              row: strip.bookIndex,
+              cols: 1,
+              rows: gridRows,
+            })
             return (
               <PanoramaStripButton
                 key={`panorama-${strip.bookIndex}`}
@@ -888,6 +893,7 @@ function ImagesSlotPreview({
                 stripTop={strip.top}
                 stripWidth={strip.width}
                 stripHeight={strip.height}
+                style={showBorder ? stripBorders : undefined}
                 aria-label={
                   hasImage
                     ? `${strip.bookIndex + 1}冊目のパノラマ画像`
@@ -949,7 +955,6 @@ function ImagesSlotPreview({
               style={{
                 ...cellBorders,
                 backgroundColor: 'transparent',
-                border: 'none',
                 boxShadow: 'none',
                 zIndex: 3,
                 pointerEvents: 'none',
@@ -1023,10 +1028,17 @@ function ImagesSlotPreview({
         />
       ) : null}
       {showHoleGuide ? (
-        <ImagesPreviewOverlayLayer data-overlay-layer>
+        <ImagesPreviewOverlayLayer
+          data-overlay-layer
+          sx={{ opacity: 1 }}
+        >
           <PrintTypePreview
             variant="frame"
-            layoutParams={{ ...layoutParams, showHoleGuide: false }}
+            layoutParams={{
+              ...layoutParams,
+              showHoleGuide: true,
+              strokeOnlyOverlay: true,
+            }}
             emphasized
           />
         </ImagesPreviewOverlayLayer>
