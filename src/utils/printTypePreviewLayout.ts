@@ -16,6 +16,9 @@ export interface PrintTypePreviewLayoutParams {
   customHoleStandard?: string
   showHoleGuide?: boolean
   holeSide?: 'left' | 'right'
+  /** リフィル枠線色（frame / images オーバーレイ） */
+  borderColor?: string
+  showBorder?: boolean
 }
 
 type FoldPreviewLayout = {

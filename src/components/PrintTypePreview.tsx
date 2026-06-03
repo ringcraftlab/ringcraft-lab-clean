@@ -72,16 +72,22 @@ interface SheetCellProps {
   emphasized: boolean
   showHoleGuide: boolean
   holeSide: 'left' | 'right'
+  borderColor?: string
+  showBorder: boolean
 }
 
 type SheetPreviewLayoutWithHoleGuide = Extract<PrintTypePreviewLayout, { kind: 'sheet' }> & {
   showHoleGuide: boolean
   holeSide: 'left' | 'right'
+  borderColor?: string
+  showBorder: boolean
 }
 
 type FoldPreviewLayoutWithHoleGuide = Extract<PrintTypePreviewLayout, { kind: 'fold' }> & {
   showHoleGuide: boolean
   holeSide: 'left' | 'right'
+  borderColor?: string
+  showBorder: boolean
 }
 
 type PreviewLayoutWithHoleGuide = SheetPreviewLayoutWithHoleGuide | FoldPreviewLayoutWithHoleGuide
@@ -196,7 +202,14 @@ function PhotoPlaceholder({ x, y, w, h, emphasized }: PhotoPlaceholderProps) {
   )
 }
 
-function sheetBorderStroke(_variant: PrintTypePreviewVariant, emphasized: boolean) {
+function sheetBorderStroke(
+  _variant: PrintTypePreviewVariant,
+  emphasized: boolean,
+  borderColor?: string,
+  showBorder = true,
+) {
+  if (!showBorder) return 'transparent'
+  if (borderColor) return borderColor
   return emphasized ? BORDER_EMPH : BORDER
 }
 
@@ -212,9 +225,11 @@ function SheetCell({
   emphasized,
   showHoleGuide,
   holeSide,
+  borderColor,
+  showBorder,
 }: SheetCellProps) {
   const isBackground = variant === 'background'
-  const border = sheetBorderStroke(variant, emphasized)
+  const border = sheetBorderStroke(variant, emphasized, borderColor, showBorder)
   const holeStroke = emphasized ? HOLE_EMPH : HOLE
   const sw = emphasized ? 0.52 : 0.4
   const holeCx = holeSide === 'right' ? x + w - holeZoneMm / 2 : x + holeZoneMm / 2
@@ -264,6 +279,8 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
     holeZoneMm,
     showHoleGuide,
     holeSide,
+    borderColor,
+    showBorder,
   } = layout
   const bgPatternId = `print-type-bg-${layout.kind}-${cols}x${rows}`
   const cells: ReactElement[] = []
@@ -292,6 +309,8 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
           emphasized={emphasized}
           showHoleGuide={showHoleGuide}
           holeSide={holeSide}
+          borderColor={borderColor}
+          showBorder={showBorder}
         />,
       )
     }
@@ -345,7 +364,7 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
                 width={refillW}
                 height={refillH}
                 fill="none"
-                stroke={sheetBorderStroke('background', emphasized)}
+                stroke={sheetBorderStroke('background', emphasized, borderColor, showBorder)}
                 strokeWidth={emphasized ? 0.5 : 0.42}
               />
             )
@@ -356,7 +375,18 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
 }
 
 function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
-  const { paperW, paperH, refillH, holePosY, holeZoneMm, fold, showHoleGuide, holeSide } = layout
+  const {
+    paperW,
+    paperH,
+    refillH,
+    holePosY,
+    holeZoneMm,
+    fold,
+    showHoleGuide,
+    holeSide,
+    borderColor,
+    showBorder,
+  } = layout
   const { marginX, marginY, bookCount, foldCount, panelW } = fold
   const strips: ReactElement[] = []
 
@@ -380,7 +410,7 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
           width={stripWidth}
           height={refillH}
           fill={variant === 'background' ? 'none' : '#fff'}
-          stroke={sheetBorderStroke(variant, emphasized)}
+          stroke={sheetBorderStroke(variant, emphasized, borderColor, showBorder)}
           strokeWidth={emphasized ? 0.5 : 0.38}
         />
         {variant !== 'background' ? (
@@ -390,7 +420,7 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
             width={holeZoneMm}
             height={refillH}
             fill="#faf8f5"
-            stroke={sheetBorderStroke(variant, emphasized)}
+            stroke={sheetBorderStroke(variant, emphasized, borderColor, showBorder)}
             strokeWidth={emphasized ? 0.36 : 0.28}
           />
         ) : null}
@@ -418,7 +448,7 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
                   y1={y}
                   x2={x}
                   y2={y + refillH}
-                  stroke={sheetBorderStroke(variant, emphasized)}
+                  stroke={sheetBorderStroke(variant, emphasized, borderColor, showBorder)}
                   strokeWidth={emphasized ? 0.4 : 0.3}
                   strokeDasharray="1.5 1.5"
                 />
@@ -508,6 +538,8 @@ export default function PrintTypePreview({
     ...baseLayout,
     showHoleGuide: layoutParams.showHoleGuide ?? true,
     holeSide: layoutParams.holeSide ?? 'left',
+    borderColor: layoutParams.borderColor,
+    showBorder: layoutParams.showBorder ?? true,
   }
 
   const svg =

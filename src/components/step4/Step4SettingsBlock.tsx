@@ -1,20 +1,16 @@
 import Box from '@mui/material/Box'
 import Switch from '@mui/material/Switch'
 import { styled } from '@mui/material/styles'
+import {
+  DEFAULT_REFILL_BORDER_COLOR,
+  REFILL_BORDER_COLOR_PRESETS,
+} from '../../utils/refillBorderColors'
 
 export type HoleSide = 'left' | 'right'
 
-const BORDER_COLOR_PRESETS = [
-  { id: 'gray', label: 'グレー', hex: '#b0a89e' },
-  { id: 'pink', label: 'ピンク', hex: '#e8a0a0' },
-  { id: 'light-pink', label: '薄ピンク', hex: '#f0c0c0' },
-  { id: 'green', label: 'グリーン', hex: '#8fbfb0' },
-  { id: 'blue', label: 'ブルー', hex: '#6080a8' },
-  { id: 'purple', label: 'パープル', hex: '#9080b0' },
-  { id: 'black', label: 'ブラック', hex: '#000000' },
-] as const
+export const DEFAULT_BORDER_COLOR = DEFAULT_REFILL_BORDER_COLOR
 
-export const DEFAULT_BORDER_COLOR = BORDER_COLOR_PRESETS[6].hex
+const BORDER_COLOR_PRESETS = REFILL_BORDER_COLOR_PRESETS
 
 const SettingsGroup = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'muted',

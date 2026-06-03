@@ -31,6 +31,7 @@ import {
   type PrintTypePreviewLayout,
   type PrintTypePreviewLayoutParams,
 } from '../utils/printTypePreviewLayout'
+import { refillSheetCellBorders } from '../utils/refillBorderColors'
 
 type Step4LocationState = {
   sizeId?: string
@@ -107,14 +108,17 @@ const SlotButton = styled('button', {
   height: `${slotHeight}%`,
   margin: 0,
   padding: 0,
-  border: `2px solid ${isActive ? 'var(--color-primary)' : 'var(--color-border)'}`,
+  border: 'none',
   backgroundColor: hasImage ? '#ffffff' : '#fdf5f3',
   cursor: 'pointer',
   overflow: 'hidden',
-  transition: 'border-color 0.2s ease, background-color 0.2s ease',
-  '&:hover': {
-    borderColor: 'var(--color-primary)',
-  },
+  boxSizing: 'border-box',
+  transition: 'box-shadow 0.2s ease, background-color 0.2s ease',
+  ...(isActive
+    ? {
+        boxShadow: 'inset 0 0 0 2px var(--color-primary)',
+      }
+    : {}),
 }))
 
 const SlotBadge = styled('span')({
@@ -641,6 +645,29 @@ function getSlotCount(layout: PrintTypePreviewLayout): number {
   return layout.cols * layout.rows
 }
 
+function applyImageToAllSlots(
+  total: number,
+  dataUrl: string,
+  fitMode?: GuideImageFit,
+  rotation?: number,
+): {
+  images: Record<number, string>
+  imageFitModes: Record<number, GuideImageFit>
+  imageRotations: Record<number, number>
+} {
+  const images: Record<number, string> = {}
+  const imageFitModes: Record<number, GuideImageFit> = {}
+  const imageRotations: Record<number, number> = {}
+  const fit = fitMode ?? 'cover'
+  const rot = rotation ?? 0
+  for (let slot = 0; slot < total; slot += 1) {
+    images[slot] = dataUrl
+    imageFitModes[slot] = fit
+    imageRotations[slot] = rot
+  }
+  return { images, imageFitModes, imageRotations }
+}
+
 function placeImagesInEmptySlots(
   prev: Record<number, string>,
   urls: string[],
@@ -707,6 +734,8 @@ interface ImagesSlotPreviewProps {
   layoutParams: PrintTypePreviewLayoutParams
   showHoleGuide: boolean
   imageAreaMode: ImageAreaMode
+  borderColor: string
+  showBorder: boolean
 }
 
 function ImagesSlotPreview({
@@ -719,9 +748,14 @@ function ImagesSlotPreview({
   layoutParams,
   showHoleGuide,
   imageAreaMode,
+  borderColor,
+  showBorder,
 }: ImagesSlotPreviewProps) {
   const aspectRatio = `${layout.paperW} / ${layout.paperH}`
   const slotRects = useMemo(() => buildSlotRects(layout), [layout])
+  const gridCols = layout.kind === 'sheet' ? layout.cols : layout.fold.foldCount
+  const gridRows =
+    layout.kind === 'sheet' ? layout.rows : layout.fold.bookCount
   const holeSide = layoutParams.holeSide ?? 'left'
   const slotAreaMetrics = useMemo(
     () => getSlotAreaMetrics(layout, imageAreaMode),
@@ -742,6 +776,14 @@ function ImagesSlotPreview({
         const src = images[rect.index]
         const hasImage = Boolean(src)
         const isActive = activeSlot === rect.index
+        const col = rect.index % gridCols
+        const row = Math.floor(rect.index / gridCols)
+        const cellBorders = refillSheetCellBorders(showBorder, borderColor, {
+          col,
+          row,
+          cols: gridCols,
+          rows: gridRows,
+        })
 
         return (
           <SlotButton
@@ -754,6 +796,7 @@ function ImagesSlotPreview({
             slotTop={rect.top}
             slotWidth={rect.width}
             slotHeight={rect.height}
+            style={cellBorders}
             aria-label={hasImage ? `${rect.index + 1}番の写真` : `${rect.index + 1}番に写真を追加`}
             onClick={() => onSlotClick(rect.index)}
           >
@@ -852,6 +895,8 @@ export default function Step4() {
   const [holeSide, setHoleSide] = useState<HoleSide>('left')
   const [imageAreaMode, setImageAreaMode] = useState<ImageAreaMode>('avoid')
   const [backgroundOptionsOpen, setBackgroundOptionsOpen] = useState(false)
+  const [borderColor, setBorderColor] = useState<string>(DEFAULT_BORDER_COLOR)
+  const [uniformSheetImage, setUniformSheetImage] = useState(false)
 
   const layoutParams = useMemo(
     () => ({
@@ -862,8 +907,10 @@ export default function Step4() {
       customHoleStandard: routeState?.customHoleStandard,
       showHoleGuide,
       holeSide,
+      borderColor,
+      showBorder: true,
     }),
-    [refillW, refillH, routeState, showHoleGuide, holeSide],
+    [refillW, refillH, routeState, showHoleGuide, holeSide, borderColor],
   )
 
   const previewLayout = useMemo(
@@ -906,8 +953,6 @@ export default function Step4() {
       ),
     [routeState?.sizeId, routeState?.customHoleStandard],
   )
-
-  const [borderColor, setBorderColor] = useState<string>(DEFAULT_BORDER_COLOR)
 
   const { handleSavePdf, handlePrint } = useStep4Capture({
     paperMetrics,
@@ -992,20 +1037,39 @@ export default function Step4() {
 
   const handleEditSetFit = useCallback(
     (mode: Step4SlotFitMode) => {
-      if (imageEditTarget === null) return
+      if (imageEditTarget === null || !previewLayout) return
+      if (uniformSheetImage) {
+        const total = getSlotCount(previewLayout)
+        const next: Record<number, GuideImageFit> = {}
+        for (let slot = 0; slot < total; slot += 1) {
+          next[slot] = mode
+        }
+        setImageFitModes(next)
+        return
+      }
       setImageFitModes((prev) => ({ ...prev, [imageEditTarget.index]: mode }))
     },
-    [imageEditTarget],
+    [imageEditTarget, previewLayout, uniformSheetImage],
   )
 
   const handleEditRotate = useCallback(() => {
-    if (imageEditTarget === null) return
+    if (imageEditTarget === null || !previewLayout) return
     const slot = imageEditTarget.index
+    const nextRotation = ((imageRotations[slot] ?? 0) + 90) % 360
+    if (uniformSheetImage) {
+      const total = getSlotCount(previewLayout)
+      const next: Record<number, number> = {}
+      for (let i = 0; i < total; i += 1) {
+        next[i] = nextRotation
+      }
+      setImageRotations(next)
+      return
+    }
     setImageRotations((prev) => ({
       ...prev,
-      [slot]: ((prev[slot] ?? 0) + 90) % 360,
+      [slot]: nextRotation,
     }))
-  }, [imageEditTarget])
+  }, [imageEditTarget, imageRotations, previewLayout, uniformSheetImage])
 
   const handleEditReplace = useCallback(() => {
     fileInputRef.current?.click()
@@ -1013,6 +1077,14 @@ export default function Step4() {
 
   const handleEditDelete = useCallback(() => {
     if (imageEditTarget === null) return
+    if (uniformSheetImage) {
+      setImages({})
+      setImageFitModes({})
+      setImageRotations({})
+      setUniformSheetImage(false)
+      resetAreaEditFocus()
+      return
+    }
     const slot = imageEditTarget.index
     setImages((prev) => {
       const next = { ...prev }
@@ -1030,7 +1102,7 @@ export default function Step4() {
       return next
     })
     resetAreaEditFocus()
-  }, [imageEditTarget, resetAreaEditFocus])
+  }, [imageEditTarget, resetAreaEditFocus, uniformSheetImage])
 
   const handleMultiInput = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -1064,20 +1136,21 @@ export default function Step4() {
     (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
       event.target.value = ''
-      if (!file || !previewLayout || previewLayout.kind !== 'sheet') return
+      if (!file || !previewLayout) return
 
-      const total = previewLayout.cols * previewLayout.rows
+      const total = getSlotCount(previewLayout)
       if (total <= 0) return
 
       const reader = new FileReader()
       reader.onload = (loadEvent) => {
         const result = loadEvent.target?.result
         if (typeof result !== 'string') return
-        const nextImages: Record<number, string> = {}
-        for (let slot = 0; slot < total; slot += 1) {
-          nextImages[slot] = result
-        }
-        setImages(nextImages)
+        const applied = applyImageToAllSlots(total, result)
+        setImages(applied.images)
+        setImageFitModes(applied.imageFitModes)
+        setImageRotations(applied.imageRotations)
+        setUniformSheetImage(true)
+        setActiveSlot(null)
       }
       reader.readAsDataURL(file)
     },
@@ -1085,21 +1158,14 @@ export default function Step4() {
   )
 
   const handleFillAllImages = useCallback(() => {
-    const firstImage = images[0]
-    if (!firstImage) return
-    const sheetLayout = previewLayout?.kind === 'sheet' ? previewLayout : null
-    const total = (sheetLayout?.cols ?? 0) * (sheetLayout?.rows ?? 0)
-    const newImages: Record<number, string> = {}
-    for (let i = 0; i < total; i++) {
-      newImages[i] = firstImage
-    }
-    setImages(newImages)
-  }, [images, previewLayout])
+    fileInputFillRef.current?.click()
+  }, [])
 
   const handleClearAllImages = useCallback(() => {
     setImages({})
     setImageFitModes({})
     setImageRotations({})
+    setUniformSheetImage(false)
     resetAreaEditFocus()
   }, [resetAreaEditFocus])
 
@@ -1148,6 +1214,8 @@ export default function Step4() {
         layoutParams={layoutParams}
         showHoleGuide={showHoleGuide}
         imageAreaMode={imageAreaMode}
+        borderColor={borderColor}
+        showBorder
       />
     ) : isImagesMode ? (
       <PreviewFallback>このサイズ・レイアウトではプレビューを表示できません。</PreviewFallback>
@@ -1245,7 +1313,13 @@ export default function Step4() {
       ) : null}
       {imageEditTarget !== null ? (
         <ImagesEditModeBanner>
-          個別編集モード：{imageEditTarget.index + 1}枚目を編集中
+          {uniformSheetImage
+            ? '全枠に同じ画像を配置中。編集は全エリアに反映されます'
+            : `個別編集モード：${imageEditTarget.index + 1}枚目を編集中`}
+        </ImagesEditModeBanner>
+      ) : uniformSheetImage && Object.keys(images).length > 0 ? (
+        <ImagesEditModeBanner>
+          全枠に同じ画像を配置中。枠をタップして編集できます
         </ImagesEditModeBanner>
       ) : null}
       <PreviewWrap ref={previewRef} data-hole-count={holePositions.length}>
