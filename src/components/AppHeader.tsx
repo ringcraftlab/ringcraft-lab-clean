@@ -72,32 +72,42 @@ const BackLabelShort = styled('span')({
   },
 })
 
-const Title = styled('h1')({
-  position: 'absolute',
-  left: 0,
-  right: 0,
-  top: 0,
-  bottom: 0,
+const Title = styled('h1', {
+  shouldForwardProp: (prop) => prop !== 'centered',
+})<{ centered: boolean }>(({ centered }) => ({
   margin: 0,
   padding: 0,
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center',
   gap: '8px',
   minWidth: 0,
   color: 'var(--color-text-h)',
   fontWeight: 700,
   fontSize: '18px',
   lineHeight: 1.4,
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  pointerEvents: 'none',
-  zIndex: 0,
   boxSizing: 'border-box',
   '@media (max-width: 900px)': {
     fontSize: '14px',
   },
-})
+  ...(centered
+    ? {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }
+    : {
+        position: 'static',
+        justifyContent: 'flex-start',
+        flex: '1 1 auto',
+      }),
+}))
 
 const TitleText = styled('span')({
   overflow: 'hidden',
@@ -166,7 +176,7 @@ export default function AppHeader({
             <BackLabelShort>← 戻る</BackLabelShort>
           </BackLink>
         ) : null}
-        <Title>
+        <Title centered={showBack}>
           <AppHeaderBrandIcon />
           <TitleText>{title}</TitleText>
         </Title>
