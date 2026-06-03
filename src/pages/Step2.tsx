@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
+import AppHeader from '../components/AppHeader'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
 import LayoutGridIcon from '../components/LayoutGridIcon'
@@ -149,21 +149,7 @@ export default function Step2() {
 
   return (
     <div className="wizard-page">
-      <header className="wizard-header">
-        <Box className="wizard-header__inner">
-          <button
-            type="button"
-            className="wizard-header__back"
-            onClick={() => navigate('/tool/step1')}
-          >
-            ← Step1に戻る
-          </button>
-        </Box>
-        <h1 className="wizard-header__title">
-          <AppHeaderBrandIcon />
-          リフィル作成
-        </h1>
-      </header>
+      <AppHeader backTo="/tool/step1" backLabel="← Step1に戻る" />
 
       <Box className="wizard-container">
         <StepBar currentStep={2} />

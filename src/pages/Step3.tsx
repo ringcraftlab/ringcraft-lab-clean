@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
+import AppHeader from '../components/AppHeader'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
 import PrintTypePreview, { type PrintTypePreviewVariant } from '../components/PrintTypePreview'
@@ -121,16 +121,6 @@ export default function Step3() {
 
   const hasLayout = Boolean(routeState?.layoutMode)
 
-  const goBackToStep2 = () => {
-    navigate('/tool/step2', {
-      state: {
-        sizeId: routeState?.sizeId,
-        customW: routeState?.customW,
-        customH: routeState?.customH,
-      },
-    })
-  }
-
   const goToStep4 = () => {
     if (!hasLayout || !selectedPrintTypeId) return
 
@@ -147,17 +137,15 @@ export default function Step3() {
 
   return (
     <div className="wizard-page">
-      <header className="wizard-header">
-        <Box className="wizard-header__inner">
-          <button type="button" className="wizard-header__back" onClick={goBackToStep2}>
-            ← Step2に戻る
-          </button>
-        </Box>
-        <h1 className="wizard-header__title">
-          <AppHeaderBrandIcon />
-          リフィル作成
-        </h1>
-      </header>
+      <AppHeader
+        backTo="/tool/step2"
+        backLabel="← Step2に戻る"
+        backState={{
+          sizeId: routeState?.sizeId,
+          customW: routeState?.customW,
+          customH: routeState?.customH,
+        }}
+      />
 
       <Box className="wizard-container">
         <StepBar currentStep={3} />

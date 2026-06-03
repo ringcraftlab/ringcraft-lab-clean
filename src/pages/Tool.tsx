@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
-import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
+import AppHeader from '../components/AppHeader'
 import HomeFlowCta from '../components/HomeFlowCta'
 import HomeHeroProcessDiagram from '../components/HomeHeroProcessDiagram'
 import HomeHeroPrintImagery from '../components/HomeHeroPrintImagery'
@@ -16,46 +15,6 @@ const Container = styled('div')({
   maxWidth: 'var(--max-width)',
   margin: '0 auto',
   padding: '0 24px',
-})
-
-const Header = styled('header')({
-  display: 'flex',
-  alignItems: 'center',
-  height: '56px',
-  backgroundColor: 'var(--color-surface)',
-  borderBottom: '1px solid var(--color-border)',
-})
-
-const HeaderInner = styled('div')({
-  display: 'flex',
-  alignItems: 'center',
-  width: '100%',
-  padding: '0 24px',
-  gap: '20px',
-})
-
-const BackLink = styled(Link)({
-  color: 'var(--color-muted)',
-  textDecoration: 'none',
-  fontWeight: 500,
-  flexShrink: 0,
-  '&:hover': {
-    color: 'var(--color-primary)',
-  },
-})
-
-const TitleGroup = styled('div')({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-})
-
-const ServiceTitle = styled('h1')({
-  color: 'var(--color-text-h)',
-  fontWeight: 700,
-  fontSize: '20px',
-  lineHeight: 1.4,
-  margin: 0,
 })
 
 const Hero = styled('section')({
@@ -226,15 +185,7 @@ const BottomSection = styled('section')({
 export default function Tool() {
   return (
     <Page>
-      <Header>
-        <HeaderInner>
-          <BackLink to="/">← ホームに戻る</BackLink>
-          <TitleGroup>
-            <AppHeaderBrandIcon />
-            <ServiceTitle>リフィル作成</ServiceTitle>
-          </TitleGroup>
-        </HeaderInner>
-      </Header>
+      <AppHeader backTo="/" backLabel="← ホームに戻る" />
 
       <Container>
         <Hero>

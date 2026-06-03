@@ -6,8 +6,9 @@ import MuiToggleButton from '@mui/material/ToggleButton'
 import MuiToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import { styled } from '@mui/material/styles'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
+import AppHeader from '../components/AppHeader'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
 import PrintTypePreview from '../components/PrintTypePreview'
@@ -267,7 +268,7 @@ const Step4HeaderTitle = styled('h2')({
   margin: 0,
   color: 'var(--color-text-h)',
   fontWeight: 700,
-  fontSize: '1.25rem',
+  fontSize: '1.5rem',
   lineHeight: 1.4,
 })
 
@@ -808,7 +809,6 @@ function ImagesSlotPreview({
 }
 
 export default function Step4() {
-  const navigate = useNavigate()
   const location = useLocation()
   const routeState = (location.state ?? null) as Step4LocationState | null
 
@@ -1097,17 +1097,6 @@ export default function Step4() {
     resetAreaEditFocus()
   }, [resetAreaEditFocus])
 
-  const goBackToStep3 = () => {
-    navigate('/tool/step3', {
-      state: {
-        sizeId: routeState?.sizeId,
-        customW: routeState?.customW,
-        customH: routeState?.customH,
-        layoutMode: routeState?.layoutMode,
-      },
-    })
-  }
-
   const previewAspectRatio =
     previewLayout != null
       ? `${previewLayout.paperW} / ${previewLayout.paperH}`
@@ -1281,17 +1270,16 @@ export default function Step4() {
 
   return (
     <div className="wizard-page">
-      <header className="wizard-header">
-        <Box className="wizard-header__inner">
-          <button type="button" className="wizard-header__back" onClick={goBackToStep3}>
-            ← Step3に戻る
-          </button>
-        </Box>
-        <h1 className="wizard-header__title">
-          <AppHeaderBrandIcon />
-          リフィル作成
-        </h1>
-      </header>
+      <AppHeader
+        backTo="/tool/step3"
+        backLabel="← Step3に戻る"
+        backState={{
+          sizeId: routeState?.sizeId,
+          customW: routeState?.customW,
+          customH: routeState?.customH,
+          layoutMode: routeState?.layoutMode,
+        }}
+      />
 
       <Box
         className="step4-container"

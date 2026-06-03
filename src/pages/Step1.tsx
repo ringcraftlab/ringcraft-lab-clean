@@ -3,7 +3,7 @@ import TextField from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppHeaderBrandIcon } from '../components/AppHeaderBrandIcon'
+import AppHeader from '../components/AppHeader'
 import AppButton from '../components/AppButton'
 import StepBar from '../components/StepBar'
 import RefillSizeIcon from '../components/RefillSizeIcon'
@@ -229,21 +229,7 @@ export default function Step1() {
 
   return (
     <div className="wizard-page">
-      <header className="wizard-header">
-        <Box className="wizard-header__inner">
-          <button
-            type="button"
-            className="wizard-header__back"
-            onClick={() => navigate('/tool')}
-          >
-            ← リフィル作成に戻る
-          </button>
-        </Box>
-        <h1 className="wizard-header__title">
-          <AppHeaderBrandIcon />
-          リフィル作成
-        </h1>
-      </header>
+      <AppHeader backTo="/tool" backLabel="← リフィル作成に戻る" />
 
       <Box className="wizard-container">
         <StepBar currentStep={1} />
