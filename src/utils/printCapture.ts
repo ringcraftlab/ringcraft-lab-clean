@@ -471,9 +471,14 @@ export function waitForImagesLoaded(root: ParentNode | null, timeoutMs = 5000): 
  * html2canvas は object-fit を正しく描画しないことがあるため、
  * キャプチャ直前に枠サイズへ画像をラスタライズする。
  */
-export async function rasterizeFitImagesForCapture(root: ParentNode): Promise<void> {
+export async function rasterizeFitImagesForCapture(
+  root: ParentNode,
+  pixelScale = 1,
+): Promise<void> {
   const imgs = [...root.querySelectorAll('img[data-fit-mode]')]
-  await Promise.all(imgs.map((img) => rasterizeFitImage(img as HTMLImageElement)))
+  await Promise.all(
+    imgs.map((img) => rasterizeFitImage(img as HTMLImageElement, pixelScale)),
+  )
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -485,16 +490,22 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   })
 }
 
-async function rasterizeFitImage(img: HTMLImageElement): Promise<void> {
+async function rasterizeFitImage(
+  img: HTMLImageElement,
+  pixelScale = 1,
+): Promise<void> {
   const fit = img.getAttribute('data-fit-mode') || 'cover'
   const rotation = Number(img.getAttribute('data-rotation') || 0)
   const box = img.parentElement
   if (!box || !img.src) return
 
-  const w = Math.round(box.offsetWidth) || Math.round(box.getBoundingClientRect().width)
-  const h = Math.round(box.offsetHeight) || Math.round(box.getBoundingClientRect().height)
-  console.log('rasterizeFitImage box size:', box.offsetWidth, box.offsetHeight)
-  if (w < 1 || h < 1) return
+  const layoutW =
+    Math.round(box.offsetWidth) || Math.round(box.getBoundingClientRect().width)
+  const layoutH =
+    Math.round(box.offsetHeight) || Math.round(box.getBoundingClientRect().height)
+  const w = Math.max(1, Math.round(layoutW * pixelScale))
+  const h = Math.max(1, Math.round(layoutH * pixelScale))
+  if (layoutW < 1 || layoutH < 1) return
 
   const image = await loadImage(img.src)
   const canvas = document.createElement('canvas')

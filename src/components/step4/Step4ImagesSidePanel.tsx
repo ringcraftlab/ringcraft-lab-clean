@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import { type ChangeEvent, type RefObject } from 'react'
 import AppButton from '../AppButton'
+import type { FoldImageMode } from '../../utils/foldImagePlacement'
 
 export type ImageAreaMode = 'avoid' | 'full'
 
@@ -33,6 +34,62 @@ const ImagesSideSectionTitle = styled('h3')({
   fontSize: '0.9375rem',
   fontWeight: 700,
   lineHeight: 1.4,
+})
+
+const ImagesSideSectionHint = styled('p')({
+  margin: 0,
+  color: 'var(--color-muted)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.8125rem',
+  lineHeight: 1.55,
+})
+
+const FoldModeGrid = styled(Box)({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '10px',
+  width: '100%',
+})
+
+const FoldModeCard = styled('button', {
+  shouldForwardProp: (prop) => prop !== 'active',
+})<{ active?: boolean }>(({ active }) => ({
+  position: 'relative',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '4px',
+  width: '100%',
+  margin: 0,
+  minHeight: '78px',
+  padding: '12px 14px',
+  borderRadius: 'var(--radius-card)',
+  border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
+  backgroundColor: active
+    ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))'
+    : 'var(--color-surface)',
+  textAlign: 'left',
+  cursor: 'pointer',
+  boxSizing: 'border-box',
+  transition: 'border-color 0.2s ease, background-color 0.2s ease',
+  '&:hover': {
+    borderColor: 'var(--color-primary)',
+  },
+}))
+
+const FoldModeCardTitle = styled('span')({
+  color: 'var(--color-text-h)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  lineHeight: 1.35,
+})
+
+const FoldModeCardDesc = styled('span')({
+  color: 'var(--color-muted)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.8125rem',
+  lineHeight: 1.45,
 })
 
 const ImagesSideActionBlock = styled(Box)({
@@ -159,9 +216,14 @@ const HiddenFileInput = styled('input')({
 
 export interface Step4ImagesSidePanelProps {
   images?: Record<number, string>
+  isFoldLayout?: boolean
+  foldCount?: number
+  foldImageMode?: FoldImageMode
+  onFoldImageModeChange?: (mode: FoldImageMode) => void
   fileInputRef: RefObject<HTMLInputElement | null>
   fileInputMultiRef: RefObject<HTMLInputElement | null>
   fileInputFillRef: RefObject<HTMLInputElement | null>
+  fileInputPanoramaRef?: RefObject<HTMLInputElement | null>
   imageAreaMode: ImageAreaMode
   onImageAreaModeChange: (mode: ImageAreaMode) => void
   onClearAllImages: () => void
@@ -169,13 +231,19 @@ export interface Step4ImagesSidePanelProps {
   onFileInput: (event: ChangeEvent<HTMLInputElement>) => void
   onMultiInput: (event: ChangeEvent<HTMLInputElement>) => void
   onFillInput: (event: ChangeEvent<HTMLInputElement>) => void
+  onPanoramaInput?: (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 export default function Step4ImagesSidePanel({
   images = {},
+  isFoldLayout = false,
+  foldCount = 3,
+  foldImageMode = 'panels',
+  onFoldImageModeChange,
   fileInputRef,
   fileInputMultiRef,
   fileInputFillRef,
+  fileInputPanoramaRef,
   imageAreaMode,
   onImageAreaModeChange,
   onClearAllImages,
@@ -183,8 +251,10 @@ export default function Step4ImagesSidePanel({
   onFileInput,
   onMultiInput,
   onFillInput,
+  onPanoramaInput,
 }: Step4ImagesSidePanelProps) {
   const hasImages = Object.keys(images).length > 0
+  const isPanoramaMode = isFoldLayout && foldImageMode === 'panorama'
 
   return (
     <Box className="step4-side-column" aria-label="操作エリア">
@@ -195,9 +265,13 @@ export default function Step4ImagesSidePanel({
             <ImagesPickButton type="button" onClick={() => fileInputMultiRef.current?.click()}>
               写真を選ぶ
             </ImagesPickButton>
-            <ImagesSideActionSubtext>枠ごとに別々の写真を配置</ImagesSideActionSubtext>
+            <ImagesSideActionSubtext>
+              {isPanoramaMode
+                ? '空いている帯に順に配置（面ごとに切り替わります）'
+                : '枠ごとに別々の写真を配置'}
+            </ImagesSideActionSubtext>
           </ImagesSideActionBlock>
-          {hasImages ? (
+          {hasImages && !isPanoramaMode ? (
             <>
               <ImagesSideActionBlock>
                 <ImagesFillAllButton type="button" onClick={onFillAllImages}>
@@ -209,11 +283,54 @@ export default function Step4ImagesSidePanel({
                 一括削除
               </ImagesClearAllButton>
             </>
+          ) : hasImages || isPanoramaMode ? (
+            <ImagesClearAllButton type="button" onClick={onClearAllImages}>
+              一括削除
+            </ImagesClearAllButton>
           ) : null}
         </ImagesSideSection>
 
+        {isFoldLayout && onFoldImageModeChange ? (
+          <ImagesSideSection>
+            <ImagesSideSectionTitle>② 折り画像の入れ方</ImagesSideSectionTitle>
+            <ImagesSideSectionHint>
+              面ごとに画像を入れるか、{foldCount}面を1枚の横長画像として使うかを選びます。
+            </ImagesSideSectionHint>
+            <FoldModeGrid role="radiogroup" aria-label="折り画像の入れ方">
+              {(
+                [
+                  { id: 'panels' as const, title: '面ごと', desc: '各面に別々の画像' },
+                  {
+                    id: 'panorama' as const,
+                    title: 'パノラマ',
+                    desc: `${foldCount}面を1枚で横長配置`,
+                  },
+                ] as const
+              ).map((option) => {
+                const active = foldImageMode === option.id
+                return (
+                  <FoldModeCard
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    active={active}
+                    onClick={() => onFoldImageModeChange(option.id)}
+                  >
+                    {active ? <PlacementCardCheckIcon aria-hidden /> : null}
+                    <FoldModeCardTitle>{option.title}</FoldModeCardTitle>
+                    <FoldModeCardDesc>{option.desc}</FoldModeCardDesc>
+                  </FoldModeCard>
+                )
+              })}
+            </FoldModeGrid>
+          </ImagesSideSection>
+        ) : null}
+
         <ImagesSideSection>
-          <ImagesSideSectionTitle>② 配置を選ぶ</ImagesSideSectionTitle>
+          <ImagesSideSectionTitle>
+            {isFoldLayout ? '③ 配置を選ぶ' : '② 配置を選ぶ'}
+          </ImagesSideSectionTitle>
           <ImagesPlacementCard
             type="button"
             active={imageAreaMode === 'avoid'}
@@ -265,6 +382,14 @@ export default function Step4ImagesSidePanel({
           accept="image/*"
           onChange={onFillInput}
         />
+        {fileInputPanoramaRef && onPanoramaInput ? (
+          <HiddenFileInput
+            ref={fileInputPanoramaRef}
+            type="file"
+            accept="image/*"
+            onChange={onPanoramaInput}
+          />
+        ) : null}
       </ImagesSidePanel>
     </Box>
   )

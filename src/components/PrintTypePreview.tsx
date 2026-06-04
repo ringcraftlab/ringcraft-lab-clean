@@ -1,4 +1,6 @@
 import type { CSSProperties, ReactElement } from 'react'
+import { FOLD_GUIDE_TICK_MM } from '../utils/layout'
+import { resolveSlotHoleSide } from '../utils/slotHoleSide'
 import {
   buildPrintTypePreviewLayout,
   type PrintTypePreviewLayout,
@@ -79,8 +81,10 @@ interface SheetCellProps {
 type SheetPreviewLayoutWithHoleGuide = Extract<PrintTypePreviewLayout, { kind: 'sheet' }> & {
   showHoleGuide: boolean
   holeSide: 'left' | 'right'
+  holeSides?: Record<number, 'left' | 'right'>
   borderColor?: string
   showBorder: boolean
+  strokeOnlyOverlay: boolean
 }
 
 type FoldPreviewLayoutWithHoleGuide = Extract<PrintTypePreviewLayout, { kind: 'fold' }> & {
@@ -88,6 +92,8 @@ type FoldPreviewLayoutWithHoleGuide = Extract<PrintTypePreviewLayout, { kind: 'f
   holeSide: 'left' | 'right'
   borderColor?: string
   showBorder: boolean
+  showFoldGuides: boolean
+  strokeOnlyOverlay: boolean
 }
 
 type PreviewLayoutWithHoleGuide = SheetPreviewLayoutWithHoleGuide | FoldPreviewLayoutWithHoleGuide
@@ -213,6 +219,16 @@ function sheetBorderStroke(
   return emphasized ? BORDER_EMPH : BORDER
 }
 
+function paperOutlineStroke(emphasized: boolean, showBorder: boolean) {
+  if (!showBorder) return 'none'
+  return emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE
+}
+
+function paperOutlineStrokeWidth(showBorder: boolean, emphasized: boolean) {
+  if (!showBorder) return 0
+  return emphasized ? 0.35 : 0.28
+}
+
 function SheetCell({
   x,
   y,
@@ -279,9 +295,12 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
     holeZoneMm,
     showHoleGuide,
     holeSide,
+    holeSides,
     borderColor,
     showBorder,
+    strokeOnlyOverlay,
   } = layout
+  const paperFill = strokeOnlyOverlay ? 'none' : '#faf8f5'
   const bgPatternId = `print-type-bg-${layout.kind}-${cols}x${rows}`
   const cells: ReactElement[] = []
 
@@ -289,6 +308,8 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
     for (let col = 0; col < cols; col += 1) {
       const x = marginX + col * refillW
       const y = marginY + row * refillH
+      const slotIndex = row * cols + col
+      const cellHoleSide = resolveSlotHoleSide(slotIndex, holeSides ?? {}, holeSide)
       const showImage =
         variant === 'images' &&
         ((row === 0 && col === 0) ||
@@ -308,7 +329,7 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
           showImage={showImage}
           emphasized={emphasized}
           showHoleGuide={showHoleGuide}
-          holeSide={holeSide}
+          holeSide={cellHoleSide}
           borderColor={borderColor}
           showBorder={showBorder}
         />,
@@ -336,17 +357,17 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
             width={paperW}
             height={paperH}
             fill="none"
-            stroke={emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE}
-            strokeWidth={emphasized ? 0.35 : 0.28}
+            stroke={paperOutlineStroke(emphasized, showBorder)}
+            strokeWidth={paperOutlineStrokeWidth(showBorder, emphasized)}
           />
         </>
       ) : (
         <rect
           width={paperW}
           height={paperH}
-          fill="#faf8f5"
-          stroke={emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE}
-          strokeWidth={emphasized ? 0.35 : 0.28}
+          fill={paperFill}
+          stroke={paperOutlineStroke(emphasized, showBorder)}
+          strokeWidth={paperOutlineStrokeWidth(showBorder, emphasized)}
         />
       )}
       {cells}
@@ -386,9 +407,16 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
     holeSide,
     borderColor,
     showBorder,
+    showFoldGuides,
+    strokeOnlyOverlay,
   } = layout
   const { marginX, marginY, bookCount, foldCount, panelW } = fold
   const strips: ReactElement[] = []
+  const guideStroke = borderColor ?? (emphasized ? BORDER_EMPH : BORDER)
+  const tickLen = FOLD_GUIDE_TICK_MM
+  const stripFill = strokeOnlyOverlay ? 'none' : variant === 'background' ? 'none' : '#fff'
+  const holeZoneFill = strokeOnlyOverlay ? 'none' : '#faf8f5'
+  const paperFill = strokeOnlyOverlay ? 'none' : '#faf8f5'
 
   for (let row = 0; row < bookCount; row += 1) {
     const y = marginY + row * refillH
@@ -409,7 +437,7 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
           y={y}
           width={stripWidth}
           height={refillH}
-          fill={variant === 'background' ? 'none' : '#fff'}
+          fill={stripFill}
           stroke={sheetBorderStroke(variant, emphasized, borderColor, showBorder)}
           strokeWidth={emphasized ? 0.5 : 0.38}
         />
@@ -419,7 +447,7 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
             y={y}
             width={holeZoneMm}
             height={refillH}
-            fill="#faf8f5"
+            fill={holeZoneFill}
             stroke={sheetBorderStroke(variant, emphasized, borderColor, showBorder)}
             strokeWidth={emphasized ? 0.36 : 0.28}
           />
@@ -436,6 +464,33 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
                 strokeWidth={emphasized ? 0.5 : 0.4}
               />
             ))
+          : null}
+        {showFoldGuides && showBorder && foldCount >= 2
+          ? Array.from({ length: foldCount - 1 }, (_, fi) => {
+              const creaseX = panelBaseX + (fi + 1) * panelW
+              return (
+                <g key={`fold-guide-${row}-${fi}`} data-fold-guide="true" aria-hidden>
+                  <line
+                    x1={creaseX}
+                    y1={y}
+                    x2={creaseX}
+                    y2={y + tickLen}
+                    stroke={guideStroke}
+                    strokeWidth={emphasized ? 0.45 : 0.38}
+                    strokeDasharray="1 1"
+                  />
+                  <line
+                    x1={creaseX}
+                    y1={y + refillH - tickLen}
+                    x2={creaseX}
+                    y2={y + refillH}
+                    stroke={guideStroke}
+                    strokeWidth={emphasized ? 0.45 : 0.38}
+                    strokeDasharray="1 1"
+                  />
+                </g>
+              )
+            })
           : null}
         {Array.from({ length: foldCount }, (_, col) => {
           const x = panelBaseX + col * panelW
@@ -485,17 +540,17 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
             width={paperW}
             height={paperH}
             fill="none"
-            stroke={emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE}
-            strokeWidth={emphasized ? 0.35 : 0.28}
+            stroke={paperOutlineStroke(emphasized, showBorder)}
+            strokeWidth={paperOutlineStrokeWidth(showBorder, emphasized)}
           />
         </>
       ) : (
         <rect
           width={paperW}
           height={paperH}
-          fill="#faf8f5"
-          stroke={emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE}
-          strokeWidth={emphasized ? 0.35 : 0.28}
+          fill={paperFill}
+          stroke={paperOutlineStroke(emphasized, showBorder)}
+          strokeWidth={paperOutlineStrokeWidth(showBorder, emphasized)}
         />
       )}
       {strips}
@@ -534,13 +589,26 @@ export default function PrintTypePreview({
     )
   }
 
-  const layout: PreviewLayoutWithHoleGuide = {
-    ...baseLayout,
-    showHoleGuide: layoutParams.showHoleGuide ?? true,
-    holeSide: layoutParams.holeSide ?? 'left',
-    borderColor: layoutParams.borderColor,
-    showBorder: layoutParams.showBorder ?? true,
-  }
+  const layout: PreviewLayoutWithHoleGuide =
+    baseLayout.kind === 'fold'
+      ? {
+          ...baseLayout,
+          showHoleGuide: layoutParams.showHoleGuide ?? true,
+          holeSide: layoutParams.holeSide ?? 'left',
+          borderColor: layoutParams.borderColor,
+          showBorder: layoutParams.showBorder ?? true,
+          showFoldGuides: layoutParams.showFoldGuides ?? true,
+          strokeOnlyOverlay: layoutParams.strokeOnlyOverlay ?? false,
+        }
+      : {
+          ...baseLayout,
+          showHoleGuide: layoutParams.showHoleGuide ?? true,
+          holeSide: layoutParams.holeSide ?? 'left',
+          holeSides: layoutParams.holeSides,
+          borderColor: layoutParams.borderColor,
+          showBorder: layoutParams.showBorder ?? true,
+          strokeOnlyOverlay: layoutParams.strokeOnlyOverlay ?? false,
+        }
 
   const svg =
     layout.kind === 'fold' ? (
