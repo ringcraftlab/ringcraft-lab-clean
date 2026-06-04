@@ -372,9 +372,8 @@ export function useStep4Capture({
     if (!previewLayout) return null
 
     const { pageWmm, pageHmm } = paperMetrics
-    const captureScale = printCaptureScale()
-    const paperW_px = Math.round(mmToPx(pageWmm) * captureScale)
-    const paperH_px = Math.round(mmToPx(pageHmm) * captureScale)
+    const paperW_px = Math.round(mmToPx(pageWmm))
+    const paperH_px = Math.round(mmToPx(pageHmm))
 
     const { host, sheet } = createOffscreenCaptureHost(paperW_px, paperH_px)
     let reactRoot: Root | null = null
@@ -418,7 +417,7 @@ export function useStep4Capture({
       fixCaptureSvgDimensions(sheet, paperH_px)
 
       const canvas = await html2canvas(sheet, {
-        scale: 1,
+        scale: printCaptureScale(),
         width: paperW_px,
         height: paperH_px,
         useCORS: true,

@@ -169,7 +169,7 @@
 
 - 面ごと: 面矩形ごとに画像をラスタライズ（現行どおり）
 - パノラマ: 冊ごとの横長矩形にパノラマ画像を1回だけ描画（面ごとへの複製はしない）
-- **画質**: 面ごと・パノラマ・シート・背景は同一パイプライン（`PRINT_CAPTURE_DPI` = 300）。オフスクリーン DOM を 300dpi 相当の px で組み立て、`rasterizeFitImagesForCapture` で各枠へフィット描画後、html2canvas（scale 1）→ PNG → A4 PDF。プレビュー表示は 96dpi 相当のまま
+- **画質**: 面ごと・パノラマ・シート・背景は同一パイプライン（目標 `PRINT_CAPTURE_DPI` = 300）。オフスクリーン DOM は 96dpi 相当のレイアウト px で組み立て、各画像は `rasterizeFitImagesForCapture` で枠サイズへフィット描画したうえで html2canvas（`scale = printCaptureScale()` = 300/96）でシート全体を拡大 → PNG → A4 PDF。プレビュー表示は 96dpi 相当のまま（300dpi DOM + scale 1 は画質劣化のため使わない）
 - **重なり順（個別画像）**: 画像レイヤーの上に枠 SVG（`strokeOnlyOverlay`、枠線 ON または穴ガイド ON 時）を載せ、白背景の画像で枠線が隠れないようにする
 
 #### 折り目ガイド
