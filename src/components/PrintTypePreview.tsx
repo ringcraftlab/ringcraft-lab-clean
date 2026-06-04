@@ -219,6 +219,16 @@ function sheetBorderStroke(
   return emphasized ? BORDER_EMPH : BORDER
 }
 
+function paperOutlineStroke(emphasized: boolean, showBorder: boolean) {
+  if (!showBorder) return 'none'
+  return emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE
+}
+
+function paperOutlineStrokeWidth(showBorder: boolean, emphasized: boolean) {
+  if (!showBorder) return 0
+  return emphasized ? 0.35 : 0.28
+}
+
 function SheetCell({
   x,
   y,
@@ -347,8 +357,8 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
             width={paperW}
             height={paperH}
             fill="none"
-            stroke={emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE}
-            strokeWidth={emphasized ? 0.35 : 0.28}
+            stroke={paperOutlineStroke(emphasized, showBorder)}
+            strokeWidth={paperOutlineStrokeWidth(showBorder, emphasized)}
           />
         </>
       ) : (
@@ -356,8 +366,8 @@ function SheetPreviewSvg({ layout, variant, emphasized }: SheetPreviewSvgProps) 
           width={paperW}
           height={paperH}
           fill={paperFill}
-          stroke={emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE}
-          strokeWidth={emphasized ? 0.35 : 0.28}
+          stroke={paperOutlineStroke(emphasized, showBorder)}
+          strokeWidth={paperOutlineStrokeWidth(showBorder, emphasized)}
         />
       )}
       {cells}
@@ -530,8 +540,8 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
             width={paperW}
             height={paperH}
             fill="none"
-            stroke={emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE}
-            strokeWidth={emphasized ? 0.35 : 0.28}
+            stroke={paperOutlineStroke(emphasized, showBorder)}
+            strokeWidth={paperOutlineStrokeWidth(showBorder, emphasized)}
           />
         </>
       ) : (
@@ -539,8 +549,8 @@ function FoldPreviewSvg({ layout, variant, emphasized }: FoldPreviewSvgProps) {
           width={paperW}
           height={paperH}
           fill={paperFill}
-          stroke={emphasized ? PAPER_OUTLINE_EMPH : PAPER_OUTLINE}
-          strokeWidth={emphasized ? 0.35 : 0.28}
+          stroke={paperOutlineStroke(emphasized, showBorder)}
+          strokeWidth={paperOutlineStrokeWidth(showBorder, emphasized)}
         />
       )}
       {strips}
