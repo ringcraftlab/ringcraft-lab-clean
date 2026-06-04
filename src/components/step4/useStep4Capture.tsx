@@ -116,7 +116,7 @@ const captureSlotStyle = (rect: SlotRectPercent): CSSProperties => ({
 
 const captureFrameOverlayStyle: CSSProperties = {
   ...captureOverlayLayerStyle,
-  zIndex: 1,
+  zIndex: 3,
 }
 
 const captureSlotImageStyle: CSSProperties = {
@@ -214,27 +214,28 @@ function CaptureSheet({
     previewLayout.kind === 'fold' &&
     foldImageMode === 'panorama'
 
+  const showBorder = layoutParams.showBorder ?? true
   const frameOverlayParams: PrintTypePreviewLayoutParams = {
     ...layoutParams,
     strokeOnlyOverlay: true,
   }
 
-  const frameOverlay = showHoleGuide ? (
-    <div style={captureFrameOverlayStyle}>
-      <PrintTypePreview
-        variant="frame"
-        layoutParams={frameOverlayParams}
-        emphasized
-      />
-    </div>
-  ) : null
+  const frameOverlay =
+    isImagesMode && (showBorder || showHoleGuide) ? (
+      <div style={captureFrameOverlayStyle}>
+        <PrintTypePreview
+          variant="frame"
+          layoutParams={frameOverlayParams}
+          emphasized
+        />
+      </div>
+    ) : null
 
   if (isImagesMode) {
     if (isFoldPanorama) {
       const stripRects = buildPanoramaStripRects(previewLayout, imageAreaMode, holeSide)
       return (
         <div style={sheetStyle}>
-          {frameOverlay}
           {stripRects.map((rect) => {
             const src = panoramaImages[rect.bookIndex]
             if (!src) return null
@@ -259,6 +260,7 @@ function CaptureSheet({
               </div>
             )
           })}
+          {frameOverlay}
         </div>
       )
     }
@@ -266,7 +268,6 @@ function CaptureSheet({
     const slotRects = buildSlotRects(previewLayout)
     return (
       <div style={sheetStyle}>
-        {frameOverlay}
         {slotRects.map((rect) => {
           const src = images[rect.index]
           if (!src) return null
@@ -282,6 +283,7 @@ function CaptureSheet({
             </div>
           )
         })}
+        {frameOverlay}
       </div>
     )
   }
